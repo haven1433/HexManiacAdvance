@@ -58,13 +58,13 @@ if.compare.goto variable:scriptvariablealiases condition.script_compare value: p
                                                                                                                                                                # If the comparison is true, goto another address or section.
 if.compare.call variable:scriptvariablealiases condition.script_compare value: pointer<`xse`> -> if.compare.call 21 variable:scriptvariablealiases value: 07 condition.script_compare pointer<`xse`>     # Compare a variable with a value.
                                                                                                                                                                # If the comparison is true, call another address or section.
-if.flag.set.goto   2B flag:|h 06 01 pointer<`xse`>                                                                                                             # If the flag is set, goto another address or section.
+if.flag.set.goto   2B flag:scriptnamedflags|h 06 01 pointer<`xse`>                                                                                             # If the flag is set, goto another address or section.
                                                                                                                                                                # (Flags begin as clear.)
-if.flag.set.call   2B flag:|h 07 01 pointer<`xse`>                                                                                                             # If the flag is set, call another address or section
+if.flag.set.call   2B flag:scriptnamedflags|h 07 01 pointer<`xse`>                                                                                             # If the flag is set, call another address or section
                                                                                                                                                                # (Flags begin as clear.)
-if.flag.clear.goto 2B flag:|h 06 00 pointer<`xse`>                                                                                                             # If the flag is clear, goto another address or section
+if.flag.clear.goto 2B flag:scriptnamedflags|h 06 00 pointer<`xse`>                                                                                             # If the flag is clear, goto another address or section
                                                                                                                                                                # (Flags begin as clear.)
-if.flag.clear.call 2B flag:|h 07 00 pointer<`xse`>                                                                                                             # If the flag is clear, call another address or section
+if.flag.clear.call 2B flag:scriptnamedflags|h 07 00 pointer<`xse`>                                                                                             # If the flag is clear, call another address or section
                                                                                                                                                                # (Flags begin as clear.)
 if.trainer.defeated.goto 60 trainer:data.trainers.stats 06 01 pointer<`xse`>                                                                                   # If the trainer is defeated, goto another address or section
 if.trainer.defeated.call 60 trainer:data.trainers.stats 07 01 pointer<`xse`>                                                                                   # If the trainer is defeated, call another address or section
@@ -164,9 +164,9 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
                                                         # In FRLG, an invalid special number will print an error message to the debugger log output and freeze the game.
 27 waitstate                                 # blocks script execution and disables the script running code until it gets reenabled by some ASM code.
 28 pause time:                               # blocks script execution for 'time' frames
-29 setflag flag:|h                           # flag = 1
-2A clearflag flag:|h                         # flag = 0
-2B checkflag flag:|h                         # sets the condition variable based on the value of the flag. Used with < (when the flag is 0) or = (when the flag is 1) compare values
+29 setflag flag:scriptnamedflags|h           # flag = 1
+2A clearflag flag:scriptnamedflags|h         # flag = 0
+2B checkflag flag:scriptnamedflags|h         # sets the condition variable based on the value of the flag. Used with < (when the flag is 0) or = (when the flag is 1) compare values
 [BPRE_BPGE] 2C nop2C                         # does nothing
 [AXPE_AXVE_BPEE] 2C initclock hour: minute:  # Changes how many hours/minutes forward to adjust the real-time clock, without additional player input. 'hour' and 'minute' can be variables.
 2D checkdailyflags                           # nop in FRLG. Updates flags, variables, and other data in RSE based on real-time-clock
@@ -309,7 +309,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 76 hidepokepic                                  # hides all shown pokepics
 77 showcontestwinner contest.                   # nop in FireRed. Shows the painting of a winner of the given contest.
 78 braille text<>                               # displays a message in braille. The text must be formatted to use braille.
-79 givePokemon species:data.pokemon.names level. item:data.items.stats filler:: filler:: filler.
+79 givePokemon species:data.pokemon.names level. item:data.items.stats filler. filler:: filler::
                                              # gives the player one of that pokémon. the last 9 bytes are all 00.
                                              # varResult=0 if it was added to the party
                                              # varResult=1 if it was put in the PC

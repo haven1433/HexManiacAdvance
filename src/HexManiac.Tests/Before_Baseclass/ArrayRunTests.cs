@@ -1091,6 +1091,41 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(match);
       }
 
+      [Theory]
+      [InlineData("&~", 5)] // battle script compare: "if the bits are not set". The ~ is part of the name, not "which of the duplicates".
+      [InlineData("&", 4)]
+      [InlineData("<", 3)]
+      [InlineData("=", 0)]
+      public void OptionEndingWithATilde_TryMatchItsName_MatchesThatOption(string text, int expected) {
+         var options = new[] { "=", "!=", ">", "<", "&", "&~" };
+         var match = ArrayRunEnumSegment.TryMatch(text, options, out int value);
+         Assert.True(match);
+         Assert.Equal(expected, value);
+      }
+
+      [Fact]
+      public void DuplicateNames_TryMatchWithTildeNumber_MatchesTheNumberedOne() {
+         var options = new[] { "Grunt", "Bob", "Grunt" };
+         Assert.True(ArrayRunEnumSegment.TryMatch("Grunt~2", options, out int value));
+         Assert.Equal(2, value);
+      }
+
+      [Fact]
+      public void ListWithRepeatedNamesThatAlreadyEndInATilde_ShowEveryValueAndTypeItBack_SameValue() {
+         // a list taken from the values of another table that already numbers its repeated names: "Trainer" and "Trainer~3" can both repeat
+         var names = new[] { "Trainer", "Bob", "Trainer~3", "Trainer", "Trainer~3", "Trainer", "Trainer~2", "&~", "&" };
+         Model.SetList(new ModelDelta(), "names", names);
+         var segment = new ArrayRunEnumSegment("v", 1, "names");
+         for (int i = 0; i < names.Length; i++) {
+            Model[0] = (byte)i;
+
+            var text = segment.ToText(Model, 0, 0);
+
+            Assert.True(segment.TryParse(Model, text, out int value), $"'{text}' (value {i}) cannot be read back");
+            Assert.Equal(i, value);
+         }
+      }
+
       [Fact]
       public void BitFieldWithUnknownBitSet_CopyPaste_CorrectBitsSet() {
          var fileSystem = new StubFileSystem();

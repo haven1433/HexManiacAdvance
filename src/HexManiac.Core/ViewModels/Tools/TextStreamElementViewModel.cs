@@ -53,6 +53,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          NotifyPropertyChanged(nameof(Visualizations));
       }
 
+      /// <summary>
+      /// For editors that change the data without going through Content: read the text again, so Content (and the filter, which searches it) stay up to date.
+      /// </summary>
+      protected void RefreshContentFromData() {
+         var text = string.Empty;
+         var destination = Model.ReadPointer(Start);
+         var run = Model.GetNextRun(destination);
+         if (run is IStreamRun streamRun) {
+            text = streamRun.SerializeRun() ?? string.Empty;
+         } else if (run is ITableRun tRun) {
+            var proxy = new TableStreamRun(Model, tRun.Start, tRun.PointerSources, tRun.FormatString,
+               tRun.ElementContent, new FixedLengthStreamStrategy(tRun.ElementCount));
+            text = proxy.SerializeRun() ?? string.Empty;
+         }
+         if (TryUpdate(ref content, text, nameof(Content))) ElementContent.Content = content;
+      }
+
       public IReadOnlyList<IPixelViewModel> Visualizations {
          get {
             var destination = Model.ReadPointer(Start);

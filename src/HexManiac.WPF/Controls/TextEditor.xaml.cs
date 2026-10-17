@@ -65,17 +65,50 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          // ExtentWidth is not a DependencyProperty, so check for the horizontal scroll bar when the text chanegs
          TransparentLayer.TextChanged += (sender, e) => {
             // measure the width of the text, since ExtentWidth hasn't been updated yet.
+            // Only the widest line matters, and laying out the whole script on every keystroke is slow for long scripts,
+            // so measure just the longest few lines (the font is monospace, so the longest lines by character count are the widest).
             var typeface = new Typeface(TransparentLayer.FontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
-            var width = new FormattedText(TransparentLayer.Text, CultureInfo.CurrentCulture, FlowDirection, typeface, TransparentLayer.FontSize, Brushes.Transparent, 1).Width;
-            foreach (var layer in Layers) layer.Width = width;
-            if (width > TransparentLayer.ViewportWidth && TransparentLayer.ViewportHeight > TransparentLayer.ExtentHeight) {
-               CornerCover.Width = 16;
-               CornerCover.Height = 17;
-            } else {
-               CornerCover.Width = 0;
-               CornerCover.Height = 0;
+            var width = 0.0;
+            foreach (var line in LongestLines(TransparentLayer.Text, 3)) {
+               width = Math.Max(width, new FormattedText(line, CultureInfo.CurrentCulture, FlowDirection, typeface, TransparentLayer.FontSize, Brushes.Transparent, 1).Width);
             }
+            foreach (var layer in Layers) layer.Width = width;
+            // The corner cover is NOT decided here: the viewport and extent sizes the text box reports while its text is still changing
+            // are the ones of the text it had before (WPF lays it out afterwards), and nothing ever corrected a wrong guess.
+            // That left a dark 16x17 square at the corner of the trainer team box, with no scroll bar anywhere. See UpdateCornerCover, which runs after the layout.
          };
+      }
+
+      /// <summary>
+      /// Returns up to 'count' of the longest lines of the text (by character count), without splitting the whole text into strings.
+      /// Tabs count as several characters, since they render wider than one character.
+      /// </summary>
+      private static IEnumerable<string> LongestLines(string text, int count) {
+         if (string.IsNullOrEmpty(text)) return new[] { string.Empty };
+         var longest = new List<(int start, int length, int weight)>();
+         int lineStart = 0, weight = 0;
+         void Consider(int end) {
+            var length = end - lineStart;
+            if (longest.Count < count) {
+               longest.Add((lineStart, length, weight));
+            } else {
+               var minIndex = 0;
+               for (int i = 1; i < longest.Count; i++) if (longest[i].weight < longest[minIndex].weight) minIndex = i;
+               if (weight > longest[minIndex].weight) longest[minIndex] = (lineStart, length, weight);
+            }
+         }
+         for (int i = 0; i < text.Length; i++) {
+            var c = text[i];
+            if (c == '\n' || c == '\r') {
+               Consider(i);
+               lineStart = i + 1;
+               weight = 0;
+            } else {
+               weight += c == '\t' ? 8 : 1;
+            }
+         }
+         Consider(text.Length);
+         return longest.Select(line => text.Substring(line.start, line.length));
       }
 
       private void HandleDataContextChanged(object sender, DependencyPropertyChangedEventArgs e) {
@@ -96,8 +129,20 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void HandleViewModelPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(TextEditorViewModel.CommentContent)) {
-            UpdateErrorDecorations();
+            RequestErrorDecorationUpdate();
          }
+      }
+
+      // The view model clears and re-adds its error locations one at a time after every edit.
+      // Rebuilding the decorations for each of those changes is wasted work, so coalesce them into one rebuild per UI pass.
+      private bool errorDecorationUpdateRequested;
+      private void RequestErrorDecorationUpdate() {
+         if (errorDecorationUpdateRequested) return;
+         errorDecorationUpdateRequested = true;
+         Dispatcher.BeginInvoke(new Action(() => {
+            errorDecorationUpdateRequested = false;
+            if (ViewModel != null) UpdateErrorDecorations();
+         }), System.Windows.Threading.DispatcherPriority.Render);
       }
 
       private void HandleViewModelCaretMove(object sender, EventArgs e) {
@@ -111,7 +156,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          RequestBringIntoView -= SuppressBringIntoView;
       }
 
-      private void HandleViewModelErrorUpdate(object sender, EventArgs e) => UpdateErrorDecorations();
+      private void HandleViewModelErrorUpdate(object sender, EventArgs e) => RequestErrorDecorationUpdate();
 
       private void SuppressBringIntoView(object sender, RequestBringIntoViewEventArgs e) => e.Handled = true;
 
@@ -135,6 +180,20 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             transform.X = -TransparentLayer.HorizontalOffset;
             layer.Width = TransparentLayer.ExtentWidth;
          }
+         UpdateCornerCover(e);
+      }
+
+      /// <summary>
+      /// The square where the two scroll bars meet is painted over, but only while both scroll bars are showing (see TextEditorViewModel.NeedsScrollCornerCover).
+      /// ScrollChanged is raised after WPF has laid the text box out, so the sizes in 'e' are the final ones for the current text and the current box size
+      /// (it is raised again whenever the text, the box or the window changes them). The decision is therefore always about what is on screen now.
+      /// </summary>
+      private void UpdateCornerCover(ScrollChangedEventArgs e) {
+         var cover = TextEditorViewModel.NeedsScrollCornerCover(e.ExtentWidth, e.ViewportWidth, e.ExtentHeight, e.ViewportHeight);
+         var width = cover ? 16 : 0;
+         var height = cover ? 17 : 0;
+         if (CornerCover.Width != width) CornerCover.Width = width;
+         if (CornerCover.Height != height) CornerCover.Height = height;
       }
 
       private static SolidColorBrush Brush(string name) {

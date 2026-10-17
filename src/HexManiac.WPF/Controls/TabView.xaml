@@ -11,6 +11,7 @@
    <UserControl.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
       <hsi:BooleanConverter x:Key="InverseBoolToVisibility" True="Collapsed" False="Visible" />
+      <hsi:BooleanConverter x:Key="BoolToHidden" True="Visible" False="Hidden" />
       <hsi:DoubleGridLengthConverter x:Key="DoubleToGridLength" />
       <hsg3hv:IntegerToHexConverter x:Key="Hex" />
       <hsg3hv:EqualityToBooleanConverter x:Key="Equality" />
@@ -176,6 +177,204 @@
             </Popup>
             <DockPanel Name="TableToolPanel" PreviewKeyDown="TableKeyDown">
                <DockPanel.Resources>
+                  <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteGalleryElementViewModel}">
+                     <StackPanel Margin="2,8,2,0" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                        <DockPanel Margin="0,0,0,2">
+                           <TextBlock Text="Name:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                           <TextBox Text="{Binding CurrentName, UpdateSourceTrigger=LostFocus}" VerticalAlignment="Center"
+                                    ToolTip="Rename this sprite (press Tab or click away to apply). The name is saved in the .toml next to the ROM and shows up in every sprite dropdown and in the map editor."/>
+                        </DockPanel>
+                        <DockPanel Margin="0,2">
+                           <Button DockPanel.Dock="Right" Content="Big gallery" Command="{Binding OpenGallery}" Padding="6,1" Margin="4,0,0,0" ToolTip="Open the gallery in its own tab"/>
+                           <Button DockPanel.Dock="Right" Content="↻" Command="{Binding Refresh}" Padding="6,1" Margin="4,0,0,0" ToolTip="Redraw every sprite"/>
+                           <TextBlock Text="Find:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                           <TextBox Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" ToolTip="Filter by number or name"/>
+                        </DockPanel>
+                        <TextBlock Text="All sprites (click one to edit it):" Foreground="{DynamicResource Secondary}" FontSize="10" Margin="0,2,0,0"/>
+                        <!-- Rows of sprites in a virtualizing list: there are over a thousand sprites, and only the rows on screen get any controls (building them all made every visit to this table slow). -->
+                        <ItemsControl ItemsSource="{Binding Rows}" Height="320" Background="{DynamicResource Backlight}" SizeChanged="GallerySizeChanged"
+                                      VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" VirtualizingPanel.ScrollUnit="Pixel">
+                           <ItemsControl.Template>
+                              <ControlTemplate TargetType="{x:Type ItemsControl}">
+                                 <ScrollViewer CanContentScroll="True" Focusable="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="{TemplateBinding Background}">
+                                    <ItemsPresenter/>
+                                 </ScrollViewer>
+                              </ControlTemplate>
+                           </ItemsControl.Template>
+                           <ItemsControl.ItemsPanel>
+                              <ItemsPanelTemplate>
+                                 <VirtualizingStackPanel/>
+                              </ItemsPanelTemplate>
+                           </ItemsControl.ItemsPanel>
+                           <ItemsControl.ItemTemplate>
+                              <DataTemplate>
+                                 <ItemsControl ItemsSource="{Binding Items}">
+                                    <ItemsControl.ItemsPanel>
+                                       <ItemsPanelTemplate>
+                                          <StackPanel Orientation="Horizontal"/>
+                                       </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                       <DataTemplate>
+                                          <Button Command="{Binding SelectCommand}" CommandParameter="{Binding}"
+                                                  ToolTip="{Binding Label}" Margin="1" Padding="2" BorderThickness="2" Background="Transparent">
+                                             <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                                   <Setter Property="BorderBrush" Value="Transparent"/>
+                                                   <Style.Triggers>
+                                                      <DataTrigger Binding="{Binding Selected}" Value="True">
+                                                         <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                                      </DataTrigger>
+                                                      <DataTrigger Binding="{Binding IsPlaceholder}" Value="True">
+                                                         <Setter Property="Opacity" Value=".4"/>
+                                                      </DataTrigger>
+                                                   </Style.Triggers>
+                                                </Style>
+                                             </Button.Style>
+                                             <StackPanel Width="44">
+                                                <Grid Height="64">
+                                                   <hsg3hv:PixelImage HorizontalAlignment="Center" VerticalAlignment="Bottom" TransparentBrush="{DynamicResource Backlight}"/>
+                                                </Grid>
+                                                <TextBlock Text="{Binding Index}" HorizontalAlignment="Center" FontSize="9"/>
+                                             </StackPanel>
+                                          </Button>
+                                       </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                 </ItemsControl>
+                              </DataTemplate>
+                           </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                     </StackPanel>
+                  </DataTemplate>
+                  <DataTemplate DataType="{x:Type hsg3hvmtr:FieldEffectElementViewModel}">
+                     <StackPanel Margin="2,8,2,0" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="{Binding Title}" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding Info}" Foreground="{DynamicResource Secondary}" FontSize="10" TextWrapping="Wrap" Margin="0,2,0,4"/>
+                        <ItemsControl ItemsSource="{Binding Frames}" Background="{DynamicResource Backlight}" Margin="0,0,0,4">
+                           <ItemsControl.ItemsPanel>
+                              <ItemsPanelTemplate>
+                                 <WrapPanel/>
+                              </ItemsPanelTemplate>
+                           </ItemsControl.ItemsPanel>
+                           <ItemsControl.ItemTemplate>
+                              <DataTemplate>
+                                 <hsg3hv:PixelImage Margin="2" TransparentBrush="{DynamicResource Backlight}"/>
+                              </DataTemplate>
+                           </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="{Binding PaletteTitle}" Foreground="{DynamicResource Secondary}" FontSize="10" TextWrapping="Wrap"/>
+                        <hsg3hv:PixelImage DataContext="{Binding PaletteImage}" HorizontalAlignment="Left" Margin="0,2" TransparentBrush="{DynamicResource Backlight}"/>
+                        <hsg3hv:AngleButton Margin="0,2" Direction="Out" HorizontalAlignment="Stretch" Content="Edit this palette" Command="{Binding OpenPalette}"
+                                            ToolTip="Jump to the palette this effect is drawn with, to change its colours"/>
+                        <ItemsControl ItemsSource="{Binding Fields}" Margin="0,2" IsTabStop="False">
+                           <ItemsControl.ItemTemplate>
+                              <DataTemplate>
+                                 <Grid Margin="0,1">
+                                    <Grid.ColumnDefinitions>
+                                       <ColumnDefinition Width="90"/>
+                                       <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Label}" VerticalAlignment="Center" Margin="2,0"/>
+                                    <TextBox Grid.Column="1" Text="{Binding Text, UpdateSourceTrigger=LostFocus}" FontFamily="Consolas" MaxLength="6" VerticalAlignment="Center"
+                                             ToolTip="Four hex digits (press Tab or click away to apply). The palette tag picks the palette the effect is drawn with; FFFF means the palette of the object it belongs to."/>
+                                 </Grid>
+                              </DataTemplate>
+                           </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <hsg3hv:AngleButton Margin="0,2" Direction="Out" HorizontalAlignment="Stretch" Content="Edit all fields" Command="{Binding OpenTable}"
+                                            Visibility="{Binding IsEmbedded, Converter={StaticResource BoolToVisibility}}"
+                                            ToolTip="Show this effect in the table tool with all of its fields (the table of field effects)"/>
+                        <hsg3hv:AngleButton Margin="0,2" Direction="Out" HorizontalAlignment="Stretch" Content="Reflection palettes" Command="{Binding OpenReflectionPalettes}"
+                                            Visibility="{Binding IsEmbedded, Converter={StaticResource InverseBoolToVisibility}}"
+                                            ToolTip="Show the Reflection Palettes editor, on the right of the overworld sprites"/>
+                        <DockPanel Margin="0,2">
+                           <Button DockPanel.Dock="Right" Content="&#8635;" Command="{Binding Refresh}" Padding="6,1" Margin="4,0,0,0" ToolTip="Redraw every field effect"/>
+                           <TextBlock Text="Find:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                           <TextBox Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" ToolTip="Filter by number or name"/>
+                        </DockPanel>
+                        <TextBlock Text="All field effects (click one to edit it):" Foreground="{DynamicResource Secondary}" FontSize="10" Margin="0,2,0,0"/>
+                        <ItemsControl ItemsSource="{Binding Elements}" Background="{DynamicResource Backlight}">
+                           <ItemsControl.ItemsPanel>
+                              <ItemsPanelTemplate>
+                                 <WrapPanel/>
+                              </ItemsPanelTemplate>
+                           </ItemsControl.ItemsPanel>
+                           <ItemsControl.ItemTemplate>
+                              <DataTemplate>
+                                 <Button Command="{Binding SelectCommand}" CommandParameter="{Binding}"
+                                         ToolTip="{Binding Label}" Margin="1" Padding="2" BorderThickness="2" Background="Transparent">
+                                    <Button.Style>
+                                       <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                          <Setter Property="BorderBrush" Value="Transparent"/>
+                                          <Style.Triggers>
+                                             <DataTrigger Binding="{Binding Selected}" Value="True">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                             </DataTrigger>
+                                             <DataTrigger Binding="{Binding IsPlaceholder}" Value="True">
+                                                <Setter Property="Opacity" Value=".4"/>
+                                             </DataTrigger>
+                                          </Style.Triggers>
+                                       </Style>
+                                    </Button.Style>
+                                    <StackPanel Width="68">
+                                       <Grid Height="48">
+                                          <hsg3hv:PixelImage HorizontalAlignment="Center" VerticalAlignment="Bottom" TransparentBrush="{DynamicResource Backlight}"/>
+                                       </Grid>
+                                       <TextBlock Text="{Binding Index}" HorizontalAlignment="Center" FontSize="9"/>
+                                    </StackPanel>
+                                 </Button>
+                              </DataTemplate>
+                           </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                     </StackPanel>
+                  </DataTemplate>
+                  <DataTemplate DataType="{x:Type hsg3hvmtr:OverworldSecondaryElementViewModel}">
+                     <StackPanel Margin="2,8,2,0" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                        <Grid Background="{DynamicResource Backlight}">
+                           <TextBlock HorizontalAlignment="Center" Text="Field effects and reflections" FontSize="20" Height="26"/>
+                        </Grid>
+                        <Grid Margin="0,6,0,4" Visibility="{Binding HasBoth, Converter={StaticResource BoolToVisibility}}">
+                           <Grid.ColumnDefinitions>
+                              <ColumnDefinition Width="*"/>
+                              <ColumnDefinition Width="*"/>
+                           </Grid.ColumnDefinitions>
+                           <Button Grid.Column="0" Content="Field Effects" Command="{Binding SelectFieldEffects}" Margin="0,0,2,0" Padding="4,3" BorderThickness="2"
+                                   ToolTip="Grass, ripples, shadows, dust and the other effects, with their pictures and palettes">
+                              <Button.Style>
+                                 <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                    <Style.Triggers>
+                                       <DataTrigger Binding="{Binding ShowFieldEffects}" Value="True">
+                                          <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                       </DataTrigger>
+                                    </Style.Triggers>
+                                 </Style>
+                              </Button.Style>
+                           </Button>
+                           <Button Grid.Column="1" Content="Reflection Palettes" Command="{Binding SelectReflections}" Margin="2,0,0,0" Padding="4,3" BorderThickness="2"
+                                   ToolTip="The palettes of reflections in water, on ice and under bridges, with the sprites they affect">
+                              <Button.Style>
+                                 <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                    <Style.Triggers>
+                                       <DataTrigger Binding="{Binding ShowReflections}" Value="True">
+                                          <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                       </DataTrigger>
+                                    </Style.Triggers>
+                                 </Style>
+                              </Button.Style>
+                           </Button>
+                        </Grid>
+                        <ContentControl Content="{Binding FieldEffectsEditor}" IsTabStop="False"/>
+                        <ContentControl Content="{Binding ReflectionsEditor}" IsTabStop="False">
+                           <ContentControl.ContentTemplate>
+                              <DataTemplate>
+                                 <hsg3hv:ReflectionPaletteView/>
+                              </DataTemplate>
+                           </ContentControl.ContentTemplate>
+                        </ContentControl>
+                     </StackPanel>
+                  </DataTemplate>
                   <DataTemplate DataType="{x:Type hsg3hvmtr:ButtonArrayElementViewModel}">
                      <hsg3hv:AngleButton Margin="2,2" Direction="Out" HorizontalAlignment="Stretch"
                                  Content="{Binding Text}" ToolTip="{Binding ToolTipText}" Command="{Binding Command}"
@@ -242,7 +441,8 @@
                         </DataTemplate>
                      </Grid.Resources>
                      <hsg3hv:AngleComboBox Grid.Column="1" HorizontalAlignment="Stretch" Margin="5,0" Direction="Out"
-                        DataContext="{Binding TableTool.CurrentElementSelector}" />
+                        DataContext="{Binding TableTool.CurrentElementSelector}"
+                        ScrollViewer.CanContentScroll="True" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" />
                      <hsg3hv:AngleButton Content="Previous" Grid.Column="0" Command="{Binding TableTool.Previous}" Padding="0" Direction="Left"/>
                      <hsg3hv:AngleButton Content="Next" Grid.Column="2" Command="{Binding TableTool.Next}" Padding="0" Direction="Right"/>
                   </Grid>
@@ -328,7 +528,7 @@
                      <ItemsControl ItemsSource="{Binding TableTool.Groups}" Grid.IsSharedSizeScope="True">
                         <ItemsControl.ItemsPanel>
                            <ItemsPanelTemplate>
-                              <hsg3hv:ColumnStackPanel VerticalAlignment="Top" MinimumColumnWidth="235" ColumnMargin="8" HeaderMargin="10"/>
+                              <hsg3hv:ColumnStackPanel VerticalAlignment="Top" MinimumColumnWidth="300" ColumnMargin="8" HeaderMargin="10"/>
                            </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
@@ -604,6 +804,26 @@
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteIndicatorElementViewModel}">
                                           <hsg3hv:PixelImage SnapsToDevicePixels="True" DataContext="{Binding Image}" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" />
                                        </DataTemplate>
+                                       <DataTemplate DataType="{x:Type hsg3hvmtr:PokemonAnimationPreviewViewModel}">
+                                          <hsg3hv:PokemonAnimationHost>
+                                             <StackPanel Margin="0,4" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                                <hsg3hv:AngleBorder Content="{Binding Header}" FontSize="10" Direction="Out" HorizontalAlignment="Center" />
+                                                <!-- this area keeps its size whatever the preview shows (a picture, nothing, one line or two of text), so switching to another pokemon never moves the sprites below it -->
+                                                <Grid HorizontalAlignment="Center" MinWidth="96" MinHeight="96" Visibility="{Binding HasAnimation, Converter={StaticResource BoolToHidden}}">
+                                                   <hsg3hv:PixelImage SnapsToDevicePixels="True" DataContext="{Binding Surface}" />
+                                                </Grid>
+                                                <TextBlock Text="{Binding Status}" HorizontalAlignment="Center" TextWrapping="Wrap" FontSize="10" MinHeight="27" Foreground="{DynamicResource Secondary}" />
+                                                <Grid HorizontalAlignment="Stretch" Margin="0,5" Height="22" TextBlock.FontSize="10">
+                                                   <Grid.ColumnDefinitions>
+                                                      <ColumnDefinition Width="*"/>
+                                                      <ColumnDefinition Width="*"/>
+                                                   </Grid.ColumnDefinitions>
+                                                   <hsg3hv:AngleButton Direction="Left" Content="{Binding PlayLabel}" Grid.Column="0" Command="{Binding TogglePlay}" ToolTip="Pause or resume the preview" />
+                                                   <hsg3hv:AngleButton Direction="Right" Content="Replay" Grid.Column="1" Command="{Binding Replay}" ToolTip="Play the animation again from the start" />
+                                                </Grid>
+                                             </StackPanel>
+                                          </hsg3hv:PokemonAnimationHost>
+                                       </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:PaletteElementViewModel}">
                                           <Grid HorizontalAlignment="Stretch" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                                              <StackPanel PreviewMouseDown="ActivatePalette">
@@ -622,7 +842,7 @@
                                           <Grid HorizontalAlignment="Stretch" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                                           <StackPanel ToolTip="{Binding ParentName}">
                                              <hsg3hv:CommonTableStreamControl />
-                                             <Grid Margin="20,2,2,2" Background="{DynamicResource Backlight}">
+                                             <Grid Margin="20,2,2,2" MaxWidth="420" HorizontalAlignment="Left" Background="{DynamicResource Backlight}">
                                                    <Viewbox HorizontalAlignment="Right" Height="{Binding ActualHeight, ElementName=StreamTextBox}" Stretch="Uniform" IsHitTestVisible="False" Opacity=".5">
                                                       <ItemsControl ItemsSource="{Binding Visualizations}">
                                                          <ItemsControl.ItemTemplate>
@@ -632,7 +852,7 @@
                                                          </ItemsControl.ItemTemplate>
                                                       </ItemsControl>
                                                    </Viewbox>
-                                                   <hsg3hv:TextEditor x:Name="StreamTextBox" DataContext="{Binding ElementContent}"
+                                                   <hsg3hv:TextEditor x:Name="StreamTextBox" DataContext="{Binding ElementContent}" FontSize="14" MinHeight="140"
                                                       Background="Transparent" VerticalAlignment="Top" Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}" />
                                                    <hsg3hv:AutocompleteOverlay Target="{Binding ElementName=StreamTextBox}"/>
                                              </Grid>
@@ -653,6 +873,93 @@
                                                       </ToolTip>
                                                    </hsg3hv:AngleButton.ToolTip>
                                                 </hsg3hv:AngleButton>
+                                             </StackPanel>
+                                          </StackPanel>
+                                          </Grid>
+                                       </DataTemplate>
+                                       <!-- a list of wild encounters: one row per pokemon, one box per value (min level, max level, species), so Tab walks across the row and down the list -->
+                                       <DataTemplate DataType="{x:Type hsg3hvmtr:TableRowsStreamElementViewModel}">
+                                          <Grid HorizontalAlignment="Stretch" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                          <StackPanel ToolTip="{Binding ParentName}">
+                                             <hsg3hv:CommonTableStreamControl />
+                                             <StackPanel Margin="20,2,2,2" Background="{DynamicResource Backlight}"
+                                                   Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}">
+                                                <DockPanel LastChildFill="True" Margin="2,2,2,0">
+                                                   <Border DockPanel.Dock="Left" Width="96" Margin="2,0" Visibility="{Binding HasRowLabels, Converter={StaticResource BoolToVisibility}}"/>
+                                                   <TextBlock DockPanel.Dock="Left" Width="44" Margin="2,0" Text="Chance" TextAlignment="Right" Foreground="{DynamicResource Secondary}"
+                                                      ToolTip="How often this row is the one that shows up when a wild Pokémon appears. The game decides it by the row's place in the list."
+                                                      Visibility="{Binding HasChances, Converter={StaticResource BoolToVisibility}}"/>
+                                                   <ItemsControl ItemsSource="{Binding Columns}" IsTabStop="False">
+                                                      <ItemsControl.ItemsPanel>
+                                                         <ItemsPanelTemplate>
+                                                            <DockPanel LastChildFill="True"/>
+                                                         </ItemsPanelTemplate>
+                                                      </ItemsControl.ItemsPanel>
+                                                      <ItemsControl.ItemTemplate>
+                                                         <DataTemplate>
+                                                            <TextBlock Width="{Binding Width}" Margin="2,0" Text="{Binding Header}" Foreground="{DynamicResource Secondary}"/>
+                                                         </DataTemplate>
+                                                      </ItemsControl.ItemTemplate>
+                                                   </ItemsControl>
+                                                </DockPanel>
+                                                <ItemsControl ItemsSource="{Binding Rows}" IsTabStop="False">
+                                                   <ItemsControl.ItemTemplate>
+                                                      <DataTemplate>
+                                                         <DockPanel LastChildFill="True" Margin="2,1">
+                                                            <TextBlock DockPanel.Dock="Left" Width="96" Margin="2,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                                               Text="{Binding Label}" Foreground="{DynamicResource Secondary}"
+                                                               Visibility="{Binding ShowLabel, Converter={StaticResource BoolToVisibility}}"/>
+                                                            <TextBlock DockPanel.Dock="Left" Width="44" Margin="2,0" VerticalAlignment="Center" TextAlignment="Right" Text="{Binding Chance}"
+                                                               Visibility="{Binding ShowChance, Converter={StaticResource BoolToVisibility}}"/>
+                                                            <ItemsControl ItemsSource="{Binding Cells}" IsTabStop="False">
+                                                               <ItemsControl.ItemsPanel>
+                                                                  <ItemsPanelTemplate>
+                                                                     <DockPanel LastChildFill="True"/>
+                                                                  </ItemsPanelTemplate>
+                                                               </ItemsControl.ItemsPanel>
+                                                               <ItemsControl.Resources>
+                                                                  <DataTemplate DataType="{x:Type hsg3hvmtr:NumericTableCellViewModel}">
+                                                                     <hsg3hv:AngleTextBox Width="56" Height="18" Margin="2,0" Direction="Out" PreviewKeyDown="UpdateTableCellValue" hsg3hv:SelectAllOnFocus.IsEnabled="True"/>
+                                                                  </DataTemplate>
+                                                                  <DataTemplate DataType="{x:Type hsg3hvmtr:EnumTableCellViewModel}">
+                                                                     <hsg3hv:AngleComboBox DataContext="{Binding FilteringComboOptions}" MinWidth="120" Margin="2,0" Direction="Out"/>
+                                                                  </DataTemplate>
+                                                               </ItemsControl.Resources>
+                                                            </ItemsControl>
+                                                         </DockPanel>
+                                                      </DataTemplate>
+                                                   </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                                <!-- the whole list as plain text, in the format of HMA's original text editor for these lists ("2, 3, Zigzagoon" per line) -->
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="2,4,2,2">
+                                                   <hsg3hv:AngleButton Content="Copy table" Direction="Out" Margin="0,0,4,0"
+                                                      CommandParameter="{DynamicResource FileSystem}" Command="{hsv:MethodCommand CopyTable}"
+                                                      ToolTip="Copy every row of this list to the clipboard as plain text (one line per row: min level, max level, Pokémon), like HMA's original text editor."/>
+                                                   <hsg3hv:AngleButton Content="Paste table" Direction="Out"
+                                                      CommandParameter="{DynamicResource FileSystem}" Command="{hsv:MethodCommand PasteTable}"
+                                                      ToolTip="Replace every row of this list with the text on the clipboard (from 'Copy table' or from HMA's text editor). Nothing changes if any line can't be read. Undo restores the old rows."/>
+                                                   <TextBlock Text="Copied!" Margin="6,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource Secondary}" Opacity="0" IsHitTestVisible="False">
+                                                      <TextBlock.Style>
+                                                         <Style TargetType="TextBlock">
+                                                            <Style.Triggers>
+                                                               <DataTrigger Binding="{Binding ShowCopied}" Value="True">
+                                                                  <DataTrigger.EnterActions>
+                                                                     <BeginStoryboard>
+                                                                        <Storyboard>
+                                                                           <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity">
+                                                                              <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="1"/>
+                                                                              <DiscreteDoubleKeyFrame KeyTime="0:0:1.2" Value="1"/>
+                                                                              <LinearDoubleKeyFrame KeyTime="0:0:1.8" Value="0"/>
+                                                                           </DoubleAnimationUsingKeyFrames>
+                                                                        </Storyboard>
+                                                                     </BeginStoryboard>
+                                                                  </DataTrigger.EnterActions>
+                                                               </DataTrigger>
+                                                            </Style.Triggers>
+                                                         </Style>
+                                                      </TextBlock.Style>
+                                                   </TextBlock>
+                                                </StackPanel>
                                              </StackPanel>
                                           </StackPanel>
                                           </Grid>

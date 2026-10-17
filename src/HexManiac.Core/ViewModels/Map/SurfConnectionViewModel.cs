@@ -39,8 +39,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void FollowConnection() {
          var allmaps = AllMapsModel.Create(viewPort.Model, () => viewPort.ChangeHistory.CurrentChange);
-         var connections = allmaps[group][map].Connections;
-         var connection = connections.FirstOrDefault(c => c.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge));
+         var connections = allmaps[group][map].Connections; // (null for a map that has no connections at all)
+         var connection = connections?.FirstOrDefault(c => c.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge));
          if (connection == null) return;
          RequestChangeMap?.Invoke(this, new(connection.MapGroup, connection.MapNum));
       }
@@ -50,25 +50,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void DiveExisting() {
          var info = Make(MapDirection.Dive);
          ConnectExistingMap.Raise(this, info);
-         CanWarp = true;
+         RefreshFromModel();
       }
 
       public void EmergeExisting() {
          var info = Make(MapDirection.Emerge);
          ConnectExistingMap.Raise(this, info);
-         CanWarp = true;
+         RefreshFromModel();
       }
 
       public void DiveNew() {
          var info = Make(MapDirection.Dive);
          ConnectNewMap.Raise(this, info);
-         CanWarp = true;
+         RefreshFromModel();
       }
 
       public void EmergeNew() {
          var info = Make(MapDirection.Emerge);
          ConnectNewMap.Raise(this, info);
-         CanWarp = true;
+         RefreshFromModel();
+      }
+
+      /// <summary>
+      /// The connection may not have been made (the person can cancel the question), or may have been made or removed since (undo, redo), so ask the map.
+      /// </summary>
+      public void RefreshFromModel() {
+         var allmaps = AllMapsModel.Create(viewPort.Model, () => viewPort.ChangeHistory.CurrentChange);
+         var connection = allmaps[group]?[map]?.Connections?.FirstOrDefault(c => c.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge));
+         CanWarp = connection != null;
+         CanEmerge = connection != null && connection.Direction == MapDirection.Emerge;
       }
 
       private ConnectionInfo Make(MapDirection direction) {

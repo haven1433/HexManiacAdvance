@@ -38,11 +38,46 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new ModelTable(model, table, tokenFactory);
       }
 
+      /// <summary>
+      /// Which segment each byte of an element belongs to, worked out once per list of segments.
+      /// The grid asks for the segment of every cell it draws (a table with a hundred fields means a hundred steps each time), and a list of segments never changes after it is made.
+      /// </summary>
+      private sealed class SegmentLookup {
+         public readonly int[] SegmentIndexOfByte;
+         public readonly int[] SegmentStartOfByte;
+
+         public SegmentLookup(IReadOnlyList<ArrayRunElementSegment> segments) {
+            int total = 0;
+            for (int i = 0; i < segments.Count; i++) total += segments[i].Length;
+            SegmentIndexOfByte = new int[total];
+            SegmentStartOfByte = new int[total];
+            int start = 0;
+            for (int i = 0; i < segments.Count; i++) {
+               for (int j = 0; j < segments[i].Length; j++) {
+                  SegmentIndexOfByte[start + j] = i;
+                  SegmentStartOfByte[start + j] = start;
+               }
+               start += segments[i].Length;
+            }
+         }
+      }
+
+      private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<IReadOnlyList<ArrayRunElementSegment>, SegmentLookup> segmentLookups = new();
+
       /// <param name="byteOffset">Ranges from 0 to Model.Count</param>
       public static ArrayOffset ConvertByteOffsetToArrayOffset(this ITableRun self, int byteOffset) {
          var offset = byteOffset - self.Start;
          int elementIndex = offset / self.ElementLength;
          int elementOffset = offset % self.ElementLength;
+         var content = self.ElementContent;
+         if (content != null && elementOffset >= 0) {
+            var lookup = segmentLookups.GetValue(content, list => new SegmentLookup(list));
+            if (elementOffset < lookup.SegmentIndexOfByte.Length) {
+               var start = lookup.SegmentStartOfByte[elementOffset];
+               return new ArrayOffset(elementIndex, lookup.SegmentIndexOfByte[elementOffset], byteOffset - (elementOffset - start), elementOffset - start);
+            }
+         }
+         // an offset the segments do not cover (the same walk as always, with the same result)
          int segmentIndex = 0, segmentOffset = elementOffset;
          while (self.ElementContent[segmentIndex].Length <= segmentOffset) {
             segmentOffset -= self.ElementContent[segmentIndex].Length; segmentIndex++;
@@ -69,7 +104,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                var value = data.ReadMultiByteValue(offsets.SegmentStart, currentSegment.Length);
                return new IntegerHex(offsets.SegmentStart, position, value, currentSegment.Length) { IsUnused = currentSegment.IsUnused() };
             } else if (currentSegment is ArrayRunColorSegment) {
-               var color = (short)data.ReadMultiByteValue(offsets.SegmentStart, currentSegment.Length);
+               // the game stores colors as blue-green-red, the grid shows them as red:green:blue
+               var color = PaletteRun.FlipColorChannels((short)data.ReadMultiByteValue(offsets.SegmentStart, currentSegment.Length));
                return new UncompressedPaletteColor(offsets.SegmentStart, position, color);
             } else if (currentSegment is ArrayRunSignedSegment signed) {
                var signedValue = signed.ReadValue(data, offsets.SegmentStart);
@@ -228,6 +264,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                      pointerSegment.InnerFormat.EndsWith("/" + self.ElementContent[segmentIndex].Name)
                   ||
                      (pointerSegment.InnerFormat == TrainerPokemonTeamRun.SharedFormatString && self.ElementContent[segmentIndex].Name == "pokemonCount")
+                  ||
+                     (pointerSegment.InnerFormat == ExpansionTrainerTeamRun.SharedFormatString && self.ElementContent[segmentIndex].Name == "pokemonCount")
                   ) {
                      var length = model.FormatRunFactory.GetStrategy(pointerSegment.InnerFormat).LengthForNewRun(model, pointerSource);
                      if (length > 0) {

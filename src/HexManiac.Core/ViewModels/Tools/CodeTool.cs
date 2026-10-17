@@ -18,7 +18,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private CodeMode mode;
       private readonly Singletons singletons;
       private readonly ThumbParser thumb;
-      private readonly ScriptParser script, battleScript, animationScript, battleAIScript;
+      private ScriptParser scriptParser;
+      private IReadOnlyList<IScriptLine> scriptParserLines;
+      private readonly ScriptParser battleScript, animationScript, battleAIScript;
+      /// <summary>
+      /// The event-script parser. The model loads its metadata (including a ROM's own 'scriptmacros' commands) on a background
+      /// thread, so the first parser built can predate those commands: rebuild it whenever the model's command set changes.
+      /// </summary>
+      private ScriptParser script {
+         get {
+            var lines = model.GetScriptLines(singletons.ScriptLines);
+            if (scriptParser == null || !ReferenceEquals(lines, scriptParserLines)) {
+               scriptParserLines = lines;
+               var requireCompleteAddresses = scriptParser?.RequireCompleteAddresses ?? true;
+               scriptParser = new ScriptParser(model.GetShortGameCode(), lines, 0x02) { RequireCompleteAddresses = requireCompleteAddresses };
+            }
+            return scriptParser;
+         }
+      }
       private readonly ViewPort viewPort;
       private readonly IDataModel model;
       private readonly Selection selection;
@@ -102,7 +119,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          recompileTimer = singletons.WorkDispatcher.CreateDelayTimer();
          var gameHash = viewPort.Model.GetShortGameCode();
          thumb = new ThumbParser(singletons);
-         script = new ScriptParser(gameHash, singletons.ScriptLines, 0x02);
+         this.model = viewPort.Model;
          battleScript = new ScriptParser(gameHash, singletons.BattleScriptLines, 0x3D);
          animationScript = new ScriptParser(gameHash, singletons.AnimationScriptLines, 0x08);
          battleAIScript = new ScriptParser(gameHash, singletons.BattleAIScriptLines, 0x5A);
@@ -266,14 +283,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (Contents.Count > i) {
                body.ContentChanged -= ScriptChanged;
                body.HelpSourceChanged -= UpdateScriptHelpFromLine;
-               body.Content = string.Empty;
+               // Only the text that actually changed gets pushed to the editor. Blanking the editor and refilling it
+               // (and replacing the body in the collection) made the UI rebuild every script editor after every compile,
+               // which is what made editing long scripts stutter.
                body.Content = info.Content;
                body.Address = scriptStart;
                body.CompiledLength = info.Length;
                body.Label = label;
                body.HelpSourceChanged += UpdateScriptHelpFromLine;
                body.ContentChanged += ScriptChanged;
-               Contents[i] = body;
+               if (!ReferenceEquals(Contents[i], body)) Contents[i] = body;
             } else {
                body.CompiledLength = info.Length;
                body.Content = info.Content;
@@ -445,6 +464,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          using (CreateRecursionGuard()) {
             var oldScripts = parser.CollectScripts(model, start);
+            // pointers that the destinations list as sources, but that may stop being pointers once the script is rewritten
+            var staleCandidates = FindListedPointers(model, Enumerable.Range(start, Math.Max(0, Math.Min(length, model.Count - start))).Select(i => model[i]).ToArray(), start);
             var originalCodeContent = codeContent;
             int caret = body.CaretPosition;
             body.ClearErrors();
@@ -456,6 +477,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (code == null) {
                return;
             }
+
+            // compiling lists the pointers of the new code as sources of their destinations before the code is written:
+            // if the script moves instead of being written here, nothing is written at those addresses
+            staleCandidates.AddRange(FindListedPointers(model, code, start));
 
             if (code.Length > length) {
                model.ExpandData(history.CurrentChange, start + code.Length - 1);
@@ -490,6 +515,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   if (run is NoInfoRun) run = Construct<SERun>(run.Start, run.PointerSources);
                   run = model.RelocateForExpansion(history.CurrentChange, run, body.CompiledLength, code.Length);
                   if (start != run.Start) {
+                     RemoveStaleSources(staleCandidates); // the old copy is gone. Do this before the move is announced (that completes the change), so undoing just the move does not bring them back.
                      ModelDataMoved?.Invoke(this, (start, run.Start));
                      start = run.Start;
                      int changedCaret = body.CaretPosition;
@@ -531,6 +557,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                }
             }
 
+            // a pointer that moved, or that was in the old copy of a script that moved, is no longer a source of what it used to point at
+            RemoveStaleSources(staleCandidates);
+
             // this change may have orphaned some existing scripts. Don't lose them!
             var newScripts = parser.CollectScripts(model, start);
             var orphans = oldScripts.Except(newScripts).ToList();
@@ -561,6 +590,33 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          ModelDataChanged?.Invoke(this, ErrorInfo.NoError);
+      }
+
+      /// <summary>
+      /// Removes the pointers that are no longer pointers (the bytes at the source have changed) from the sources of their destination.
+      /// </summary>
+      private void RemoveStaleSources(IEnumerable<(int source, int destination)> candidates) {
+         foreach (var (source, destination) in candidates.Distinct().ToList()) {
+            if (source >= 0 && source + 3 < model.Count && model.ReadPointer(source) == destination) continue; // it's still a pointer
+            var destinationRun = model.GetNextRun(destination);
+            if (destinationRun.Start != destination || destinationRun.PointerSources == null || !destinationRun.PointerSources.Contains(source)) continue;
+            model.ClearPointer(history.CurrentChange, source, destination);
+         }
+      }
+
+      /// <summary>
+      /// Finds the pointers in a block of script data, where the run at the destination lists that pointer as one of its sources.
+      /// </summary>
+      private static List<(int source, int destination)> FindListedPointers(IDataModel model, byte[] data, int start) {
+         var results = new List<(int source, int destination)>();
+         for (int i = 0; i + 3 < data.Length; i++) {
+            if (data[i + 3] != 0x08 && data[i + 3] != 0x09) continue;
+            var destination = (data[i] | data[i + 1] << 8 | data[i + 2] << 16 | data[i + 3] << 24) - 0x08000000;
+            if (destination < 0 || destination >= model.Count) continue;
+            var run = model.GetNextRun(destination);
+            if (run.Start == destination && run.PointerSources != null && run.PointerSources.Contains(start + i)) results.Add((start + i, destination));
+         }
+         return results;
       }
 
       private string RawParse(IDataModel model, int start, int length) {

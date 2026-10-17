@@ -1,0 +1,32 @@
+# CUBE script: Evolution items are used like stones (OFF)
+#
+# ON means the held evolution items (King's Rock, Metal Coat, ...) can be used from the bag like a stone; OFF means they only work when held during a trade, as in the normal game.
+#
+# What it does
+#   The held evolution items go back to being plain held items (they evolve a Pokemon in a trade, as in the normal game).
+#
+# How to undo
+#   Run CUBE_EvolutionUseItems_ON.hma, or press Ctrl+Z before you save.
+#
+# How to use
+#   1. Open your CUBE ROM in HexManiacAdvance.
+#   2. Drag this file onto HexManiacAdvance.
+#   3. Look at the result, then save the ROM.
+#   It works on every CUBE ROM from round 14 on, also on one that you changed and saved with an older .toml.
+#   On any other ROM the script stops with a message and changes nothing.
+#
+# What it writes
+#   One byte of the table cube.scripts.config (byte 2 = 1 for on, 0 for off). Nothing else in the ROM changes.
+#
+.python
+tab = editor.SelectedTab
+if tab.Model.GetAddressFromAnchor(tab.CurrentChange, -1, 'cube.scripts.config') < 0:
+  tab.RaiseError('No CUBE script table (cube.scripts.config): this is not a CUBE ROM, or it is a CUBE older than round 14 (older Apply CUBE). Nothing was changed.')
+  tab.AbortScript()
+.end
+
+@cube.scripts.config+2 0
+
+.python
+editor.SelectedTab.RaiseMessage('CUBE: evolution items are held items again.')
+.end

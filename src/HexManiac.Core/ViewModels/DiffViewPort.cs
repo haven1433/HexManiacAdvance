@@ -64,7 +64,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public double ToolPanelWidth { get; set; } = 500;
+      public double ToolPanelWidth { get; set; } = ViewPort.DefaultToolPanelWidth;
 
       public string FileName => string.Empty;
 

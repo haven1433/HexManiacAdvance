@@ -26,7 +26,24 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var primarySource = sources[0];
          ElementCount = model.ReadMultiByteValue(primarySource + 4, 2);
          int tileCount = model[primarySource + 7];
-         ElementContent = new[] { new ArrayRunPointerSegment(model.FormatRunFactory, "frame", $"`uct4x{tileCount}`") };
+         // frames made by the Animated Tiles editor get the tileset's palette: the animation table is anchored as <name>.table and its palette as <name>.palette
+         PaletteHint = FindPaletteHint(model, primarySource);
+         var hint = PaletteHint == null ? string.Empty : "|" + PaletteHint;
+         ElementContent = new[] { new ArrayRunPointerSegment(model.FormatRunFactory, "frame", $"`uct4x{tileCount}{hint}`") };
+      }
+
+      /// <summary>The palette anchor the frames use, or null if there isn't one.</summary>
+      public string PaletteHint { get; }
+
+      public static string FindPaletteHint(IDataModel model, int entryAddress) {
+         if (model.GetNextRun(entryAddress) is ITableRun owner && owner.Start <= entryAddress) {
+            var anchor = model.GetAnchorFromAddress(-1, owner.Start);
+            if (!string.IsNullOrEmpty(anchor) && anchor.EndsWith(".table")) {
+               var paletteAnchor = anchor.Substring(0, anchor.Length - ".table".Length) + ".palette";
+               if (model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, paletteAnchor) >= 0) return paletteAnchor;
+            }
+         }
+         return null;
       }
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => this.CreateSegmentDataFormat(data, index);
@@ -60,7 +77,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             return new MapAnimationTilesRun(model, self.Start, self.PointerSources);
          } else if (segmentIndex == 3) {
             var newTileCount = model[pointerSource + 7];
-            var tilesetFormat = new TilesetFormat(4, newTileCount, -1, default);
+            var tilesetFormat = new TilesetFormat(4, newTileCount, -1, PaletteHint);
             for (int i = 0; i < ElementCount; i++) {
                var destination = model.ReadPointer(Start + ElementLength * i);
                if (destination == Pointer.NULL) continue;

@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
@@ -148,7 +149,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public short Color { get => color; set => Set(ref color, value, HandleColorChange); }
 
       public ColorFieldArrayElementViewModel(ViewPort viewPort, string name, int start) : base(viewPort, name, start, 2, ColorFieldStrategy.Instance) {
-         Color = (short)viewPort.Model.ReadMultiByteValue(start, 2);
+         // the game stores colors as blue-green-red, Color (and the swatch) uses red-green-blue
+         Color = PaletteRun.FlipColorChannels((short)viewPort.Model.ReadMultiByteValue(start, 2));
       }
 
       protected override bool TryCopy(FieldArrayElementViewModel other) {
@@ -312,11 +314,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {
          var colors = PaletteCollection.ParseColor(viewModel.Content);
          if (colors.Count == 0) return;
-         viewModel.Model.WriteMultiByteValue(viewModel.Start, viewModel.Length, viewModel.ViewPort.CurrentChange, colors[0]);
+         PaletteRun.WriteColor(viewModel.Model, viewModel.ViewPort.CurrentChange, viewModel.Start, colors[0]); // keeps bit 15 of the stored color
       }
 
       public string UpdateViewModelFromModel(FieldArrayElementViewModel viewModel) {
-         var color = (short)viewModel.Model.ReadMultiByteValue(viewModel.Start, viewModel.Length);
+         var color = PaletteRun.FlipColorChannels((short)viewModel.Model.ReadMultiByteValue(viewModel.Start, viewModel.Length));
          var text = UncompressedPaletteColor.Convert(color);
          return text;
       }

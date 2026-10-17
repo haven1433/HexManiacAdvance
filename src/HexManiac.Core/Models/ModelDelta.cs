@@ -106,6 +106,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public bool SetDataLength(IDataModel model, int length) {
+         ModelEditStamp.Bump();
          if (oldDataLength == -1) oldDataLength = model.RawData.Length;
          newDataLength = length;
          if (!HasAnyChange) {
@@ -125,11 +126,13 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public void AddRun(IFormattedRun run) {
+         ModelEditStamp.BumpRuns();
          using (CaptureNonDataChange())
          addedRuns[run.Start] = run;
       }
 
       public void RemoveRun(IFormattedRun run) {
+         ModelEditStamp.BumpRuns();
          using (CaptureNonDataChange())
          if (addedRuns.ContainsKey(run.Start)) {
             addedRuns.Remove(run.Start);
@@ -167,6 +170,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public ModelDelta Revert(IDataModel model) {
+         ModelEditStamp.BumpRuns(); // the runs and names change below without going through a token
          var reverse = new ModelDelta { HasDataChange = HasDataChange };
 
          foreach (var kvp in oldData) {
@@ -243,6 +247,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private IDisposable CaptureNonDataChange() {
+         ModelEditStamp.Bump();
          if (HasAnyChange) return new StubDisposable();
          return new StubDisposable { Dispose = () => {
             if (!HasAnyChange) return;

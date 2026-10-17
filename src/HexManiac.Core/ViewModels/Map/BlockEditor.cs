@@ -347,7 +347,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private int blockIndex = 0;
       public int BlockIndex {
          get => blockIndex;
-         set => Set(ref blockIndex, value.LimitToRange(0, blocks.Length - 1), UpdateBlockUI);
+         set {
+            Set(ref blockIndex, value.LimitToRange(0, blocks.Length - 1), UpdateBlockUI);
+            // the editor starts on block 0, so choosing block 0 first changes nothing: its eight pictures still have to be drawn
+            if (images[0] == null) UpdateBlockUI();
+         }
       }
 
       private static readonly List<((int, int), (int, int))> bottomLayerTogether, topLayerTogether, twoSets;
@@ -515,7 +519,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          LzTilemapRun.WriteTileData(blocks[blockIndex], 3, copyPalettes[1, 1], copyFlipHs[1, 1], copyFlipVs[1, 1], copyTiles[1, 1]);
          for (int i = 0; i < 4; i++) {
             var newImage = BlocksetModel.Read(blocks[blockIndex], i, tiles, palettes);
-            images[i].Fill(newImage.PixelData);
+            images[i]?.Fill(newImage.PixelData); // (a picture that was never shown is drawn from the block when it is first needed)
          }
          BlocksChanged?.Invoke(this, blocks);
          tutorials.Complete(Tutorial.ClickBlock_DrawTile);
@@ -529,7 +533,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          LzTilemapRun.WriteTileData(blocks[blockIndex], 7, copyPalettes[1, 1], copyFlipHs[1, 1], copyFlipVs[1, 1], copyTiles[1, 1]);
          for (int i = 4; i < 8; i++) {
             var newImage = BlocksetModel.Read(blocks[blockIndex], i, tiles, palettes);
-            images[i].Fill(newImage.PixelData);
+            images[i]?.Fill(newImage.PixelData);
          }
          BlocksChanged?.Invoke(this, blocks);
          tutorials.Complete(Tutorial.ClickBlock_DrawTile);
@@ -559,7 +563,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var index = indexForTileImage[tile];
          LzTilemapRun.WriteTileData(blocks[blockIndex], index, drawPalette, drawFlipH, drawFlipV, drawTile);
          var newImage = BlocksetModel.Read(blocks[blockIndex], index, tiles, palettes);
-         images[hoverTile].Fill(newImage.PixelData);
+         images[index].Fill(newImage.PixelData);
          BlocksChanged?.Invoke(this, blocks);
          tutorials.Complete(Tutorial.ClickBlock_DrawTile);
       }
@@ -685,8 +689,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          get => (drawTile % TilesPerRow) * PixelPerTile;
          set {
             var (x, y) = (drawTile % TilesPerRow, drawTile / TilesPerRow);
-            if (x != value / PixelPerTile) {
-               x = value / PixelPerTile;
+            var newX = (value / PixelPerTile).LimitToRange(0, TilesPerRow - 1); // (the picker is 16 tiles wide)
+            if (x != newX) {
+               x = newX;
                drawTile = y * TilesPerRow + x;
                if (drawTile >= tiles.Length) drawTile = tiles.Length - 1;
                NotifyPropertyChanged();
@@ -700,8 +705,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          get => (drawTile / TilesPerRow) * PixelPerTile;
          set {
             var (x, y) = (drawTile % TilesPerRow, drawTile / TilesPerRow);
-            if (y != value / PixelPerTile) {
-               y = value / PixelPerTile;
+            var newY = Math.Max(0, value / PixelPerTile);
+            if (y != newY) {
+               y = newY;
                drawTile = y * TilesPerRow + x;
                if (drawTile >= tiles.Length) {
                   drawTile = tiles.Length - 1;
@@ -717,7 +723,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
       public int PaletteSelection {
          get => drawPalette;
-         set => Set(ref drawPalette, value, arg => UpdateTileRender(drawPalette));
+         set {
+            // a combo box that lost its selection writes -1: there is no palette to draw with then
+            if (palettes != null && (value < 0 || value >= palettes.Length)) return;
+            Set(ref drawPalette, value, arg => UpdateTileRender(drawPalette));
+         }
       }
 
       public ObservableCollection<ReadonlyPaletteCollection> Palettes { get; } = new();
@@ -750,8 +760,57 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Cache
 
-      public void RefreshPaletteCache(short[][] palette) => this.palettes = palette;
-      public void RefreshTileCache(int[][,] tiles) => this.tiles = tiles;
+      public void RefreshPaletteCache(short[][] palette) {
+         var changed = !SamePalettes(this.palettes, palette);
+         this.palettes = palette;
+         if (changed) RedrawTiles();
+      }
+
+      public void RefreshTileCache(int[][,] tiles) {
+         var changed = !SameTiles(this.tiles, tiles);
+         this.tiles = tiles;
+         if (changed) RedrawTiles();
+      }
+
+      /// <summary>
+      /// The tile picker, the tile that is picked and the eight pictures of the block being edited are drawn from the tileset's tiles and palettes when they are first needed.
+      /// When the tileset changed since (a tile was drawn in the image editor, an animated tile was added to a blank spot of the tileset...) they have to be drawn again,
+      /// or the picker keeps showing the old tiles until the map is closed and opened again.
+      /// </summary>
+      private void RedrawTiles() {
+         if (tiles == null || palettes == null) return;
+         tileRender = null;
+         if (showTiles) UpdateTileRender(drawPalette); // draws the picked tile again, too
+         else if (drawTile < tiles.Length && drawPalette < palettes.Length) UpdateDrawTileRender();
+         if (blocks != null && blockIndex >= 0 && blockIndex < blocks.Length) UpdateBlockUI(0);
+      }
+
+      private static bool SameTiles(int[][,] a, int[][,] b) {
+         if (ReferenceEquals(a, b)) return true;
+         if (a == null || b == null || a.Length != b.Length) return false;
+         for (int i = 0; i < a.Length; i++) {
+            if (ReferenceEquals(a[i], b[i])) continue;
+            if (a[i] == null || b[i] == null || a[i].GetLength(0) != b[i].GetLength(0) || a[i].GetLength(1) != b[i].GetLength(1)) return false;
+            for (int x = 0; x < a[i].GetLength(0); x++) {
+               for (int y = 0; y < a[i].GetLength(1); y++) {
+                  if (a[i][x, y] != b[i][x, y]) return false;
+               }
+            }
+         }
+         return true;
+      }
+
+      private static bool SamePalettes(short[][] a, short[][] b) {
+         if (ReferenceEquals(a, b)) return true;
+         if (a == null || b == null || a.Length != b.Length) return false;
+         for (int i = 0; i < a.Length; i++) {
+            if (ReferenceEquals(a[i], b[i])) continue;
+            if (a[i] == null || b[i] == null || a[i].Length != b[i].Length) return false;
+            for (int j = 0; j < a[i].Length; j++) if (a[i][j] != b[i][j]) return false;
+         }
+         return true;
+      }
+
       public void RefreshBlockCache(byte[][] blocks) {
          this.blocks = blocks;
          BlockIndex = blockIndex;

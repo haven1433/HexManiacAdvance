@@ -52,7 +52,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          ImageContainer.ReleaseMouseCapture();
       }
       private void WheelMouse(object sender, MouseWheelEventArgs e) {
-         if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)) {
+         if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift) && ViewModel.HasFrames) {
+            // an editor that shows the frames of an animation: the dots on the left are the frames
+            if (e.Delta > 0) ViewModel.StepFrame(1);
+            if (e.Delta < 0) ViewModel.StepFrame(-1);
+         } else if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)) {
             if (e.Delta > 0) ViewModel.SpritePage = (ViewModel.SpritePage + 1) % ViewModel.SpritePages;
             if (e.Delta < 0) ViewModel.SpritePage = ViewModel.SpritePage == 0 ? ViewModel.SpritePages - 1 : ViewModel.SpritePage - 1;
          } else {

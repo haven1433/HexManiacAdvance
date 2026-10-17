@@ -1,18 +1,19 @@
-﻿<Window x:Class="HavenSoft.HexManiac.WPF.Windows.AboutWindow"
+<Window x:Class="HavenSoft.HexManiac.WPF.Windows.AboutWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Background="{DynamicResource Background}"
         WindowStyle="ToolWindow"
-        Title="About Hex Maniac Advance" Height="300" Width="400">
+        Title="About CUBHMA" Height="300" Width="400">
    <Border Background="{StaticResource HexBrush}">
       <DockPanel Margin="15" TextOptions.TextFormattingMode="Display">
          <TextBlock DockPanel.Dock="Bottom" FontStyle="Italic" TextWrapping="Wrap">
-            Hex Maniac Advance is a non-profit open-source fan-made tool.
+            CUBHMA (Cradi's Unofficial Build of Hex Maniac Advance) is a non-profit open-source fan-made tool
+            built on Hex Maniac Advance by haven1433, for the CUBE pokeemerald-expansion ROM.
             Only use it with legally purchased software.
             Pokemon is the property of Nintendo and GameFreak.
             Please support the official release.
          </TextBlock>
-         <TextBlock DockPanel.Dock="Top" VerticalAlignment="Center" FontWeight="Bold" Text="Hex Maniac Advance" FontSize="20"/>
+         <TextBlock DockPanel.Dock="Top" VerticalAlignment="Center" FontWeight="Bold" Text="CUBHMA" FontSize="20"/>
          <Image Source="..\Resources\AppImage.png" DockPanel.Dock="Left" RenderOptions.BitmapScalingMode="Fant" Width="200"/>
          <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
             <TextBlock Name="Version"/>

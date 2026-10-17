@@ -1245,6 +1245,40 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0, Model.ReadMultiByteValue(child.Start, 2));
       }
 
+      [Theory]
+      [InlineData(0x80, 0x7E)] // one element of the table away from the byte that is typed
+      [InlineData(0x40, 0x00)] // several elements away: the "element" is before the table, and its pointer cell is not a pointer segment of the table
+      public void ChildPointerNullAndLengthSet_ByteTypedInFreeSpaceBeforeTheTable_NothingElseChanges(int tableStart, int typedAt) {
+         SetFullModel(0xFF);
+         Model.FreeSpaceBuffer = 0;
+         ViewPort.Edit($"@{tableStart:X3} 02 00 00 00 <null> @{tableStart:X3} ^parent[count:: child<[a. b.]/count>]1 @004 00 00 00 00 ");
+         var before = Model.RawData.ToArray();
+         var tableBefore = Model.GetNextRun(tableStart);
+
+         ViewPort.Edit($"@{typedAt:X3} 12 ");
+
+         Assert.Empty(Errors);
+         Assert.Equal(0x12, Model[typedAt]);
+         before[typedAt] = 0x12;
+         Assert.Equal(before, Model.RawData.ToArray());
+         Assert.Equal(Pointer.NULL, Model.ReadPointer(tableStart + 4));
+         Assert.Equal(tableBefore.FormatString, Model.GetNextRun(tableStart).FormatString);
+      }
+
+      [Theory]
+      [InlineData(1)]
+      [InlineData(2)]
+      [InlineData(3)]
+      public void JumpMarkerTypedWithinThreeBytesOfTheEndOfTheFile_RaisesAnErrorInsteadOfReadingPastTheEnd(int bytesFromEnd) {
+         SetFullModel(0xFF);
+         var before = Model.RawData.ToArray();
+
+         ViewPort.Edit($"@{Model.Count - bytesFromEnd:X} @{{ ");
+
+         Assert.NotEmpty(Errors);
+         Assert.Equal(before, Model.RawData.ToArray());
+      }
+
       [Fact]
       public void DataBeforeChildTable_ChangeChildLengthToNegative_DataNotDeleted() {
          SetFullModel(0xFF);
@@ -1448,6 +1482,21 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
+      public void RecordPointer_ClearPartOfTheTable_DestinationNoLongerListsTheClearedPointerAsASource() {
+         SetFullModel(0xFF);
+         "02 00 00 00 00 01 00 08".ToByteArray().WriteInto(Model.RawData, 0);
+         ViewPort.Edit("@080 <100> @000 ^parent[arg:: target::|s=arg(2=<>)]2 ");
+         Assert.Contains(4, Model.GetNextRun(0x100).PointerSources);
+
+         ViewPort.Goto.Execute(0);
+         ViewPort.SelectionEnd = ViewPort.ConvertAddressToViewPoint(7); // the first element, not the whole table
+         ViewPort.Clear.Execute();
+
+         Assert.Equal(0, Model.ReadMultiByteValue(4, 4)); // the cleared record is a null pointer
+         Assert.Equal(0x80, Model.GetNextRun(0x100).PointerSources.Single()); // used to still list 4, which no longer holds a pointer
+      }
+
+      [Fact]
       public void RecordPointerToText_RepointText_UpdateRecord() {
          SetFullModel(0xFF);
          "00 00 00 00 00 00 00 00".ToByteArray().WriteInto(Model.RawData, 0);
@@ -1559,6 +1608,24 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Edit($"^trainertable[team<{TrainerPokemonTeamRun.SharedFormatString}>]1 ");
 
          ViewPort.Goto.Execute("00");
+      }
+   }
+
+   public class TableFreeSpaceBeforeTableTests : BaseViewModelTestClass {
+      public TableFreeSpaceBeforeTableTests() : base(0x2000) { }
+
+      [Theory]
+      [InlineData(0x103A)]
+      [InlineData(0x102F)]
+      public void FollowLink_ByteInFreeSpaceBeforeATable_DoesNotOpenTheTableToolOnAnElementBeforeTheTable(int address) {
+         ViewPort.Edit("@1040 ^table[a:b:]4 ");
+         ViewPort.Goto.Execute(address.ToString("X4"));
+         ViewPort.Tools.SelectedIndex = ViewPort.Tools.IndexOf(ViewPort.Tools.CodeTool);
+
+         var point = ViewPort.ConvertAddressToViewPoint(address);
+         ViewPort.FollowLink(point.X, point.Y);
+
+         Assert.Same(ViewPort.Tools.CodeTool, ViewPort.Tools.SelectedTool);
       }
    }
 

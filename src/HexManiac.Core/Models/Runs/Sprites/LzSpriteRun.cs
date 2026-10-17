@@ -10,7 +10,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public override int Pages {
          get {
-            var length = Model.ReadMultiByteValue(Start + 1, 3);
+            var length = ReadDecompressedLength(Model, Start);
             return length / SpriteFormat.ExpectedByteLength;
          }
       }
@@ -23,11 +23,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public LzSpriteRun(SpriteFormat spriteFormat, IDataModel data, int start, SortedSpan<int> sources = null)
          : base(data, start, spriteFormat.AllowLengthErrors, sources) {
          SpriteFormat = spriteFormat;
-         if (spriteFormat.ExpectedByteLength > DecompressedLength) InvalidateLength();
+         if (!IsValidDecompressedLength(DecompressedLength)) InvalidateLength();
          var hintContent = string.Empty;
          if (!string.IsNullOrEmpty(spriteFormat.PaletteHint)) hintContent += "|" + spriteFormat.PaletteHint;
          FormatString = $"`lzs{spriteFormat.BitsPerPixel}x{spriteFormat.TileWidth}x{spriteFormat.TileHeight}{hintContent}`";
       }
+
+      protected override bool IsValidDecompressedLength(int decompressedLength) => SpriteFormat.ExpectedByteLength <= decompressedLength;
 
       public static bool TryParseSpriteFormat(string pointerFormat, out SpriteFormat spriteFormat) {
          spriteFormat = default;
@@ -92,7 +94,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             var (width, height) = (pixels.GetLength(0), pixels.GetLength(1));
             for (int x = 0; x < width; x++) for (int y = 0; y < height; y++) pixels[x, y] &= 0xF;
          }
+         var dataBefore = (byte[])data.Clone();
          SpriteRun.SetPixels(data, page * pageLength, pixels, SpriteFormat.BitsPerPixel);
+         // Writing the pixels that are already there changes nothing: don't recompress.
+         // HexManiac's compressor is not as good as the one most tools use, so recompressing would make the data bigger, move it, and leave the old copy behind.
+         if (data.SequenceEqual(dataBefore)) return this;
 
          var newModelData = Compress(data, 0, data.Length);
          var newRun = (ISpriteRun)model.RelocateForExpansion(token, this, newModelData.Count);

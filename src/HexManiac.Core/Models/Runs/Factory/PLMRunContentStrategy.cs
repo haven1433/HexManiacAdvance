@@ -13,7 +13,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          var length = plmRun.Length;
          if (length < 2) return false;
 
-         if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, plmRun);
+         if (!(token is NoDataChangeDeltaModel)) {
+            owner.ClearFormat(token, plmRun.Start + 1, plmRun.Length - 1); // formats that start inside the new one would overlap it
+            owner.ObserveRunWritten(token, plmRun);
+         }
 
          return true;
       }

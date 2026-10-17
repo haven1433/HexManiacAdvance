@@ -97,98 +97,129 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void Load() {
-         void Add(GotoMapButton button) {
-            Visible = true;
-            dispatcher.BlockOnUIWork(() => MapPreviews.Add(button));
-         }
-         if (tableName == HardcodeTablesModel.OverworldSprites) {
-            foreach (var button in FindOverworldUses()) Add(button);
-         } else {
-            foreach (var button in FindObjectUses()) Add(button);
-         }
+         // The delayed call lands on the UI thread. Searching every map for uses of this element is slow,
+         // so do the search on a background thread and only touch the UI to add the results.
+         dispatcher.RunBackgroundWork(() => {
+            try {
+               var buttons = tableName == HardcodeTablesModel.OverworldSprites ? FindOverworldUses() : FindObjectUses();
+               foreach (var button in buttons) {
+                  if (cancel) return;
+                  dispatcher.BlockOnUIWork(() => {
+                     if (cancel) return;
+                     Visible = true;
+                     MapPreviews.Add(button);
+                  });
+               }
+            } catch (Exception ex) {
+               // an unexpected problem with one map's data shouldn't crash the editor: it just means the 'maps' button won't show
+               System.Diagnostics.Debug.WriteLine($"Could not find map uses for {tableName}/{index}: {ex}");
+            }
+         });
       }
 
       private IEnumerable<GotoMapButton> FindOverworldUses() {
          // look for any map with an event using this sprite
-         var allMaps = AllMapsModel.Create(mapEditor.ViewPort.Model);
-         for (int bankIndex = 0; bankIndex < allMaps.Count; bankIndex++) {
-            var bank = allMaps[bankIndex];
-            for (int mapIndex = 0; mapIndex < bank.Count; mapIndex++) {
-               var map = bank[mapIndex];
-               if (map is null) continue;
-               if (map.Events is not Models.Map.EventGroupModel events) continue;
-               foreach (var ev in events.Objects) {
-                  if (cancel) yield break;
-                  if (ev.Graphics != index) continue;
-                  var button = new GotoMapButton(mapEditor, this, bankIndex, mapIndex, ev);
-                  if (button.Image == null) continue;
-                  yield return button;
-               }
-            }
+         var model = mapEditor.ViewPort.Model;
+         var uses = model.CurrentCacheScope.GetOrAdd("map-usage-overworld", () => BuildOverworldUseIndex(model));
+         if (!uses.TryGetValue(index, out var matches)) yield break;
+         foreach (var use in matches) {
+            if (cancel) yield break;
+            yield return new GotoMapButton(mapEditor, this, use.Bank, use.Map, use.Event);
          }
       }
 
       private IEnumerable<GotoMapButton> FindObjectUses() {
          var model = mapEditor.ViewPort.Model;
          var parser = mapEditor.ViewPort.Tools.CodeTool.ScriptParser;
+         var uses = model.CurrentCacheScope.GetOrAdd("map-usage:" + tableName, () => BuildObjectUseIndex(model, parser, tableName));
+         if (!uses.TryGetValue(index, out var matches)) yield break;
+         foreach (var use in matches) {
+            if (cancel) yield break;
+            yield return new GotoMapButton(mapEditor, this, use.Bank, use.Map, use.Event);
+         }
+      }
+
+      private record MapUse(int Bank, int Map, IEventModel Event);
+
+      /// <summary>
+      /// Searching every event script in every map is expensive.
+      /// Instead of searching again for each table element, find the uses of every element in one pass.
+      /// The results are cached until the model data changes, so stepping through a table doesn't repeat the search.
+      /// </summary>
+      private static IReadOnlyDictionary<int, List<MapUse>> BuildObjectUseIndex(IDataModel model, ScriptParser parser, string tableName) {
+         var results = new Dictionary<int, List<MapUse>>();
+         void AddUse(int value, MapUse use) {
+            if (!results.TryGetValue(value, out var list)) results[value] = list = new();
+            list.Add(use);
+         }
+
          var lines = parser.DependsOn(tableName).ToList();
          var filter = new List<byte>();
          foreach (var line in lines) {
             if (line is MacroScriptLine macro && macro.Args[0] is SilentMatchArg silent) filter.Add(silent.ExpectedValue);
             if (line is ScriptLine sl) filter.Add(line.LineCode[0]);
          }
+         var filterArray = filter.ToArray();
 
-         var allMaps = AllMapsModel.Create(model);
          var isItemTable = tableName == HardcodeTablesModel.ItemsTableName;
          var isMapNameTable = tableName == HardcodeTablesModel.MapNameTable;
+         var checkScripts = lines.Count > 0; // if no script command uses this table, no script can match it
+         var allMaps = AllMapsModel.Create(model);
          for (int bankIndex = 0; bankIndex < allMaps.Count; bankIndex++) {
             var bank = allMaps[bankIndex];
+            if (bank == null) continue;
             for (int mapIndex = 0; mapIndex < bank.Count; mapIndex++) {
                var map = bank[mapIndex];
                if (map == null) continue;
-               foreach (var ev in map.Events.Objects.Concat<IScriptEventModel>(map.Events.Scripts)) {
-                  if (ev is SignpostEventModel sp && !sp.HasScript) continue;
-                  if (cancel) yield break;
-                  var spots = Flags.GetAllScriptSpots(model, parser, new[] { ev.ScriptAddress }, filter.ToArray());
-
-                  // if any of these spots match, then this object's script refers to this enum
-                  foreach (var spot in spots) {
-                     int check = spot.Address + spot.Line.LineCode.Count;
-                     bool match = false;
-                     foreach (var arg in spot.Line.Args) {
-                        if (cancel) yield break;
-                        var length = arg.Length(model, check);
-                        if (arg.EnumTableName == tableName) {
-                           if (model.ReadMultiByteValue(check, length) == index) {
-                              var button = new GotoMapButton(mapEditor, this, bankIndex, mapIndex, ev);
-                              if (button.Image == null) continue;
-                              yield return button;
-                              match = true;
-                              break;
+               var validPreview = map.Layout.Width.InRange(1, 0x100) && map.Layout.Height.InRange(1, 0x100);
+               if (checkScripts && validPreview && map.Events is { } events) {
+                  foreach (var ev in events.Objects.Concat<IScriptEventModel>(events.Scripts)) {
+                     if (ev is SignpostEventModel sp && !sp.HasScript) continue;
+                     var valuesForEvent = new List<int>();
+                     foreach (var spot in Flags.GetAllScriptSpots(model, parser, new[] { ev.ScriptAddress }, filterArray)) {
+                        int check = spot.Address + spot.Line.LineCode.Count;
+                        foreach (var arg in spot.Line.Args) {
+                           var length = arg.Length(model, check);
+                           if (arg.EnumTableName == tableName) {
+                              var value = model.ReadMultiByteValue(check, length);
+                              if (!valuesForEvent.Contains(value)) valuesForEvent.Add(value);
                            }
+                           check += length;
                         }
-                        check += length;
                      }
-                     if (match) break;
+                     foreach (var value in valuesForEvent) AddUse(value, new(bankIndex, mapIndex, ev));
                   }
                }
-               if (isItemTable) {
-                  foreach (var ev in map.Events.Signposts) {
-                     if (cancel) yield break;
-                     if (ev.IsHiddenItem && ev.ItemValue == index) {
-                        var button = new GotoMapButton(mapEditor, this, bankIndex, mapIndex, ev);
-                        if (button.Image == null) continue;
-                        yield return button;
-                     }
+               if (isItemTable && validPreview && map.Events is { } signEvents) {
+                  foreach (var ev in signEvents.Signposts) {
+                     if (ev.IsHiddenItem) AddUse(ev.ItemValue, new(bankIndex, mapIndex, ev));
                   }
                } else if (isMapNameTable) {
-                  if (map.NameIndex != index) continue;
-                  var button = new GotoMapButton(mapEditor, this, bankIndex, mapIndex, null);
-                  if (button.Image == null) continue;
-                  yield return button;
+                  AddUse(map.NameIndex, new(bankIndex, mapIndex, null));
                }
             }
          }
+         return results;
+      }
+
+      private static IReadOnlyDictionary<int, List<MapUse>> BuildOverworldUseIndex(IDataModel model) {
+         var results = new Dictionary<int, List<MapUse>>();
+         var allMaps = AllMapsModel.Create(model);
+         for (int bankIndex = 0; bankIndex < allMaps.Count; bankIndex++) {
+            var bank = allMaps[bankIndex];
+            if (bank == null) continue;
+            for (int mapIndex = 0; mapIndex < bank.Count; mapIndex++) {
+               var map = bank[mapIndex];
+               if (map is null) continue;
+               if (map.Events is not Models.Map.EventGroupModel events) continue;
+               if (!map.Layout.Width.InRange(1, 0x100) || !map.Layout.Height.InRange(1, 0x100)) continue;
+               foreach (var ev in events.Objects) {
+                  if (!results.TryGetValue(ev.Graphics, out var list)) results[ev.Graphics] = list = new();
+                  list.Add(new(bankIndex, mapIndex, ev));
+               }
+            }
+         }
+         return results;
       }
    }
 
@@ -197,16 +228,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly MapOptionsArrayElementViewModel owner;
       private readonly int bank, map;
       private IEventModel eventModel;
-      public IPixelViewModel Image { get; init; }
+
+      // Rendering a preview means rendering the whole map.
+      // Previews are only visible once the 'maps' popup is opened, so render them on demand.
+      private IPixelViewModel image;
+      private bool imageLoaded;
+      public IPixelViewModel Image {
+         get {
+            if (!imageLoaded) {
+               imageLoaded = true;
+               image = eventModel == null ? mapEditor.GetMapPreview(bank, map, 7) : mapEditor.GetMapPreview(bank, map, eventModel.X, eventModel.Y);
+            }
+            return image;
+         }
+         init {
+            image = value;
+            imageLoaded = true;
+         }
+      }
+
       public GotoMapButton(MapEditorViewModel mapEditor, MapOptionsArrayElementViewModel owner, int bank, int map, IEventModel eventViewModel) {
          (this.mapEditor, this.owner) = (mapEditor, owner);
          (this.bank, this.map) = (bank, map);
          this.eventModel = eventViewModel;
-         if (eventViewModel == null) {
-            Image = mapEditor.GetMapPreview(bank, map, 7);
-         } else {
-            Image = mapEditor.GetMapPreview(bank, map, eventViewModel.X, eventViewModel.Y);
-         }
       }
       public void Goto() {
          owner.ShowPreviews = false;

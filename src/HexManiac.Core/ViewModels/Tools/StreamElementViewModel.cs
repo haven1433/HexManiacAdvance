@@ -163,6 +163,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool TryCopy(IArrayElementViewModel other) {
          if (!(other is StreamElementViewModel that)) return false;
          if (overrideCopyAttempt) return true;
+         // copying changes dozens of properties (most of them twice: the subclass and this class both announce what depends on the usage count).
+         // The view only needs to hear about each one once, when the element is completely up to date.
+         using var _ = DeferPropertyNotifications();
          if (!TryCopy(that)) return false;
 
          UsageCount = that.UsageCount;

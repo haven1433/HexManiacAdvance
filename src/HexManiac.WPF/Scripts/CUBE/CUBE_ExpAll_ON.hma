@@ -1,0 +1,46 @@
+# CUBE script: EXP All (ON)
+#
+# ON means the Exp. Share is a key item and Pokemon that did not battle still get a share of the EXP; OFF means the normal Exp. Share and only the Pokemon that battled get EXP.
+#
+# What it does
+#   Turns EXP All on. The Exp. Share becomes a key item, and every Pokemon of your party
+#   that did not take part in a battle still gets a share of the EXP.
+#   The share is the percentage that you type below (the default is 20).
+#
+# How to undo
+#   Run CUBE_ExpAll_OFF.hma, or press Ctrl+Z before you save.
+#
+# How to use
+#   1. Open your CUBE ROM in HexManiacAdvance.
+#   2. Drag this file onto HexManiacAdvance.
+#   3. Look at the result, then save the ROM.
+#   It works on every CUBE ROM from round 14 on, also on one that you changed and saved with an older .toml.
+#   On any other ROM the script stops with a message and changes nothing.
+#
+# What it writes
+#   Two bytes of the table cube.scripts.config: byte 1 is the percentage, byte 0 is 1 (on).
+#   You can also change the percentage later with Goto > Scripts > EXP Share (it is there while EXP All is on).
+#
+.python
+tab = editor.SelectedTab
+if tab.Model.GetAddressFromAnchor(tab.CurrentChange, -1, 'cube.scripts.config') < 0:
+  tab.RaiseError('No CUBE script table (cube.scripts.config): this is not a CUBE ROM, or it is a CUBE older than round 14 (older Apply CUBE). Nothing was changed.')
+  tab.AbortScript()
+.end
+
+# ------------------------------------------------------------------------------------
+# EDIT THE NUMBER ON THE NEXT LINE (the last number, 0 to 100): the percent of the EXP
+# that a Pokemon gets when it did not take part in the battle.
+# ------------------------------------------------------------------------------------
+@cube.scripts.config+1 20
+
+@cube.scripts.config+0 1
+
+.python
+tab = editor.SelectedTab
+percent = tab.Model[tab.Model.GetAddressFromAnchor(tab.CurrentChange, -1, 'cube.scripts.config') + 1]
+if percent > 100:
+  tab.RaiseError('EXP All is on, but the percentage is ' + str(percent) + ': it has to be 0 to 100. Fix the number in the script and run it again.')
+else:
+  tab.RaiseMessage('CUBE: EXP All is now on (' + str(percent) + ' percent). Goto > Scripts > EXP Share shows the percentage.')
+.end

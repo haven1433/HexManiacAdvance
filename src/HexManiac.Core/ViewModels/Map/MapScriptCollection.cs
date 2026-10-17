@@ -187,6 +187,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var model = viewPort.Model;
          SubScripts.Clear();
          var token = new NoDataChangeDeltaModel();
+         if (address < 0 || address >= model.Count) return; // an address outside of the file (typed by the user) has nothing to read
          if (scriptType != 2 && scriptType != 4) {
             // we're pointing at an XSERun
             if (model.GetNextRun(address).Start >= address) {
@@ -194,7 +195,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          } else {
             var destination = address;
-            while (true) {
+            while (destination + 8 <= model.Count) { // each sub script takes 8 bytes: stop at the end of the file
                var currentValue = model.ReadMultiByteValue(destination, 2);
                if (currentValue == 0 || currentValue == 0xFFFF) break;
                var child = new MapSubScriptViewModel(viewPort, eventTemplate, destination);

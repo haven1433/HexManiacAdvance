@@ -1,4 +1,4 @@
-﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
@@ -149,7 +149,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void HandleRenderFailure(Exception ex) {
-         var result = FileSystem.ShowCustomMessageBox("HexManiacAdvance encountered a rendering error." + Environment.NewLine +
+         var result = FileSystem.ShowCustomMessageBox("CUBHMA encountered a rendering error." + Environment.NewLine +
             "The most common render thread failures are associated with video hardware or driver problems." + Environment.NewLine +
             "Do you want to disable hardware acceleration?");
          if (result == true) {
@@ -232,12 +232,35 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             });
          }
 
+         var stateItems = new List<(MenuItem item, IQuickEditMenuState state)>();
          foreach (var edit in ViewModel.QuickEditsMisc) {
             var command = CreateQuickEditCommand(edit);
-            QuickEditsMisc.Items.Add(new MenuItem {
+            var item = new MenuItem {
                Header = edit.Name,
                Command = command
-            });
+            };
+            if (edit is IQuickEditMenuState state) {
+               // hidden for ROMs it is not meant for; grayed out with a tooltip that says why (a disabled item only shows its tooltip with ShowOnDisabled)
+               ToolTipService.SetShowOnDisabled(item, true);
+               stateItems.Add((item, state));
+            }
+            QuickEditsMisc.Items.Add(item);
+         }
+         if (stateItems.Count > 0) {
+            void RefreshStates() {
+               IViewPort current = null;
+               if (ViewModel.SelectedIndex >= 0) {
+                  var tab = ViewModel[ViewModel.SelectedIndex];
+                  if (tab is MapEditorViewModel map) tab = map.ViewPort;
+                  current = tab as IViewPort;
+               }
+               foreach (var (item, state) in stateItems) {
+                  item.Visibility = state.IsVisible(current) ? Visibility.Visible : Visibility.Collapsed;
+                  item.ToolTip = state.ToolTip(current);
+               }
+            }
+            RefreshStates();
+            QuickEditsMisc.SubmenuOpened += (sender, e) => RefreshStates();
          }
          ((RomOverview)ViewModel.QuickEditsMisc[0]).EditSelected += (sender, e) => DeveloperRenderRomOverview();
       }
@@ -245,6 +268,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private ICommand CreateQuickEditCommand(IQuickEditItem edit) {
          var command = new StubCommand {
             CanExecute = arg => {
+               if (edit is IStandaloneQuickEdit) return true; // works without an open tab (it asks for the file)
                if (ViewModel.SelectedIndex < 0) return false;
                var tab = ViewModel[ViewModel.SelectedIndex];
                if (tab is MapEditorViewModel map) tab = map.ViewPort;
@@ -393,7 +417,14 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       protected override void OnActivated(EventArgs e) {
          base.OnActivated(e);
+         ViewModel.ShortcutClock.WindowActive = true;
          if (ViewModel.GotoViewModel.ControlVisible) FocusGotoBox();
+      }
+
+      // the animated buttons of the Goto dialog stand still while another window (or another program) is in front, or this window is minimized
+      protected override void OnDeactivated(EventArgs e) {
+         base.OnDeactivated(e);
+         if (ViewModel != null) ViewModel.ShortcutClock.WindowActive = false;
       }
 
       public static FrameworkElement GetChild(DependencyObject depObj, string name, object dataContext) {
@@ -450,6 +481,28 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
          e.Handled = true;
          element.ReleaseMouseCapture();
+      }
+
+      #endregion
+
+      #region How flags and variables are written in the script editor (View menu)
+
+      private void ScriptNameDisplayMenuOpened(object sender, RoutedEventArgs e) {
+         if (sender is MenuItem menu) UpdateScriptNameDisplayChecks(menu);
+      }
+
+      private void ScriptNameDisplayClick(object sender, RoutedEventArgs e) {
+         var item = sender as MenuItem;
+         if (item == null || !int.TryParse(item.Tag as string, out var choice)) return;
+         ViewModel.ScriptNameDisplay = (HavenSoft.HexManiac.Core.Models.Code.ScriptNameDisplay)choice;
+         if (item.Parent is MenuItem menu) UpdateScriptNameDisplayChecks(menu);
+      }
+
+      /// <summary>One choice is always checked: the one that is stored.</summary>
+      private void UpdateScriptNameDisplayChecks(MenuItem menu) {
+         foreach (var choice in menu.Items.OfType<MenuItem>()) {
+            choice.IsChecked = int.TryParse(choice.Tag as string, out var value) && value == (int)ViewModel.ScriptNameDisplay;
+         }
       }
 
       #endregion
@@ -553,6 +606,53 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             themeWindow.Show();
          }
       }
+
+      #region Movement permission grid opacity (View menu)
+
+      private void CollisionGridOpacityMenuOpened(object sender, RoutedEventArgs e) {
+         if (sender is MenuItem menu) UpdateCollisionGridOpacityChecks(menu);
+      }
+
+      private void CollisionGridOpacityClick(object sender, RoutedEventArgs e) {
+         var item = sender as MenuItem;
+         if (item == null || !int.TryParse(item.Tag as string, out var percent)) return;
+         ViewModel.CollisionGridOpacity = percent;
+         if (item.Parent is MenuItem menu) UpdateCollisionGridOpacityChecks(menu);
+      }
+
+      /// <summary>
+      /// The check mark follows the one stored value, whether it was last changed here or with the slider in the map editor.
+      /// A value that isn't one of the choices (the slider can pick any percent) leaves every choice unchecked.
+      /// </summary>
+      private void UpdateCollisionGridOpacityChecks(MenuItem menu) {
+         foreach (var choice in menu.Items.OfType<MenuItem>()) {
+            choice.IsChecked = int.TryParse(choice.Tag as string, out var percent) && percent == ViewModel.CollisionGridOpacity;
+         }
+      }
+
+      #endregion
+
+      #region How GFX-variable events look in the map editor (View menu)
+
+      private void GraphicsVariableDisplayMenuOpened(object sender, RoutedEventArgs e) {
+         if (sender is MenuItem menu) UpdateGraphicsVariableDisplayChecks(menu);
+      }
+
+      private void GraphicsVariableDisplayClick(object sender, RoutedEventArgs e) {
+         var item = sender as MenuItem;
+         if (item == null || !int.TryParse(item.Tag as string, out var choice)) return;
+         ViewModel.GraphicsVariableDisplay = (HavenSoft.HexManiac.Core.ViewModels.Map.GraphicsVariableDisplay)choice;
+         if (item.Parent is MenuItem menu) UpdateGraphicsVariableDisplayChecks(menu);
+      }
+
+      /// <summary>One choice is always checked: the one that is stored.</summary>
+      private void UpdateGraphicsVariableDisplayChecks(MenuItem menu) {
+         foreach (var choice in menu.Items.OfType<MenuItem>()) {
+            choice.IsChecked = int.TryParse(choice.Tag as string, out var value) && value == (int)ViewModel.GraphicsVariableDisplay;
+         }
+      }
+
+      #endregion
 
       private void ExecuteAnimation(object sender, ExecutedRoutedEventArgs e) {
          if (!IsActive) return;

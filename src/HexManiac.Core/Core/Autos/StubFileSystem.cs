@@ -35,6 +35,15 @@ namespace HavenSoft.HexManiac.Core.Models
             }
         }
 
+        public Func<string, System.String[], IReadOnlyList<LoadedFile>> OpenFiles { get; set; }
+
+        IReadOnlyList<LoadedFile> IFileSystem.OpenFiles(string extensionDescription, System.String[] extensionOptions)
+        {
+            if (this.OpenFiles != null) return this.OpenFiles(extensionDescription, extensionOptions);
+            var file = ((IFileSystem)this).OpenFile(extensionDescription, extensionOptions);
+            return file == null ? new LoadedFile[0] : new[] { file };
+        }
+
         public Func<string> OpenFolder { get; set; }
         string IFileSystem.OpenFolder() => OpenFolder?.Invoke() ?? default;
 

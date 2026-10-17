@@ -43,6 +43,18 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </returns>
       LoadedFile OpenFile(string extensionDescription = null, params string[] extensionOptions);
 
+      /// <summary>
+      /// Have the filesystem ask the user for one or more existing files (the dialog allows selecting several at once).
+      /// The default implementation asks for a single file, so a file system that can't select several files keeps working.
+      /// </summary>
+      /// <returns>
+      /// The files the user chose, loaded, in the order the dialog gave them. An empty list if the user cancels or selects only unreadable files.
+      /// </returns>
+      IReadOnlyList<LoadedFile> OpenFiles(string extensionDescription = null, params string[] extensionOptions) {
+         var file = OpenFile(extensionDescription, extensionOptions);
+         return file == null ? Array.Empty<LoadedFile>() : new[] { file };
+      }
+
       string OpenFolder();
 
       /// <returns>true if the file can be loaded</returns>

@@ -50,7 +50,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (!Children[i].TryCopy(that.Children[i])) return false;
          }
 
-         Visible = that.Visible;
+         // Visible is not copied: a new tuple always starts hidden, and the section that holds this one decides (after every refresh) whether it shows.
+         // Copying it would hide this tuple for a moment, and show it again.
          return true;
       }
    }

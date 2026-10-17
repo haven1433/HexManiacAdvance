@@ -1,0 +1,85 @@
+name: Build CUBHMA
+
+# Builds the x64 release zip (the same way release.sh does) and publishes it on the Releases page.
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Build (Release, x64)
+        run: dotnet build -c Release -p:PlatformTarget=x64
+
+      - name: Run unit tests
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue' # stderr output from dotnet must not abort the script before the summary is recorded
+          dotnet test HexManiacAdvance.sln --no-build -c Release -p:PlatformTarget=x64 --logger "trx;LogFileName=results.trx" 2>&1 | ForEach-Object { "$_" } | Tee-Object -FilePath test-output.txt
+          $testExitCode = $LASTEXITCODE
+          # record the one-line summary (e.g. "Passed! - Failed: 0, Passed: 1234, Skipped: 0, Total: 1234") where it can be read without the full log
+          $summary = (Select-String -Path test-output.txt -Pattern '(Passed|Failed)!\s+-' | ForEach-Object { $_.Line.Trim() }) -join ' | '
+          if (-not $summary) { $summary = "no summary line found (dotnet test exit code $testExitCode)" }
+          "TEST_SUMMARY=$summary" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $details = @()
+          # each failed test, with the error message and the first lines of its stack trace
+          $details += Select-String -Path test-output.txt -Pattern '^\s*Failed ' -Context 0,14 | Select-Object -First 20 | ForEach-Object { @($_.Line) + ($_.Context.PostContext | ForEach-Object { "    $_" }) }
+          $details += "--- last 40 lines of test output ---"
+          $details += Get-Content test-output.txt -Tail 40
+          $details -join "`n" | Out-File -FilePath failed-tests.txt
+          "## Unit tests`n`n$summary" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          exit $testExitCode
+
+      - name: Zip the build output
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path src/SharedAssemblyInfo.cs -Pattern 'AssemblyVersion\("([^"]+)"\)').Matches[0].Groups[1].Value
+          if ($version.EndsWith('.0')) { $version = $version.Substring(0, $version.Length - 2) } # 0.7.0 is released as 0.7; 0.7.1 stays 0.7.1
+          Compress-Archive -Path artifacts/HexManiac.WPF/bin/Release/net6.0-windows/* -DestinationPath "CUBHMA_x64.$version.zip"
+          "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $failed = if (Test-Path failed-tests.txt) { (Get-Content failed-tests.txt) -join "`n" } else { "" }
+          "FAILED_TESTS<<EOF`n$failed`nEOF" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CUBHMA_x64
+          path: CUBHMA_x64.*.zip
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            **/results.trx
+            test-output.txt
+          if-no-files-found: ignore
+
+      - name: Write the release text
+        shell: pwsh
+        run: |
+          $notes = Get-Content RELEASE_NOTES.md -Raw
+          $failed = if (Test-Path failed-tests.txt) { (Get-Content failed-tests.txt) -join "`n" } else { "" }
+          "$notes`n`nUnit tests: $env:TEST_SUMMARY`n$failed" | Out-File -FilePath release-body.md -Encoding utf8
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          target_commitish: ${{ github.sha }}
+          tag_name: v${{ env.VERSION }}
+          name: CUBHMA ${{ env.VERSION }}
+          body_path: release-body.md
+          files: CUBHMA_x64.*.zip

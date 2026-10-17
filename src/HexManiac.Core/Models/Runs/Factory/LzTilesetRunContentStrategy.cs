@@ -18,7 +18,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          if (lzRun.Length < 0) return false;
          if (lzRun.DecompressedLength % 0x20 != 0) return false;
          var newRun = new LzTilesetRun(TilesetFormat, owner, destination);
-         if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, newRun);
+         if (!(token is NoDataChangeDeltaModel)) {
+            owner.ClearFormat(token, newRun.Start + 1, newRun.Length - 1); // formats that start inside the new one would overlap it
+            owner.ObserveRunWritten(token, newRun);
+         }
          return true;
       }
 

@@ -92,6 +92,16 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
+      public Func<IReadOnlyList<Code.IScriptLine>, IReadOnlyList<Code.IScriptLine>> GetScriptLines { get; set; }
+
+      IReadOnlyList<Code.IScriptLine> IDataModel.GetScriptLines(IReadOnlyList<Code.IScriptLine> sharedLines) {
+         if (this.GetScriptLines != null) {
+            return this.GetScriptLines(sharedLines);
+         } else {
+            return sharedLines;
+         }
+      }
+
       public delegate bool IsAtEndOfArrayDelegate_int_Runs_ITableRun(int dataIndex, out Runs.ITableRun tableRun);
 
       public IsAtEndOfArrayDelegate_int_Runs_ITableRun IsAtEndOfArray_int_Runs_ITableRun { get; set; }

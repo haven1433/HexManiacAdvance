@@ -16,7 +16,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var spriteRun = new SpriteRun(owner, destination, spriteFormat, new SortedSpan<int>(source));
          // TODO deal with the run being too long?
-         if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, spriteRun);
+         if (!(token is NoDataChangeDeltaModel)) {
+            owner.ClearFormat(token, spriteRun.Start + 1, spriteRun.Length - 1); // formats that start inside the new one would overlap it
+            owner.ObserveRunWritten(token, spriteRun);
+         }
          return true;
       }
       public override bool Matches(IFormattedRun run) =>

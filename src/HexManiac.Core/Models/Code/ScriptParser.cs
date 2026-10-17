@@ -18,6 +18,14 @@ using System.Text;
 namespace HavenSoft.HexManiac.Core.Models.Code {
    public record ScriptErrorInfo(string Message, TextSegment Segment);
 
+   /// <summary>Thrown when a script that was expected to compile (a template, for example) has errors.</summary>
+   public class ScriptCompileException : InvalidOperationException {
+      public IReadOnlyList<string> Errors { get; }
+      public ScriptCompileException(IReadOnlyList<string> errors) : base("The script could not be compiled: " + string.Join(" ", errors ?? new string[0])) {
+         Errors = errors ?? new string[0];
+      }
+   }
+
    public class ScriptParser {
       public const int MaxRepeates = 20;
       private readonly IReadOnlyList<IScriptLine> engine;
@@ -36,6 +44,30 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public void RefreshGameHash(IDataModel model) => gameHash = model.GetShortGameCode();
 
       public int GetScriptSegmentLength(IDataModel model, int address) => engine.GetScriptSegmentLength(gameHash, model, address, new Dictionary<int, int>());
+
+      /// <summary>
+      /// How many arguments you have to write for this command in the current game, or -1 if the script reference has no such command.
+      /// Templates use this to stay valid when a hack changes a command's signature (the expansion's setwildbattle takes 6 arguments, vanilla's takes 3).
+      /// </summary>
+      public int GetArgumentCount(string command) {
+         foreach (var line in engine) {
+            if (line is not ScriptLine) continue;
+            if (!string.Equals(line.LineCommand, command, StringComparison.Ordinal)) continue;
+            if (!line.MatchesGame(gameHash)) continue;
+            return line.Args.Count(arg => arg.Name != "filler"); // fillers are added by the compiler
+         }
+         return -1;
+      }
+
+      /// <summary>
+      /// Writes a line of script for a command, padding the arguments you give with zeros until there are as many as the script reference asks for.
+      /// </summary>
+      public string BuildCommand(string command, params string[] arguments) {
+         var count = GetArgumentCount(command);
+         var all = new List<string>(arguments);
+         while (all.Count < count) all.Add("0");
+         return all.Count == 0 ? command : command + " " + string.Join(" ", all);
+      }
 
       public string Parse(IDataModel data, int start, int length, ref int existingSectionCount, CodeBody updateBody = null) {
          var builder = new StringBuilder();
@@ -246,7 +278,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                keywordCache.Add(line.LineCommand);
                foreach (var arg in line.Args) {
                   if (string.IsNullOrEmpty(arg.EnumTableName)) continue;
-                  foreach (var option in model.GetOptions(arg.EnumTableName)) {
+                  foreach (var option in model.GetOptions(ScriptArg.GetOptionsName(arg.EnumTableName))) {
                      if (option == null) continue;
                      if ("<>!=?".Any(option.Contains)) continue;
                      constantCache.Add(option);
@@ -323,7 +355,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                               model.ClearFormat(token, address + length, 4);
                               model.ObserveRunWritten(token, new PointerRun(address + length));
                            }
-                           if (arg.PointerType == ExpectedPointerType.Script) {
+                           // a script pointer that leads to the start of a table (a pointer in thumb code that was mistaken for a script, say) does not turn the table into a script
+                           if (arg.PointerType == ExpectedPointerType.Script && !(destinationRun is ITableRun && destinationRun.Start == destination)) {
                               toProcess.Add(destination);
                               if (destination.InRange(address, address + desiredLength)) desiredLength = destination - address;
                            }
@@ -414,7 +447,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
       }
 
-      private record StreamInfo(ExpectedPointerType PointerType, int Source, int Destination);
+      private record StreamInfo(ExpectedPointerType PointerType, int Source, int Destination, DeferredStreamToken Deferred = null);
 
       public static int InsertMissingClosers(ref string script, int caret) {
          int caretMove = 0;
@@ -452,6 +485,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   text.Insert(i + 1, '\r');
                   text.Insert(i + 2, '\n');
                }
+               while (text.Count < i + 3) text.Add(' '); // the text ends right after the open brace
                text.Insert(i + 3, '}');
                close = i + 3;
                if (i == caret) caretMove -= 3;
@@ -497,6 +531,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          CompileError += Handler;
          var content = Compile(token, model, scriptStart, ref script, out var _, out var _);
          CompileError -= Handler;
+         // a script that doesn't compile has no content: say why, instead of letting the caller trip over a null
+         if (content == null) throw new ScriptCompileException(errors.Select(error => error.Message).ToList());
          Debug.Assert(errors.IsNullOrEmpty(), "Expected compilation to have no errors! " + Environment.NewLine + Environment.NewLine.Join(errors.Select(error => error.Message)));
          return content;
       }
@@ -554,8 +590,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   var info = streamInfo[0];
                   streamTypes.Add(info.PointerType);
                   if (info.Destination == DeferredStreamToken.AutoSentinel + Pointer.NULL) {
-                     var deferred = deferredContent[deferredContent.Count - streamInfo.Count];
-                     deferred.UpdateContent(model, info.PointerType, stream);
+                     info.Deferred.UpdateContent(model, info.PointerType, stream);
                   } else if (model.GetNextRun(info.Destination) is IStreamRun streamRun && streamRun.Start == info.Destination) {
                      var newStreamRun = streamRun.DeserializeRun(stream, token, out var _, out var _); // we don't notify parents/children based on script-stream changes: we know they never have parents/children.
                      // alter script content and compiled byte location based on stream move
@@ -574,6 +609,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                continue;
             }
             streamInfo.Clear();
+
+            // Decompile writes ".raw XX" for bytes that are not a command: read them back as the same byte
+            if (TryParseRawByte(line, out var rawByte)) {
+               result.Add(rawByte);
+               continue;
+            }
 
             var command = FirstMatch(line);
             if (command != null) {
@@ -641,7 +682,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   if (arg.Type == ArgType.Pointer && arg.PointerType != ExpectedPointerType.Unknown) {
                      var destination = result.ReadMultiByteValue(currentSize + pointerOffset, 4) + Pointer.NULL;
                      if (destination == DeferredStreamToken.AutoSentinel + Pointer.NULL) {
-                        streamInfo.Add(new(arg.PointerType, start + currentSize + pointerOffset, destination));
                         (string format, byte[] defaultContent, int alignment) = arg.PointerType switch {
                            ExpectedPointerType.Text => ("\"\"", new byte[] { 0xFF }, 1),
                            ExpectedPointerType.Mart => ($"[item:{HardcodeTablesModel.ItemsTableName}]!0000", new byte[] { 0, 0 }, 4),
@@ -649,7 +689,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                            ExpectedPointerType.Movement => ($"[move.movementtypes]!FE", new byte[] { 0xFE }, 1),
                            _ => ("^", new byte[0], 1)
                         };
-                        deferredContent.Add(new(currentSize + pointerOffset, format, defaultContent, alignment));
+                        var deferredToken = new DeferredStreamToken(currentSize + pointerOffset, format, defaultContent, alignment);
+                        deferredContent.Add(deferredToken);
+                        streamInfo.Add(new(arg.PointerType, start + currentSize + pointerOffset, destination, deferredToken));
                      } else if (destination >= 0 && arg.PointerType != ExpectedPointerType.Script) {
                         streamInfo.Add(new(arg.PointerType, start + currentSize + pointerOffset, destination));
                         if (arg.PointerType == ExpectedPointerType.Text) {
@@ -662,7 +704,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   pointerOffset += arg.Length(model, currentSize + pointerOffset);
                }
 
-               lastCommandIsEndCommand = command.IsEndingCommand;
+               // padding nops after the end command (they keep an inline stream aligned) don't make the script "unfinished":
+               // adding another end command there grew the script by a byte and shifted its inline streams
+               lastCommandIsEndCommand = command.IsEndingCommand || (lastCommandIsEndCommand && command.LineCommand != null && command.LineCommand.StartsWith("nop"));
             } else {
                CompileError.Raise(this, new($"{i}: {line} is not a valid command", new(i, 0, lines[i].Length, SegmentType.Error)));
                return null;
@@ -684,7 +728,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public IScriptLine FirstMatch(string line) {
-         foreach (var command in engine) {
+         // This is called for every line of a script whenever the script text changes,
+         // so only consider the commands whose name matches the line instead of testing every command in the reference.
+         foreach (var command in ScriptLineIndex.For(engine).CandidatesForCompile(line)) {
             if (!command.MatchesGame(gameHash)) continue;
             if (command.CanCompile(line)) return command;
          }
@@ -700,14 +746,18 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                labels[line.Substring(0, line.Length - 1)] = start + length;
                continue;
             }
-            foreach (var command in engine) {
-               if (!command.MatchesGame(gameHash)) continue;
-               if (!command.CanCompile(line)) continue;
-               length += command.CompiledByteLength(model, line);
-               break;
-            }
+            if (TryParseRawByte(line, out var _)) { length += 1; continue; }
+            var command = FirstMatch(line);
+            if (command != null) length += command.CompiledByteLength(model, line);
          }
          return new LabelLibrary(model, labels) { RequireCompleteAddresses = RequireCompleteAddresses };
+      }
+
+      private static bool TryParseRawByte(string line, out byte value) {
+         value = 0;
+         if (!line.StartsWith(".raw ", StringComparison.Ordinal)) return false;
+         var text = line.Substring(5).Trim();
+         return text.Length == 2 && byte.TryParse(text, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out value);
       }
 
       public static IEnumerable<T> SortOptions<T>(IEnumerable<T> options, string token, Func<T, string> compare) {
@@ -719,7 +769,20 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return options;
       }
 
+      /// <summary>An option from ReadOptions is the name, followed by the list's comment for that name (if the list has one).</summary>
+      public static string OptionName(string option) => option.Split('#')[0].Trim();
+
+      /// <summary>
+      /// The options to suggest for a token that is being typed, for an argument that takes values from the table or list 'tableName'.
+      /// 'list|h' arguments are numbers first: names from the list are only suggested once the token starts with a letter,
+      /// so typing a number (or nothing yet) never opens a list of names.
+      /// </summary>
+      /// <returns>null if the argument has no table or list, otherwise the options (empty if there is nothing to suggest).</returns>
       public List<string> ReadOptions(IDataModel model, string tableName, string token) {
+         if (ScriptArg.IsNumberOrNameSpec(tableName)) {
+            if (string.IsNullOrEmpty(token) || !(char.IsLetter(token[0]) || token[0] == '_')) return new List<string>();
+            tableName = ScriptArg.ListForDisplay(ScriptArg.GetListName(tableName)) ?? ScriptArg.GetListName(tableName);
+         }
          if (!string.IsNullOrEmpty(tableName)) {
             var isList = model.TryGetList(tableName, out var list);
             var allOptions = model.GetOptions(tableName);
@@ -732,7 +795,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   options.Add(allOptions[i] + comment);
                }
             }
-            options = SortOptions(options, token, option => option).ToList();
+            options = SortOptions(options, token, OptionName).ToList(); // sort on the name, a long comment must not push an option down the list
 
             if (options.Count > 10) {
                while (options.Count > 9) options.RemoveAt(options.Count - 1);
@@ -811,7 +874,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   var token = tokens[tokens.Length - 1];
                   var options = ReadOptions(model, arg.EnumTableName, token);
                   if (options != null) {
-                     if (args.Count == tokens.Length - skipCount && options.Any(option => option == token)) return null; // perfect match on last token
+                     if (args.Count == tokens.Length - skipCount && options.Any(option => OptionName(option) == token)) return null; // perfect match on last token
                      return Environment.NewLine.Join(options);
                   }
                }
@@ -914,7 +977,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                continue;
             }
 
-            var line = engine.FirstOrDefault(option => option.Matches(gameHash, data, index));
+            var line = engine.GetMatchingLineOrMacro(gameHash, data, index);
             if (line == null) {
                results.Add($".raw {data[index]:X2}");
                index += 1;
@@ -976,16 +1039,142 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       SpriteTemplate,
    }
 
+   /// <summary>
+   /// Every script command (and macro) can only match data that starts with a specific byte.
+   /// Scanning the whole command list for every byte of every script is the single most expensive part of walking scripts,
+   /// so this groups the commands by that first byte. Within a group, the original order is preserved,
+   /// so the first match is the same one that a scan of the whole list would find.
+   /// </summary>
+   internal sealed class ScriptLineIndex {
+      private static readonly IScriptLine[] NoLines = new IScriptLine[0];
+      private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<IReadOnlyList<IScriptLine>, ScriptLineIndex> indexes = new();
+
+      private readonly int lineCount;
+      private readonly IScriptLine[][] macros = new IScriptLine[256][], lines = new IScriptLine[256][], all = new IScriptLine[256][];
+
+      // for compiling: the commands grouped by name, each remembered with its position in the script reference
+      private readonly Dictionary<string, List<(int index, IScriptLine line)>> byCommand = new(StringComparer.CurrentCultureIgnoreCase);
+      private readonly List<(int index, IScriptLine line)> unnamedCommands = new(); // commands whose name can't be used as a lookup key: always candidates
+
+      public static ScriptLineIndex For(IReadOnlyList<IScriptLine> engine) {
+         // ConditionalWeakTable reads are thread-safe, so the common case needs no lock
+         if (indexes.TryGetValue(engine, out var index) && index.lineCount == engine.Count) return index;
+         lock (indexes) {
+            if (indexes.TryGetValue(engine, out index) && index.lineCount == engine.Count) return index;
+            index = new ScriptLineIndex(engine);
+            indexes.AddOrUpdate(engine, index);
+            return index;
+         }
+      }
+
+      private ScriptLineIndex(IReadOnlyList<IScriptLine> engine) {
+         lineCount = engine.Count;
+         var macroBuckets = new List<IScriptLine>[256];
+         var lineBuckets = new List<IScriptLine>[256];
+         var allBuckets = new List<IScriptLine>[256];
+         for (int i = 0; i < 256; i++) (macroBuckets[i], lineBuckets[i], allBuckets[i]) = (new(), new(), new());
+
+         for (int i = 0; i < engine.Count; i++) {
+            var line = engine[i];
+            if (line == null) continue;
+            int firstByte = -1; // -1 means 'could match any first byte'
+            if (line is MacroScriptLine macro) {
+               if (macro.Args.Count > 0 && macro.Args[0] is SilentMatchArg silent) firstByte = silent.ExpectedValue;
+               Add(macroBuckets, firstByte, line);
+            } else {
+               if (line.LineCode.Count > 0) firstByte = line.LineCode[0];
+               Add(lineBuckets, firstByte, line);
+            }
+            Add(allBuckets, firstByte, line);
+
+            var name = line.LineCommand;
+            if (string.IsNullOrEmpty(name) || name.Any(char.IsWhiteSpace)) {
+               unnamedCommands.Add((i, line));
+            } else {
+               if (!byCommand.TryGetValue(name, out var list)) byCommand[name] = list = new();
+               list.Add((i, line));
+            }
+         }
+
+         for (int i = 0; i < 256; i++) {
+            macros[i] = macroBuckets[i].Count == 0 ? NoLines : macroBuckets[i].ToArray();
+            lines[i] = lineBuckets[i].Count == 0 ? NoLines : lineBuckets[i].ToArray();
+            all[i] = allBuckets[i].Count == 0 ? NoLines : allBuckets[i].ToArray();
+         }
+      }
+
+      private static void Add(List<IScriptLine>[] buckets, int firstByte, IScriptLine line) {
+         if (firstByte >= 0) {
+            buckets[firstByte].Add(line);
+         } else {
+            foreach (var bucket in buckets) bucket.Add(line);
+         }
+      }
+
+      public IScriptLine[] Macros(byte firstByte) => macros[firstByte];
+      public IScriptLine[] Lines(byte firstByte) => lines[firstByte];
+      public IScriptLine[] All(byte firstByte) => all[firstByte];
+
+      /// <summary>
+      /// The commands that could possibly compile the given line of script text, in script-reference order.
+      /// A ScriptLine can only compile text whose first space-delimited word is its name (ignoring case),
+      /// and a MacroScriptLine can only compile text whose first token is its name,
+      /// so only the commands with those names need to be checked (callers still verify with CanCompile).
+      /// </summary>
+      public IEnumerable<IScriptLine> CandidatesForCompile(string line) {
+         if (line == null) return NoLines;
+         var spaceIndex = line.IndexOf(' ');
+         var prefix = spaceIndex < 0 ? line : line.Substring(0, spaceIndex);
+         var tokens = ScriptLine.Tokenize(line);
+         var firstToken = tokens.Length > 0 ? tokens[0] : null;
+
+         byCommand.TryGetValue(prefix, out var byPrefix);
+         List<(int index, IScriptLine line)> byToken = null;
+         if (firstToken != null && !string.Equals(firstToken, prefix, StringComparison.CurrentCultureIgnoreCase)) byCommand.TryGetValue(firstToken, out byToken);
+
+         // common case: a single candidate list and nothing unnamed, so no merging is needed
+         if (unnamedCommands.Count == 0) {
+            if (byToken == null) return byPrefix == null ? NoLines : byPrefix.Select(pair => pair.line);
+            if (byPrefix == null) return byToken.Select(pair => pair.line);
+         }
+
+         var candidates = new List<(int index, IScriptLine line)>(unnamedCommands);
+         if (byPrefix != null) candidates.AddRange(byPrefix);
+         if (byToken != null) candidates.AddRange(byToken);
+         candidates.Sort((a, b) => a.index.CompareTo(b.index));
+         return candidates.Select(pair => pair.line);
+      }
+   }
+
    public static class ScriptExtensions {
       public static MacroScriptLine GetMatchingMacro(this IReadOnlyList<IScriptLine> self, int gameHash, IReadOnlyList<byte> data, int start) {
-         return (MacroScriptLine)self.FirstOrDefault(option => option is MacroScriptLine && option.Matches(gameHash, data, start));
+         if (start < 0 || start >= data.Count) return null;
+         foreach (var option in ScriptLineIndex.For(self).Macros(data[start])) {
+            if (option.Matches(gameHash, data, start)) return (MacroScriptLine)option;
+         }
+         return null;
       }
 
       /// <summary>
       /// Does not consider macros. Only returns individual lines.
       /// </summary>
       public static ScriptLine GetMatchingLine(this IReadOnlyList<IScriptLine> self, int gameHash, IReadOnlyList<byte> data, int start) {
-         return (ScriptLine)self.FirstOrDefault(option => option is ScriptLine && option.Matches(gameHash, data, start));
+         if (start < 0 || start >= data.Count) return null;
+         foreach (var option in ScriptLineIndex.For(self).Lines(data[start])) {
+            if (option.Matches(gameHash, data, start)) return (ScriptLine)option;
+         }
+         return null;
+      }
+
+      /// <summary>
+      /// Considers both macros and individual lines, in the order they appear in the script reference.
+      /// </summary>
+      public static IScriptLine GetMatchingLineOrMacro(this IReadOnlyList<IScriptLine> self, int gameHash, IReadOnlyList<byte> data, int start) {
+         if (start < 0 || start >= data.Count) return null;
+         foreach (var option in ScriptLineIndex.For(self).All(data[start])) {
+            if (option.Matches(gameHash, data, start)) return option;
+         }
+         return null;
       }
 
       public static int GetScriptSegmentLength(this IReadOnlyList<IScriptLine> self, int gameHash, IDataModel model, int address, IDictionary<int, int> destinationLengths) {
@@ -1066,7 +1255,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
             data.AddShort(0);
             content = data.ToArray();
-         } else if (type == ExpectedPointerType.Mart) {
+         } else if (type == ExpectedPointerType.Decor) {
             //   [item:{HardcodeTablesModel.DecorationsTableName}]!0000
             var data = new List<byte>();
             foreach (var line in text.SplitLines()) {
@@ -1092,7 +1281,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             foreach (var line in text.SplitLines()) {
                var parts = line.Split(':');
                if (parts.Length == 1) continue;
-               var index = format.FindIndex(parts[0].StartsWith);
+               // the lines read "name : value": the name is padded with spaces, and the format entries carry their ':' or '<>'
+               var name = parts[0].Trim();
+               var index = format.FindIndex(entry => entry.TrimEnd(':', '<', '>') == name);
                if (index == -1) continue;
                int offset = index switch {
                   0 => 0,
@@ -1100,12 +1291,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   int i => (i - 1) * 4,
                };
                var (value, length) = ReadSpriteTemplateField(format[index], parts[1]);
+               if (length == 4 && value != 0) value |= BaseModel.PointerOffset; // pointer fields are stored with the 08 base
 
                for (int i = 0; i < length; i++) {
                   data[offset + i] = (byte)value;
                   value >>= 8;
                }
             }
+            content = data;
          } else {
             throw new NotImplementedException();
          }

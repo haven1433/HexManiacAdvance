@@ -15,9 +15,10 @@ namespace HexManiac.WPF.Resources {
             if (stream.palette == null) {
                throw new PngArgumentException("No PLTE chunk read.");
             }
-            if (stream.pixels == null) {
+            if (stream.imageData.Length == 0) {
                throw new PngArgumentException("No IDAT chunk read.");
             }
+            stream.DecodeImage();
             return (stream.pixels, stream.palette);
          }
       }
@@ -27,6 +28,8 @@ namespace HexManiac.WPF.Resources {
       private uint width;
       private uint height;
       private int bitDepth;
+      private bool interlaced;
+      private readonly MemoryStream imageData = new MemoryStream(); // the content of every IDAT chunk: one compressed stream that may be split across chunks
       private int[,] pixels;
       private IReadOnlyList<short> palette;
 
@@ -51,7 +54,7 @@ namespace HexManiac.WPF.Resources {
 
       public override int Read(byte[] buffer, int offset, int count) {
          int value = inner.Read(buffer, offset, count);
-         bytesRead.AddRange(buffer.Skip(offset).Take(count));
+         bytesRead.AddRange(buffer.Skip(offset).Take(Math.Max(0, value)));
          return value;
       }
 
@@ -63,15 +66,25 @@ namespace HexManiac.WPF.Resources {
       
       public uint ReadInt() {
          // 32-bit int, big endian
-         return ((uint)ReadByte() << 24)
-            | ((uint)ReadByte() << 16)
-            | ((uint)ReadByte() << 8)
-            | ((uint)ReadByte() << 0);
+         var bytes = ReadBytes(4);
+         return ((uint)bytes[0] << 24)
+            | ((uint)bytes[1] << 16)
+            | ((uint)bytes[2] << 8)
+            | ((uint)bytes[3] << 0);
       }
 
       private byte[] ReadBytes(int count) {
+         if (count < 0 || count > inner.Length - inner.Position) {
+            // a damaged or cut-off file: without this check, a missing IEND chunk would make the reader loop forever
+            throw new PngArgumentException("The PNG file ends before the data it describes.");
+         }
          var buffer = new byte[count];
-         Read(buffer, 0, count);
+         var total = 0;
+         while (total < count) {
+            var read = Read(buffer, total, count - total);
+            if (read <= 0) throw new PngArgumentException("The PNG file ends before the data it describes.");
+            total += read;
+         }
          return buffer;
       }
 
@@ -161,13 +174,14 @@ namespace HexManiac.WPF.Resources {
          if (filterMethod != 0) {
             throw new PngArgumentException($"Image has a non-zero filter method ({filterMethod})");
          }
-         if (interlaceMethod != 0) {
-            throw new PngArgumentException($"Image has a non-zero interlace method ({interlaceMethod})");
+         if (interlaceMethod != 0 && interlaceMethod != 1) {
+            throw new PngArgumentException($"Image has an unknown interlace method ({interlaceMethod})");
          }
 
          this.width = width;
          this.height = height;
          this.bitDepth = bitDepth;
+         this.interlaced = interlaceMethod == 1;
       }
 
       private void ReadPlte(int chunkSize) {
@@ -178,13 +192,22 @@ namespace HexManiac.WPF.Resources {
       }
 
       private void ReadIdat(int chunkSize) {
-         if (pixels != null) {
-            throw new NotImplementedException("Multiple IDAT chunks present.");
+         if (width == 0) {
+            throw new PngArgumentException("IDAT chunk before the IHDR chunk.");
          }
+         // many programs split the image data over several IDAT chunks (libpng starts a new one every 8 KB): they are one zlib stream
          var compressedData = ReadBytes(chunkSize);
-         var decompressedData = Png.ZLibDecompress(compressedData);
+         imageData.Write(compressedData, 0, compressedData.Length);
+      }
 
-         pixels = IndexedPng.ConvertToPixels(decompressedData, width, height, bitDepth);
+      private void DecodeImage() {
+         byte[] decompressedData;
+         try {
+            decompressedData = Png.ZLibDecompress(imageData.ToArray());
+         } catch (InvalidDataException e) {
+            throw new PngArgumentException("The image data is corrupted: " + e.Message);
+         }
+         pixels = IndexedPng.ConvertToPixels(decompressedData, width, height, bitDepth, interlaced);
       }
 
       private void ReadIend() {

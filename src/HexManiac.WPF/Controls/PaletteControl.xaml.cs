@@ -55,6 +55,16 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       public bool LoseKeyboardFocusCausesLoseMultiSelect { get; set; }
 
+      public static readonly DependencyProperty ShowToolButtonsProperty = DependencyProperty.Register(
+         nameof(ShowToolButtons), typeof(bool), typeof(PaletteControl),
+         new PropertyMetadata(true, (d, e) => { if (d is PaletteControl control && control.ToolButtons != null) control.ToolButtons.Visibility = (bool)e.NewValue ? Visibility.Visible : Visibility.Collapsed; }));
+
+      /// <summary>The gradient and merge buttons beside the colors. A palette of a few colors that stand for different things (skin, shadow, highlight) hides them.</summary>
+      public bool ShowToolButtons {
+         get => (bool)GetValue(ShowToolButtonsProperty);
+         set => SetValue(ShowToolButtonsProperty, value);
+      }
+
       public PaletteControl() {
          InitializeComponent();
          swatchPopup.PlacementTarget = ItemsControl;

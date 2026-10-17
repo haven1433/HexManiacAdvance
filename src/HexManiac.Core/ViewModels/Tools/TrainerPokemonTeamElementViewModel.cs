@@ -1,4 +1,4 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -7,9 +7,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ICommand SetDefaultMoves => StubCommand(ref setDefaultMoves, ExecuteSetDefaultMoves);
       public ICommand SetDefaultItems => StubCommand(ref setDefaultItems, ExecuteSetDefaultItems);
 
-      public TrainerPokemonTeamRun Run { get; private set; }
+      public ITrainerTeamRun Run { get; private set; }
 
-      public TrainerPokemonTeamElementViewModel(ViewPort viewPort, TrainerPokemonTeamRun tptRun, string parentName, int itemAddress)
+      public TrainerPokemonTeamElementViewModel(ViewPort viewPort, ITrainerTeamRun tptRun, string parentName, int itemAddress)
       : base(viewPort, parentName, itemAddress, tptRun.FormatString) {
          Run = tptRun;
       }

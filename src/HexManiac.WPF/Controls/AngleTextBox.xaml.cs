@@ -1,9 +1,11 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
    public enum AngleDirection {
@@ -132,6 +134,55 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       public AngleTextBox() => InitializeComponent();
 
+      // Swapping the look-alike for a real TextBox is expensive (a TextBox is a heavy control, and the swap re-lays out the
+      // whole table panel). When the panel scrolls under the cursor, rows enter and leave the mouse constantly, so doing the swap
+      // on every MouseEnter makes scrolling the table tool stutter. Instead, wait until the mouse has rested on the field for a
+      // moment, or until the user actually clicks it.
+      private static readonly TimeSpan HoverDelay = TimeSpan.FromMilliseconds(150);
+      private DispatcherTimer hoverTimer;
+
+      private void HandleMouseEnter(object sender, MouseEventArgs e) {
+         if (Content is not TextBoxLookAlike) return; // already a TextBox: nothing to do
+         if (hoverTimer == null) {
+            hoverTimer = new DispatcherTimer(HoverDelay, DispatcherPriority.Input, (timer, args) => {
+               hoverTimer.Stop();
+               UpdateFieldTextBox(this, null);
+            }, Dispatcher);
+         }
+         hoverTimer.Stop();
+         hoverTimer.Start();
+      }
+
+      private void HandleMouseLeave(object sender, MouseEventArgs e) {
+         hoverTimer?.Stop();
+         UpdateFieldTextBox(sender, e);
+      }
+
+      private void HandleMouseDown(object sender, MouseButtonEventArgs e) {
+         if (Content is not TextBoxLookAlike) return;
+         hoverTimer?.Stop();
+         UpdateFieldTextBox(sender, e);
+         if (Content is TextBox textBox) {
+            // the click happened on the look-alike, so the new TextBox never saw it: focus it and put the caret where the user clicked
+            textBox.Loaded -= HandleTextboxLoaded;
+            textBox.Loaded += HandleTextboxLoadedFromClick;
+         }
+      }
+
+      private void HandleTextboxLoadedFromClick(object sender, RoutedEventArgs e) {
+         var textBox = (TextBox)sender;
+         textBox.Loaded -= HandleTextboxLoadedFromClick;
+         Keyboard.Focus(textBox);
+         Focusable = false;
+         if (SelectAllOnFocus.GetIsEnabled(this)) return; // the focus selected all the text: keep it that way
+         var position = Mouse.GetPosition(textBox);
+         var index = textBox.GetCharacterIndexFromPoint(position, true);
+         if (index < 0) return;
+         var characterRect = textBox.GetRectFromCharacterIndex(index);
+         if (position.X > characterRect.X + characterRect.Width / 2) index += 1;
+         textBox.CaretIndex = index.LimitToRange(0, textBox.Text.Length);
+      }
+
       /// <summary>
       /// TextBlock is a lot faster than TextBox.
       /// And we only ever really need to have the focus in a single textbox at a time.
@@ -164,6 +215,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                textBox.SetBinding(TextBox.TextProperty, new Binding(nameof(FieldArrayElementViewModel.Content)) { UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
             }
             textBox.SetBinding(Control.ForegroundProperty, new Binding(nameof(Foreground)) { Source = this });
+            if (SelectAllOnFocus.GetIsEnabled(this)) SelectAllOnFocus.SetIsEnabled(textBox, true);
             Content = textBox;
             textBox.ContextMenuOpening += (sender, args) => keepTextBoxForContextMenu = true;
             textBox.ContextMenuClosing += (sender, args) => keepTextBoxForContextMenu = false;

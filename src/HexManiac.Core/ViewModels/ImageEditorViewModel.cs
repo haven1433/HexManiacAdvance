@@ -37,7 +37,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private StubCommand close, undoWrapper, redoWrapper, pasteCommand, copyCommand, selectAllCommand;
 
-      public string Name => "Image Editor";
+      public string Name => frameSource?.Title ?? "Image Editor";
       public string FullFileName { get; }
       public bool SpartanMode { get; set; }
       public bool IsMetadataOnlyChange => false;
@@ -46,7 +46,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand ExportBackup => null;
       public ICommand Undo => StubCommand(ref undoWrapper, ExecuteUndo, () => history.Undo.CanExecute(default));
       public ICommand Redo => StubCommand(ref redoWrapper, ExecuteRedo, () => history.Redo.CanExecute(default));
-      public ICommand Copy => StubCommand<IFileSystem>(ref copyCommand, ExecuteCopy, fs => toolStrategy is SelectionTool selectTool && selectTool.HasSelection);
+      public ICommand Copy => StubCommand<IFileSystem>(ref copyCommand, ExecuteCopy, fs => true); // always available, so that Ctrl+C can say what to do when nothing is selected
       public ICommand Paste => StubCommand<IFileSystem>(ref pasteCommand, ExecutePaste, fs => fs.CopyImage.width != 0);
       public ICommand SelectAll => StubCommand(ref selectAllCommand, ExecuteSelectAll, () => true);
       public ICommand DeepCopy => null;
@@ -87,9 +87,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var selectionStart = Palette.SelectionStart;
          var selectionEnd = Palette.SelectionEnd;
 
+         var framesBefore = SnapshotFrames();
          history.Undo.Execute();
          undoWrapper.RaiseCanExecuteChanged();
          redoWrapper.RaiseCanExecuteChanged();
+         ShowChangedFrame(framesBefore);
          Refresh();
          if (HasMultipleEditOptions) EditOptions[SelectedEditOption].Refresh();
 
@@ -98,76 +100,120 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void ExecuteRedo() {
+         var framesBefore = SnapshotFrames();
          history.Redo.Execute();
          undoWrapper.RaiseCanExecuteChanged();
          redoWrapper.RaiseCanExecuteChanged();
+         ShowChangedFrame(framesBefore);
          Refresh();
          if (HasMultipleEditOptions) EditOptions[SelectedEditOption].Refresh();
       }
 
       private void ExecuteCopy(IFileSystem fs) {
-         if (!(toolStrategy is SelectionTool tool)) return;
+         if (fs == null) return;
+         if (!(toolStrategy is SelectionTool tool) || !tool.HasSelection) {
+            RaiseMessage("Nothing to copy: use the Select tool to drag a rectangle over the pixels (or tiles) to copy, then press Ctrl+C.");
+            return;
+         }
          tool.Copy(fs);
       }
 
       private void ExecutePaste(IFileSystem fs) {
          var sprite = fs.CopyImage;
          if (sprite.width == 0) return;
-         var height = sprite.image.Length / sprite.width;
-         if (height > PixelHeight || sprite.width > PixelWidth) {
-            RaiseMessage("Image is too large to paste!");
+         if (sprite.image == null || sprite.image.Length < sprite.width) {
+            RaiseError("Could not read an image from the clipboard.");
+            return;
+         }
+         PasteImage(sprite.image, sprite.width, ImageClipboardMemory.Find(sprite.image, sprite.width));
+      }
+
+      /// <summary>
+      /// The palette (page) that the pixel at x, y of the editor is drawn with.
+      /// Tilemaps pick a page per tile, 16-color tilesets use the page that is showing, everything else uses the first page.
+      /// </summary>
+      private IReadOnlyList<short> PaletteAt(int x, int y, PaletteCache cache, bool only16, Dictionary<int, IReadOnlyList<short>> pageCache) {
+         var pageSize = Math.Max(1, Palette.Elements.Count);
+         var start = 0;
+         if (CanEditTilePalettes) {
+            var tile = (y / 8) * TileWidth + x / 8;
+            if (tile.InRange(0, TilePalettes.Count)) start = Math.Max(0, TilePalettes[tile] - cache.InitialBlankPages) * 16;
+         } else if (only16 && palettePage >= 0) {
+            start = palettePage * 16;
+         }
+         if (start >= cache.Colors.Count) start = 0;
+         if (!pageCache.TryGetValue(start, out var palette)) {
+            palette = cache.Colors.Skip(start).Take(pageSize).ToList();
+            pageCache[start] = palette;
+         }
+         return palette;
+      }
+
+      private void PasteImage(short[] image, int imageWidth, ImageClip source) {
+         var height = image.Length / imageWidth;
+         if (height > PixelHeight || imageWidth > PixelWidth) {
+            RaiseMessage($"Image is too large to paste! It is {imageWidth}x{height} px, but this image is only {PixelWidth}x{PixelHeight} px.");
             return;
          }
 
          SelectedTool = ImageEditorTools.Select;
          var tool = (SelectionTool)toolStrategy;
+
+         // where to paste: with a selection, the pasted picture starts at the top left of the selection.
+         // otherwise it's centered on the cursor. Pictures made of whole tiles snap to the tile grid, so tiles stay tiles.
+         int x, y;
+         var selection = tool.HasSelection ? tool.Region : default;
+         bool pasteOnSource = source != null && ReferenceEquals(source.Owner, this) && selection.start.X == source.OriginX && selection.start.Y == source.OriginY;
+         bool wholeTiles = imageWidth % 8 == 0 && height % 8 == 0 && PixelWidth % 8 == 0 && PixelHeight % 8 == 0;
+         if (tool.HasSelection && !pasteOnSource) {
+            (x, y) = (selection.start.X, selection.start.Y);
+            if (wholeTiles) (x, y) = (x / 8 * 8, y / 8 * 8);
+         } else {
+            var hoverPoint = ToSpriteSpace(interactionStart);
+            (x, y) = (hoverPoint.X - imageWidth / 2, hoverPoint.Y - height / 2);
+            if (wholeTiles) {
+               x = (int)Math.Floor((x + 4) / 8.0) * 8;
+               y = (int)Math.Floor((y + 4) / 8.0) * 8;
+            }
+         }
          tool.ClearSelection();
-         var hoverPoint = ToSpriteSpace(interactionStart);
-         var (x, y) = (hoverPoint.X - sprite.width / 2, hoverPoint.Y - height / 2);
-         x = x.LimitToRange(0, PixelWidth - sprite.width);
+         x = x.LimitToRange(0, PixelWidth - imageWidth);
          y = y.LimitToRange(0, PixelHeight - height);
          ToolDown(FromSpriteSpace(new Point(x, y)));
-         Hover(FromSpriteSpace(new Point(x + sprite.width - 1, y + height - 1)));
-         ToolUp(FromSpriteSpace(new Point(x + sprite.width - 1, y + height - 1)));
+         Hover(FromSpriteSpace(new Point(x + imageWidth - 1, y + height - 1)));
+         ToolUp(FromSpriteSpace(new Point(x + imageWidth - 1, y + height - 1)));
 
-         IReadOnlyList<short> fullPalette;
-         if (PalettePointer == Pointer.NULL) {
-            fullPalette = TileViewModel.CreateDefaultPalette(Palette.Elements.Count);
-         } else {
-            var paletteRun = model.GetNextRun(model.ReadPointer(PalettePointer)) as IPaletteRun;
-            fullPalette = paletteRun.AllColors(model);
-         }
+         var cache = new PaletteCache(this);
+         var only16 = SpriteOnlyExpects16Colors();
+         var pageCache = new Dictionary<int, IReadOnlyList<short>>();
+         var (left, top) = (x, y);
+         var result = ImagePasteMapper.Map(image, imageWidth, source, (xx, yy) => PaletteAt(left + xx, top + yy, cache, only16, pageCache));
 
-         // choose a palette that best matches the available colors
-         if (Palette.Elements.Count < fullPalette.Count) {
-            var paletteMatch = new int[fullPalette.Count / Palette.Elements.Count];
-            for (int xx = 0; xx < sprite.width; xx++) {
-               for (int yy = 0; yy < height; yy++) {
-                  var targetColor = sprite.image[yy * sprite.width + xx];
-                  foreach (var pal in fullPalette.Count.Range().Where(i => fullPalette[i] == targetColor).Select(i => i / Palette.Elements.Count)) paletteMatch[pal]++;
-               }
-            }
-            var max = paletteMatch.Max();
-            var palChoice = paletteMatch.Length.Range().First(i => paletteMatch[i] == max);
-            fullPalette = fullPalette.Skip(palChoice * Palette.Elements.Count).Take(Palette.Elements.Count).ToList();
-         }
-
-         var newUnderPixels = new int[sprite.width, height];
-         for (int xx = 0; xx < sprite.width; xx++) {
-            for (int yy = 0; yy < height; yy++) {
-               var targetColor = sprite.image[yy * sprite.width + xx];
-               var paletteIndex = fullPalette.IndexOf(targetColor);
-               if (paletteIndex < 0) paletteIndex = 0;
-               paletteIndex %= Palette.Elements.Count;
-               newUnderPixels[xx, yy] = paletteIndex;
-            }
-         }
-
-         tool.SetUnderPixels(newUnderPixels);
+         tool.SetUnderPixels(result.Indexes);
          tool.SwapUnderPixelsWithCurrentPixels();
 
          UpdateSpriteModel();
          NotifyPropertyChanged(nameof(PixelData));
+         RaiseMessage(result.Describe());
+      }
+
+      /// <summary>Keep the palette indexes of what was just copied, so a paste into another tab doesn't need to guess them from the colors.</summary>
+      private void RememberCopy(short[] colors, int copyWidth, Point start, int copyHeight) {
+         var cache = new PaletteCache(this);
+         var only16 = SpriteOnlyExpects16Colors();
+         var pageCache = new Dictionary<int, IReadOnlyList<short>>();
+         var indexes = new int[colors.Length];
+         var palettes = new IReadOnlyList<short>[colors.Length];
+         for (int y = 0; y < copyHeight; y++) {
+            for (int x = 0; x < copyWidth; x++) {
+               var (xx, yy) = (start.X + x, start.Y + y);
+               var page = 0;
+               if (CanEditTilePalettes) page = TilePalettes[(yy / 8) * TileWidth + xx / 8] - cache.InitialBlankPages;
+               indexes[y * copyWidth + x] = only16 ? pixels[xx, yy] : PaletteIndex(pixels[xx, yy], page, cache);
+               palettes[y * copyWidth + x] = PaletteAt(xx, yy, cache, only16, pageCache);
+            }
+         }
+         ImageClipboardMemory.Last = new ImageClip(colors, copyWidth, indexes, palettes, this, start.X, start.Y);
       }
 
       private void ExecuteSelectAll() {
@@ -182,7 +228,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       #region Pages
       private int spritePage, palettePage;
       public int SpritePage { get => spritePage; set => Set(ref spritePage, value, _ => Refresh()); }
-      public int PalettePage { get => palettePage; set => Set(ref palettePage, value, _ => Refresh()); }
+      public int PalettePage { get => palettePage; set => Set(ref palettePage, value, _ => { NotifyPropertyChanged(nameof(PaletteCaption)); Refresh(); }); }
       public int SpritePages => SpritePageOptions.Count;
       public int PalettePages => PalettePageOptions.Count;
       public bool HasMultipleSpritePages => SpritePages > 1;
@@ -214,6 +260,146 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
          NotifyPropertyChanged(nameof(PalettePages));
          NotifyPropertyChanged(nameof(HasMultiplePalettePages));
+         NotifyPropertyChanged(nameof(ShowPaletteCaption));
+      }
+      #endregion
+
+      #region Frames
+      // An optional mode: the editor shows one group of pictures (the frames of an animation) in a single tab. The dots on the left select the frame,
+      // and the palette gets a row of dots of its own. Normal sprites never set a frame source and are not affected.
+
+      private IImageFrameSource frameSource;
+      private int frame;
+
+      public bool HasFrames => frameSource != null;
+      public int FrameCount => frameSource?.FrameCount ?? 0;
+      public ObservableCollection<FrameOptionViewModel> FrameOptions { get; } = new ObservableCollection<FrameOptionViewModel>();
+
+      /// <summary>The frame being edited (0 based).</summary>
+      public int Frame {
+         get => frame;
+         set {
+            if (frameSource == null) return;
+            Set(ref frame, value.LimitToRange(0, Math.Max(0, frameSource.FrameCount - 1)), FrameChanged);
+         }
+      }
+
+      /// <summary>"Frame 2 of 4", for the label above the frame dots.</summary>
+      public string FrameCaption {
+         get {
+            if (frameSource == null) return string.Empty;
+            var note = frameSource.FrameNote(frame);
+            return $"Frame {frame + 1} of {frameSource.FrameCount}" + (string.IsNullOrEmpty(note) ? string.Empty : $" ({note})");
+         }
+      }
+
+      /// <summary>"Palette 6", for the label above the palette dots (the dots only say which palette when the mouse is over them).</summary>
+      public string PaletteCaption => $"Palette {PalettePage}";
+      public bool ShowPaletteCaption => HasFrames && HasMultiplePalettePages;
+
+      /// <summary>
+      /// Turn this editor into a frame editor: it keeps working on the sprite it was created for (which tells it the palette), but what it draws on
+      /// and where the changes are stored now come from the source, and the dots on the left choose the frame.
+      /// Call this right after creating the editor, before showing it.
+      /// </summary>
+      public void SetFrameSource(IImageFrameSource source, int initialFrame = 0) {
+         frameSource = source;
+         frame = initialFrame.LimitToRange(0, Math.Max(0, source.FrameCount - 1));
+         currentTilesetWidth = 0; // the source's own default
+         // the frames take the place of the other ways to show the same sprite (palettes of a pokemon, front/back sprites)
+         EditOptions.Clear();
+         NotifyPropertyChanged(nameof(HasMultipleEditOptions));
+         NotifyPropertyChanged(nameof(Name));
+         NotifyPropertyChanged(nameof(HasFrames));
+         Refresh();
+         NotifyPropertyChanged(nameof(FrameCaption));
+      }
+
+      /// <summary>Move to the next (or, for a negative step, the previous) frame, wrapping around.</summary>
+      public void StepFrame(int step) {
+         if (frameSource == null || frameSource.FrameCount < 1) return;
+         var count = frameSource.FrameCount;
+         Frame = ((frame + step) % count + count) % count;
+      }
+
+      private bool frameEditPending;
+
+      /// <summary>The source is told once an edit of a frame is over, not for every pixel of a stroke (see <see cref="IImageFrameSource.EditCompleted"/>).</summary>
+      private void CompleteFrameEdit(int editedFrame) {
+         if (!frameEditPending) return;
+         frameEditPending = false;
+         frameSource?.EditCompleted(history.CurrentChange, editedFrame);
+      }
+
+      private void FrameChanged(int oldValue) {
+         CompleteFrameEdit(oldValue); // an edit that never got its pen-up still belongs to the frame it was made on
+         history.ChangeCompleted(); // what is drawn on this frame is a separate undo step from what was drawn on the last one
+         if (toolStrategy is SelectionTool selection) selection.ClearSelection(); // a selection belongs to the frame it was made on
+         Refresh();
+         NotifyPropertyChanged(nameof(FrameCaption));
+      }
+
+      /// <summary>Keep the frame number and the sprite pointer in step with the source (frames can be added or removed while the editor is open).</summary>
+      private void SyncFrame() {
+         frame = frame.LimitToRange(0, Math.Max(0, frameSource.FrameCount - 1));
+         var pointer = frameSource.SpritePointer(frame);
+         if (pointer != SpritePointer) {
+            SpritePointer = pointer;
+            NotifyPropertyChanged(nameof(SpritePointer));
+         }
+      }
+
+      private void SetupFrameOptions() {
+         if (frameSource == null && FrameOptions.Count == 0) return; // a normal sprite: nothing to do
+         FrameOptions.Clear();
+         if (frameSource != null) {
+            for (int i = 0; i < frameSource.FrameCount; i++) {
+               var note = frameSource.FrameNote(i);
+               var option = new FrameOptionViewModel { Selected = i == frame, Name = (i + 1).ToString(), Index = i, Description = string.IsNullOrEmpty(note) ? $"Frame {i + 1}" : $"Frame {i + 1} ({note})" };
+               option.Bind(nameof(option.Selected), (sender, e) => { if (sender.Selected) Frame = sender.Index; });
+               FrameOptions.Add(option);
+            }
+         }
+         NotifyPropertyChanged(nameof(FrameCount));
+         NotifyPropertyChanged(nameof(FrameCaption));
+         NotifyPropertyChanged(nameof(ShowPaletteCaption));
+      }
+
+      private void SetupFrameWidthControl() {
+         CanEditTilesetWidth = frameSource.CanChooseWidth;
+         MinimumTilesetWidth = 1;
+         MaximumTilesetWidth = Math.Max(1, frameSource.MaxWidthTiles);
+         if (currentTilesetWidth < MinimumTilesetWidth || currentTilesetWidth > MaximumTilesetWidth) Set(ref currentTilesetWidth, frameSource.DefaultWidthTiles, nameof(CurrentTilesetWidth));
+      }
+
+      private int[,] ReadFramePixels(int index) => frameSource.ReadFrame(index, currentTilesetWidth);
+
+      private int[][,] SnapshotFrames() {
+         if (frameSource == null || !frameSource.IsValid) return null;
+         var result = new int[frameSource.FrameCount][,];
+         for (int i = 0; i < result.Length; i++) result[i] = ReadFramePixels(i);
+         return result;
+      }
+
+      private static bool SamePixels(int[,] a, int[,] b) {
+         if (a == null || b == null || a.GetLength(0) != b.GetLength(0) || a.GetLength(1) != b.GetLength(1)) return false;
+         for (int x = 0; x < a.GetLength(0); x++) for (int y = 0; y < a.GetLength(1); y++) if (a[x, y] != b[x, y]) return false;
+         return true;
+      }
+
+      /// <summary>
+      /// Undo and redo work on everything that was changed, in any frame. If the change was to another frame than the one being shown,
+      /// show that frame, so that undoing is not invisible.
+      /// </summary>
+      private void ShowChangedFrame(int[][,] before) {
+         if (before == null || frameSource == null || !frameSource.IsValid) return;
+         int count = Math.Min(before.Length, frameSource.FrameCount);
+         if (frame < count && !SamePixels(before[frame], ReadFramePixels(frame))) return; // the frame being shown changed: nothing to do
+         for (int i = 0; i < count; i++) {
+            if (SamePixels(before[i], ReadFramePixels(i))) continue;
+            Frame = i;
+            return;
+         }
       }
       #endregion
 
@@ -615,6 +801,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void ToolUp(Point point) {
          toolStrategy.ToolUp(point);
          withinInteraction = false;
+         CompleteFrameEdit(frame); // before the step is closed, so what the source stores elsewhere is undone together with the stroke
          history.ChangeCompleted();
          undoWrapper.RaiseCanExecuteChanged();
          if (HasMultipleEditOptions) EditOptions[SelectedEditOption].Refresh();
@@ -649,6 +836,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void Refresh() {
+         if (frameSource != null) {
+            if (!frameSource.IsValid || frameSource.FrameCount < 1) {
+               // the animation (or door) was removed or changed shape in the other tab: there is nothing left to edit
+               Close.Execute();
+               return;
+            }
+            SyncFrame();
+         }
          var spriteAddress = model.ReadPointer(SpritePointer);
          var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
          if (spriteRun == null) {
@@ -657,23 +852,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return;
          }
          if (SpritePage >= spriteRun.Pages) SpritePage = spriteRun.Pages - 1;
-         SetupTilesetWidthControl();
+         if (frameSource == null) SetupTilesetWidthControl(); else SetupFrameWidthControl();
 
          // tilemap may have been repointed: recalculate
          if (spriteRun is ITilemapRun tilemapRun) tilemapRun.FindMatchingTileset(model);
 
-         pixels = (spriteRun is LzTilesetRun tsRun) ? tsRun.GetPixels(model, SpritePage, CurrentTilesetWidth) : spriteRun.GetPixels(model, SpritePage, -1);
+         if (frameSource != null) pixels = ReadFramePixels(frame);
+         else pixels = (spriteRun is LzTilesetRun tsRun) ? tsRun.GetPixels(model, SpritePage, CurrentTilesetWidth) : spriteRun.GetPixels(model, SpritePage, -1);
          Render();
          RefreshPaletteColors(spriteRun.SpriteFormat);
          SetupPageOptions();
+         SetupFrameOptions();
          RefreshTilePalettes();
       }
 
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) {
          if (!file.Name.ToLower().EndsWith(".png")) return false;
          var image = fileSystem.LoadImage(file.Name);
-         fileSystem.CopyImage = image;
-         ExecutePaste(fileSystem);
+         if (image.image == null || image.width == 0) return true;
+         PasteImage(image.image, image.width, null); // dropping a file shouldn't replace what the user has on the clipboard
          return true;
       }
 
@@ -730,7 +927,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void Render() {
          var spriteAddress = model.ReadPointer(SpritePointer);
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
-         var readPixels = (spriteRun is LzTilesetRun tsRun) ? tsRun.GetPixels(model, SpritePage, CurrentTilesetWidth) : spriteRun.GetPixels(model, SpritePage, -1);
+         var readPixels = frameSource != null ? pixels
+            : (spriteRun is LzTilesetRun tsRun) ? tsRun.GetPixels(model, SpritePage, CurrentTilesetWidth) : spriteRun.GetPixels(model, SpritePage, -1);
 
          var palRun = ReadPalette();
 
@@ -746,6 +944,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void UpdateSpriteModel() {
+         if (frameSource != null) {
+            // the source stores the picture wherever the frame lives
+            frameSource.WriteFrame(history.CurrentChange, frame, currentTilesetWidth, pixels);
+            frameEditPending = true;
+            if (!withinInteraction) CompleteFrameEdit(frame); // a paste or a flip is one edit; a stroke is finished by ToolUp
+            return;
+         }
          var spriteAddress = model.ReadPointer(SpritePointer);
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
 
@@ -753,7 +958,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (spriteRun is ITilemapRun tilemapRun) tilemapRun.FindMatchingTileset(model);
 
          var newRun = spriteRun.SetPixels(model, history.CurrentChange, SpritePage, pixels);
-         if (newRun.Start != spriteRun.Start) RaiseMessage("Sprite was moved to " + newRun.Start.ToAddress() + ".");
+         if (newRun.Start != spriteRun.Start) RaiseMessage("Sprite was moved to " + newRun.Start.ToAddress());
+
+         if (newRun is ITilemapRun map) {
+            // a tilemap can only point at so many different tiles (and the tileset it shares with other tilemaps has only so much room), and every tile uses one palette page:
+            // what does not fit is stored differently, so the picture shown here is not the one that is stored
+            var stored = map.GetPixels(model, SpritePage, -1);
+            var different = 0;
+            if (stored != null && stored.GetLength(0) == pixels.GetLength(0) && stored.GetLength(1) == pixels.GetLength(1)) {
+               for (int y = 0; y < pixels.GetLength(1); y++) for (int x = 0; x < pixels.GetLength(0); x++) if (stored[x, y] != pixels[x, y]) different += 1;
+            }
+            if (different > 0) RaiseMessage($"{different} pixels of this picture do not fit in the tilemap and were stored differently: a tilemap like this one can only use {LzTilemapRun.TileLimit(map.BytesPerTile == 2)} different tiles (fewer if its tileset is shared), and each tile only one palette page. Simplify the picture.");
+         }
       }
 
       /// <summary>
@@ -940,6 +1156,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          private int[,] underPixels; // the pixels that are 'under' the current selection. As the selection moves, this changes.
 
          public bool HasSelection => underPixels != null;
+         public (Point start, int width, int height) Region => (selectionStart, selectionWidth, selectionHeight);
 
          public SelectionTool(ImageEditorViewModel parent) => this.parent = parent;
 
@@ -1083,6 +1300,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
             try {
                fs.CopyImage = (result, selectionWidth);
+               parent.RememberCopy(result, selectionWidth, selectionStart, selectionHeight);
             } catch {
                parent.RaiseError("Failed to copy image.");
             }
@@ -1640,5 +1858,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          PixelData = SpriteTool.Render(pixels, colors, initialBlankPages, 0);
          NotifyPropertyChanged(nameof(PixelData));
       }
+   }
+
+   /// <summary>One dot of the frame row of an image editor that shows the frames of an animation.</summary>
+   public class FrameOptionViewModel : SelectionViewModel {
+      private string description;
+      /// <summary>What the tooltip of the dot says, for example "Frame 2 (the same picture as frame 1)". The name is just the frame number.</summary>
+      public string Description { get => description; set => Set(ref description, value); }
    }
 }

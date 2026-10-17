@@ -1,4 +1,4 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
@@ -29,7 +29,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    /// <summary>
    /// A range of visible data that should be displayed.
    /// </summary>
-   public class ViewPort : ViewModelCore, IEditableViewPort {
+   public class ViewPort : ViewModelCore, IEditableViewPort, IRefreshOnSelect {
       public const string AllHexCharacters = "0123456789ABCDEFabcdef";
       public const char GotoMarker = '@';
       public const char DirectiveMarker = '.'; // for things like .thumb, .align, etc. Directives always start with a single dot and contain no further dots until they contain a space.
@@ -76,7 +76,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public double ToolPanelWidth { get; set; } = 500;
+      /// <summary>Wide enough for three columns of fields, so dropdowns in the table tool aren't squeezed.</summary>
+      public const double DefaultToolPanelWidth = 760;
+      private double toolPanelWidth = DefaultToolPanelWidth;
+      public double ToolPanelWidth { get => toolPanelWidth; set => Set(ref toolPanelWidth, value); }
+
+      /// <summary>Makes the left tool panel at least this wide (it is never made narrower: that is for the person to do).</summary>
+      public void EnsureToolPanelWidth(double width) {
+         if (ToolPanelWidth < width) ToolPanelWidth = width;
+      }
 
       private string fileName;
       public string FileName {
@@ -220,8 +228,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // but needs to happen on the UI thread since it can update bound properties.
             dispatcher.BlockOnUIWork(() => {
                TabChangeRequestedEventArgs args;
+               if (arg is string aliasName && GotoAliases.FindAddress(Model, aliasName) is int aliasAddress && aliasAddress != Pointer.NULL) {
+                  // an entry of the original games that this ROM keeps in another table (CUBE: graphics.pokemon.sprites.front is the frontPic column of data.pokemon.stats)
+                  arg = aliasAddress;
+               }
                if (arg is string str) {
-                  tools?.LogTool.LogMessages.Add("Attempting to Goto Token: " + str);
+                  Log("Attempting to Goto Token: " + str);
+                  if (str.StartsWith(EditorGotoPrefix, StringComparison.OrdinalIgnoreCase)) {
+                     OpenEditorTab(str.Substring(EditorGotoPrefix.Length).Trim());
+                     return;
+                  }
                   var possibleMatches = Model.GetExtendedAutocompleteOptions(str);
                   if (possibleMatches.Count == 1) str = possibleMatches[0];
                   else if (possibleMatches.Count > 1 && possibleMatches.All(match => Model.GetMatchedWords(match).Any())) str = possibleMatches[0];
@@ -310,7 +326,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                }
 
                if (arg is int address) {
-                  tools?.LogTool.LogMessages.Add("Attempting to Goto Address: " + address.ToString());
+                  Log("Attempting to Goto Address: " + address.ToString());
                }
 
                if (arg is string stringArg) selection.Goto.Execute(new SelectionGotoArgs(stringArg, this));
@@ -950,7 +966,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   index = Model.ReadPointer(run.Start);
                   run = Model.GetNextRun(index);
                }
-               tools.LogTool.LogMessages.Add($"Attempting to Update Anchor at address {run.Start.ToAddress()}: {anchorText}");
+               Log($"Attempting to Update Anchor at address {run.Start.ToAddress()}: {anchorText}");
                if (run.Start <= index) {
                   var token = new NoDataChangeDeltaModel();
 
@@ -1091,7 +1107,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          selection.OnError += (sender, e) => RaiseError(e);
          selection.RequestTabChanged += (sender, e) => {
             var request = new TabChangeRequestedEventArgs(e.Tab);
-            RequestTabChange(this, request);
+            RequestTabChange?.Invoke(this, request);
             if (request.RequestAccepted && request.NewTab == mapper) {
                if (e.IsBackArrow) {
                   mapper.AddForwardNavigation(-1);
@@ -1103,7 +1119,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          if (this is not ChildViewPort) { // child viewports don't need tools
             tools = new ToolTray(Singletons, Model, selection, history, this);
-            tools.LogTool.LogMessages.Add($"Start of session {Name} - {DateTime.Now}");
+            Log($"Start of session {Name} - {DateTime.Now}");
             Tools.OnError += (sender, e) => RaiseError(e);
             Tools.OnMessage += (sender, e) => RaiseMessage(e);
             tools.RequestMenuClose += (sender, e) => RequestMenuClose?.Invoke(this, e);
@@ -1113,7 +1129,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             Tools.TableTool.ModelDataMoved += ModelDataMovedByTool;
             Tools.CodeTool.ModelDataChanged += ModelChangedByCodeTool;
             Tools.CodeTool.ModelDataMoved += ModelDataMovedByTool;
-            model.LogMessage += (sender, e) => tools.LogTool.LogMessages.Add(e);
+            model.LogMessage += (sender, e) => Log(e);
             scroll.Scheduler = tools;
          }
 
@@ -1124,7 +1140,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          InitializationWorkload = model.InitializationWorkload.ContinueWith(task => {
             var firstViewPort = changeHistory == null;
             if (firstViewPort) {
-               if (eventTemplate == null) eventTemplate = new EventTemplate(singletons?.WorkDispatcher ?? InstantDispatch.Instance, Model, Tools.CodeTool.ScriptParser, BlockMapViewModel.RenderOWs(Model));
+               Map.GraphicsVariableSprites.RegisterParser(Model, Tools.CodeTool.ScriptParser); // the map editor looks for the sprites that scripts give to the graphics variables
+               if (eventTemplate == null) eventTemplate = new EventTemplate(singletons?.WorkDispatcher ?? InstantDispatch.Instance, Model, Tools.CodeTool.ScriptParser, BlockMapViewModel.GetOverworldSpriteRenders(Model));
                CascadeScripts();
                ValidateMatchedWords();
             }
@@ -1178,16 +1195,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   var start = arrayRun.Start + arrayRun.ElementLength * i;
                   if (start + arrayRun.ElementLength <= left) continue;
                   if (start > right) break;
+                  // what a record field holds depends on another field of the element (which may be cleared first): decide before clearing anything
+                  var fields = new List<ArrayRunElementSegment>();
+                  var fieldStart = start;
+                  foreach (var field in arrayRun.ElementContent) {
+                     fields.Add(field is ArrayRunRecordSegment record ? record.CreateConcrete(Model, arrayRun, fieldStart) : field);
+                     fieldStart += field.Length;
+                  }
                   for (int j = 0; j < arrayRun.ElementContent.Count; j++) {
                      start = arrayRun.Start + arrayRun.ElementLength * i + arrayRun.ElementContent.Take(j).Sum(seg => seg.Length);
                      if (start + arrayRun.ElementContent[j].Length <= left) continue;
                      if (start > right) break;
-                     for (int k = 0; k < arrayRun.ElementContent[j].Length; k++) {
-                        if (arrayRun.ElementContent[j].Type == ElementContentType.Pointer) {
-                           history.CurrentChange.ChangeData(Model, start + k, 0x00);
-                        } else {
-                           history.CurrentChange.ChangeData(Model, start + k, 0xFF);
-                        }
+                     if (fields[j].Type == ElementContentType.Pointer) {
+                        // a cleared pointer cell is a null pointer: the old destination must stop listing the cell as one of its sources
+                        Model.UpdateArrayPointer(history.CurrentChange, fields[j], arrayRun.ElementContent, i, start, Pointer.NULL);
+                        for (int k = 0; k < arrayRun.ElementContent[j].Length; k++) history.CurrentChange.ChangeData(Model, start + k, 0x00);
+                     } else {
+                        for (int k = 0; k < arrayRun.ElementContent[j].Length; k++) history.CurrentChange.ChangeData(Model, start + k, 0xFF);
                      }
                   }
                }
@@ -1437,19 +1461,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return run.Start <= search && run is ITableRun;
       }
 
-      public void Refresh() {
+      public void Refresh() => Refresh(onlyIfChanged: false);
+
+      /// <summary>
+      /// The tab was selected: the same as <see cref="Refresh()"/>, except that the expensive parts (the table tool's content, the cache of the model) are left alone
+      /// if no model was edited since this tab last looked, because then they can't be out of date. See <see cref="ModelEditStamp"/>.
+      /// </summary>
+      public void RefreshOnSelect() => Refresh(onlyIfChanged: true);
+
+      private long refreshedAtEdit = -1; // the edit counter (ModelEditStamp) when Refresh last finished
+
+      private void Refresh(bool onlyIfChanged) {
+         var modelUnchanged = onlyIfChanged && refreshedAtEdit == ModelEditStamp.Current && Model.InitializationWorkload.IsCompleted;
          scroll.DataLength = Model.Count;
-         Model.ClearCacheScope();
+         if (!modelUnchanged) Model.ClearCacheScope();
          var selectionStart = ConvertViewPointToAddress(SelectionStart);
          if (selectionStart > Model.Count + 1) SelectionStart = ConvertAddressToViewPoint(Model.Count + 1);
          scroll.UpdateHeaders();
          if (Model.GetNextRun(selectionStart) is ITableRun table && table.Start <= selectionStart) scroll.SetTableMode(table.Start, table.Length);
          RefreshBackingData();
-         Tools?.TableTool.DataForCurrentRunChanged();
+         if (onlyIfChanged) Tools?.TableTool.DataForCurrentRunChangedIfNeeded();
+         else Tools?.TableTool.DataForCurrentRunChanged();
          Tools?.SpriteTool.DataForCurrentRunChanged();
          Tools?.CodeTool.ClearConstantCache();
          Tools?.CodeTool.DataForCurrentRunChanged();
          UpdateAnchorText(ConvertViewPointToAddress(SelectionStart));
+         refreshedAtEdit = ModelEditStamp.Current;
       }
 
       public void Cut(IFileSystem filesystem) {
@@ -1462,6 +1499,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (file.Name.ToLower().EndsWith(".hma")) {
             var edit = Encoding.Default.GetString(file.Contents);
             pathContext = Path.GetDirectoryName(Path.GetFullPath(file.Name));
+            history.ChangeCompleted(); // whatever was edited before is its own undo step: undo takes back the script, and only the script
             Edit(edit);
             return true;
          } else if (file.Name.ToLower().EndsWith(".ips")) {
@@ -1515,15 +1553,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void RaiseError(string text) {
-         tools.LogTool.LogMessages.Add("Error: " + text);
+         Log("Error: " + text);
          OnError?.Invoke(this, text);
       }
+
+      /// <summary>
+      /// Child viewports (such as search results) have no tools, so there may be no log to write to.
+      /// </summary>
+      private void Log(string message) => tools?.LogTool?.LogMessages.Add(message);
 
       private string deferredMessage;
       public void RaiseMessage(string text) {
          deferredMessage = text;
-         tools.LogTool.LogMessages.Add("Message: " + deferredMessage);
-         tools.Schedule(RaiseMessage);
+         Log("Message: " + deferredMessage);
+         if (tools != null) tools.Schedule(RaiseMessage);
+         else RaiseMessage();
       }
       private void RaiseMessage() => OnMessage?.Invoke(this, deferredMessage);
 
@@ -1829,7 +1873,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Model.WritePointer(CurrentChange, pointer, newDestination); // point to the new destination
          var destination2 = Model.GetNextRun(destination.Start);
          Model.ObserveRunWritten(CurrentChange, destination2.Duplicate(newDestination, new SortedSpan<int>(pointer))); // create a new run at the new destination
-         RaiseMessage("New copy added at " + newDestination.ToString("X6") + ".");
+         RaiseMessage("New Copy added at " + newDestination.ToString("X6"));
       }
 
       public void OpenInNewTab(int destination) {
@@ -2230,7 +2274,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                foreach (var result in plmRun.Search(offsets.ElementIndex)) yield return result;
             }
             // option 3: the value is a move used by trainer teams
-            if (child is TrainerPokemonTeamRun team) {
+            if (child is ITrainerTeamRun team) {
                foreach (var result in team.Search(parentArrayName, offsets.ElementIndex)) {
                   yield return (result, result + 1);
                }
@@ -2297,7 +2341,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private bool TryParsePointerSearchSegment(List<ISearchByte> searchBytes, string cleanedSearchString, ref int i) {
          var pointerEnd = cleanedSearchString.IndexOf(PointerEnd, i);
-         if (pointerEnd == -1) { OnError(this, "Search mismatch: no closing >"); return false; }
+         if (pointerEnd == -1) { RaiseError("Search mismatch: no closing >"); return false; }
          var pointerContents = cleanedSearchString.Substring(i + 1, pointerEnd - i - 1);
          var address = Model.GetAddressFromAnchor(history.CurrentChange, -1, pointerContents);
          if (address != Pointer.NULL) {
@@ -2308,7 +2352,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else if (pointerContents.All(AllHexCharacters.Contains) && pointerContents.Length <= 6) {
             searchBytes.AddRange(Parse(pointerContents).Reverse().Append((byte)0x08).Select(b => (SearchByte)b));
          } else {
-            OnError(this, $"Could not parse pointer <{pointerContents}>");
+            RaiseError($"Could not parse pointer <{pointerContents}>");
             return false;
          }
          i = pointerEnd + 1;
@@ -2368,12 +2412,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // follow pointer
             if (format is Pointer pointer) {
                if (pointer.Destination != Pointer.NULL) {
-                  tools.LogTool.LogMessages.Add($"Follow Link {pointer.DestinationAsText}");
+                  Log($"Follow Link {pointer.DestinationAsText}");
                   selection.GotoAddress(pointer.Destination);
                } else if (string.IsNullOrEmpty(pointer.DestinationName)) {
-                  OnError(this, $"null pointers point to nothing, so going to their source isn't possible.");
+                  RaiseError($"null pointers point to nothing, so going to their source isn't possible.");
                } else {
-                  OnError(this, $"Pointer destination {pointer.DestinationName} not found.");
+                  RaiseError($"Pointer destination {pointer.DestinationName} not found.");
                }
                return;
             }
@@ -2382,7 +2426,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (format is MatchedWord word) {
                var address = Model.GetAddressFromAnchor(history.CurrentChange, -1, word.Name.Substring(2));
                if (address == Pointer.NULL) {
-                  OnError(this, $"No table with name '{word.Name.Substring(2)}' was found.");
+                  RaiseError($"No table with name '{word.Name.Substring(2)}' was found.");
                } else {
                   selection.GotoAddress(address);
                }
@@ -2392,6 +2436,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // open tool
             var byteOffset = scroll.ViewPointToDataIndex(new Point(x, y));
             var currentRun = Model.GetNextRun(byteOffset);
+            if (currentRun.Start > byteOffset) return; // GetNextRun also returns a run that starts later: there is nothing under the cursor to open
             if (currentRun is ISpriteRun) {
                tools.SpriteTool.SpriteAddress = currentRun.Start;
                tools.SelectedIndex = Tools.IndexOf(Tools.SpriteTool);
@@ -2510,9 +2555,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          title = "Sources of " + title;
          var newTab = new SearchResultsViewPort(title);
 
-         foreach (var source in run.PointerSources) newTab.Add(CreateChildView(source, source), source, source);
+         // the sources of an element inside a table that has inner anchors are not the sources of the table (see ContextItemFactory.GetAnchorSourceItems)
+         var sources = run.PointerSources;
+         if (run is ArrayRun array && array.SupportsInnerPointers && address > run.Start && address < run.Start + run.Length) sources = array.PointerSourcesForInnerElements[(address - run.Start) / array.ElementLength];
+         foreach (var source in sources ?? SortedSpan<int>.None) newTab.Add(CreateChildView(source, source), source, source);
 
-         RequestTabChange(this, new(newTab));
+         RequestTabChange?.Invoke(this, new(newTab));
          RequestMenuClose?.Invoke(this, EventArgs.Empty);
       }
 
@@ -2548,12 +2596,117 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (!args.RequestAccepted) mapper?.RaiseRequestTabChange(args);
       }
 
+      public void OpenSpriteGalleryTab() {
+         var newTab = new SpriteGalleryTab(this);
+         var args = new TabChangeRequestedEventArgs(newTab);
+         RequestTabChange(this, args);
+         if (!args.RequestAccepted) mapper?.RaiseRequestTabChange(args);
+      }
+
+      /// <summary>
+      /// Goto targets starting with this prefix open an editor tab instead of navigating to data: 'editor:sound', 'editor:sprites', 'editor:customization', and, in the overworld sprites view,
+      /// 'editor:reflections' (the Reflection Palettes section) and 'editor:fieldeffects' (the Field Effects section).
+      /// </summary>
+      public const string EditorGotoPrefix = "editor:";
+
+      public void OpenEditorTab(string editor) {
+         if (editor.Equals("sound", StringComparison.OrdinalIgnoreCase) || editor.Equals("music", StringComparison.OrdinalIgnoreCase) || editor.Equals("cries", StringComparison.OrdinalIgnoreCase)) {
+            OpenSoundTab();
+         } else if (editor.Equals("sprites", StringComparison.OrdinalIgnoreCase) || editor.Equals("gallery", StringComparison.OrdinalIgnoreCase)) {
+            OpenSpriteGalleryTab();
+         } else if (editor.Equals("animations", StringComparison.OrdinalIgnoreCase) || editor.Equals("tiles", StringComparison.OrdinalIgnoreCase)) {
+            OpenTilesetAnimationTab(TilesetAnimationTab.DefaultGroup, TilesetAnimationTab.DefaultMap, false);
+         } else if (editor.Equals("customization", StringComparison.OrdinalIgnoreCase) || editor.Equals("character", StringComparison.OrdinalIgnoreCase)) {
+            OpenCharacterCustomizationTab();
+         } else if (editor.Equals("intro", StringComparison.OrdinalIgnoreCase)) {
+            OpenIntroManagerTab();
+         } else if (editor.Equals("reflections", StringComparison.OrdinalIgnoreCase) || editor.Equals("reflection", StringComparison.OrdinalIgnoreCase)) {
+            OpenOverworldSpritesEditor(OverworldSecondarySection.Reflections);
+         } else if (editor.Equals("fieldeffects", StringComparison.OrdinalIgnoreCase)) {
+            OpenOverworldSpritesEditor(OverworldSecondarySection.FieldEffects);
+         } else {
+            RaiseError($"Unknown editor '{editor}'. Try 'editor:sound', 'editor:sprites', 'editor:animations', 'editor:customization', 'editor:intro', 'editor:reflections' or 'editor:fieldeffects'.");
+         }
+      }
+
+      /// <summary>Which section of the secondary overworld panel (next to the overworld sprites) is shown: it stays the way the person left it.</summary>
+      public OverworldSecondarySection SecondarySection { get; set; } = OverworldSecondarySection.FieldEffects;
+
+      /// <summary>
+      /// Shows the overworld sprite table (the sprite that is selected there, or the first one) with the secondary overworld panel on its right, at the given section:
+      /// the field effects (grass, ripples, shadows, dust, with their palettes) and the reflection palettes. A section the game doesn't have falls back to the other one.
+      /// </summary>
+      public void OpenOverworldSpritesEditor(OverworldSecondarySection section) {
+         if (!OverworldSecondaryElementViewModel.IsSupported(Model) || Model.GetTable(HardcodeTablesModel.OverworldSprites) == null) {
+            RaiseError(OverworldSecondaryUnsupportedMessage);
+            return;
+         }
+         SecondarySection = section;
+         var table = Model.GetTable(HardcodeTablesModel.OverworldSprites);
+         var tableTool = Tools.TableTool;
+         var current = tableTool?.Address ?? -1;
+         var insideTable = current >= table.Start && current < table.Start + table.ElementLength * table.ElementCount;
+         if (insideTable) tableTool.ShowSecondarySection(section); // already looking at the sprites: just switch the section
+         else Goto.Execute($"{HardcodeTablesModel.OverworldSprites}/0");
+         if (tableTool != null) Tools.SelectedTool = tableTool;
+      }
+
+      public const string OverworldSecondaryUnsupportedMessage = "This ROM has no overworld sprite table together with field effects or reflection palettes that the editors can read, so there is nothing to show here.";
+
+      public void OpenCharacterCustomizationTab() {
+         if (!CharacterCustomizationTab.IsSupported(Model)) { RaiseError(CharacterCustomizationTab.UnsupportedMessage); return; }
+         var newTab = new CharacterCustomizationTab(this);
+         newTab.OnError += (sender, e) => RaiseError(e);
+         newTab.OnMessage += (sender, e) => RaiseMessage(e);
+         var args = new TabChangeRequestedEventArgs(newTab);
+         RequestTabChange(this, args);
+         if (!args.RequestAccepted) mapper?.RaiseRequestTabChange(args);
+      }
+
+      public void OpenIntroManagerTab() {
+         if (!IntroManagerTab.IsSupported(Model)) { RaiseError(IntroManagerTab.UnsupportedMessage); return; }
+         var newTab = new IntroManagerTab(this);
+         newTab.OnError += (sender, e) => RaiseError(e);
+         newTab.OnMessage += (sender, e) => RaiseMessage(e);
+         var args = new TabChangeRequestedEventArgs(newTab);
+         RequestTabChange(this, args);
+         if (!args.RequestAccepted) mapper?.RaiseRequestTabChange(args);
+      }
+
+      public void OpenTilesetAnimationTab(int group, int map, bool secondary) {
+         if (!TilesetAnimationTab.IsSupported(Model)) { RaiseError("This ROM's metadata has no tileset animation constants (tilesetanim.*), so the animated tiles editor can't be used here."); return; }
+         var newTab = new TilesetAnimationTab(fs, this, group, map, secondary);
+         newTab.OnError += (sender, e) => RaiseError(e);
+         newTab.OnMessage += (sender, e) => RaiseMessage(e);
+         var args = new TabChangeRequestedEventArgs(newTab);
+         RequestTabChange(this, args);
+         if (!args.RequestAccepted) mapper?.RaiseRequestTabChange(args);
+      }
+
+      public void OpenSoundTab() {
+         if (!SoundTab.IsSupported(Model)) { RaiseError("This ROM has no cry table or song table."); return; }
+         var newTab = new SoundTab(fs, this);
+         newTab.OnError += (sender, e) => RaiseError(e);
+         newTab.OnMessage += (sender, e) => RaiseMessage(e);
+         var args = new TabChangeRequestedEventArgs(newTab);
+         RequestTabChange(this, args);
+         if (!args.RequestAccepted) mapper?.RaiseRequestTabChange(args);
+      }
+
+      /// <summary>
+      /// Create an image editor for the sprite (or palette) at the address, without showing it. The caller shows it by raising RequestTabChange.
+      /// Throws ImageEditorViewModelCreationException if the address is not a sprite the editor can work with.
+      /// </summary>
+      public ImageEditorViewModel CreateImageEditor(int address, int spritePage, int palettePage) {
+         return new ImageEditorViewModel(history, Model, address, Save, tools.SpriteTool.PaletteAddress) {
+            SpritePage = spritePage,
+            PalettePage = palettePage,
+         };
+      }
+
       public void OpenImageEditorTab(int address, int spritePage, int palettePage, int preferredTileWidth = -1) {
          try {
-            var newTab = new ImageEditorViewModel(history, Model, address, Save, tools.SpriteTool.PaletteAddress) {
-               SpritePage = spritePage,
-               PalettePage = palettePage,
-            };
+            var newTab = CreateImageEditor(address, spritePage, palettePage);
             var args = new TabChangeRequestedEventArgs(newTab);
             RequestTabChange(this, args);
             if (!args.RequestAccepted && MapEditor?.IsValidState == true) {
@@ -2570,7 +2723,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private List<ViewPort> RecentDuplicates = new();
       public void GotoScript(int address) {
-         tools.LogTool.LogMessages.Add("Goto Script: " + address.ToAddress());
+         Log("Goto Script: " + address.ToAddress());
          if (RecentDuplicates.Count == 0) RecentDuplicates.Add(this);
 
          int start;
@@ -2855,7 +3008,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (completeEditOperation.Result) {
                   // if the data we just changed was in a table, notify children of that table about the change
                   var previousRun = Model.GetNextRun(dataIndex);
-                  if (previousRun is ITableRun tableRun) {
+                  if (previousRun is ITableRun tableRun && tableRun.Start <= dataIndex) { // GetNextRun also returns a table that starts after the edit: nothing in that table changed
                      var offsets = tableRun.ConvertByteOffsetToArrayOffset(dataIndex);
                      var errorInfo = tableRun.NotifyChildren(Model, history.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
                      HandleErrorInfo(errorInfo);
@@ -2911,12 +3064,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (currentText.StartsWith(GotoMarker.ToString())) {
             if (currentText.Length == 2 && currentText[1] == '{') {
                var currentAddress = scroll.ViewPointToDataIndex(point);
+               // everything between '@{' and its '@}' (the data a deep copy has for the pointer) belongs at the destination of the pointer.
+               // If there is no destination to jump to, stop here: otherwise it would be written over the cell instead, and the '@}' would go back to some unrelated place.
+               if (currentAddress + 4 > Model.Count) { // a pointer does not fit in the last bytes of the file
+                  ClearEdits(point);
+                  RaiseError($"Could not jump using pointer at {currentAddress:X6}");
+                  exitEditEarly = true;
+                  RequestMenuClose?.Invoke(this, EventArgs.Empty);
+                  result = true;
+                  return true;
+               }
                var destination = Model.ReadPointer(currentAddress);
                if (destination == Pointer.NULL) {
                   if (CreateNewData(currentAddress)) {
                      destination = Model.ReadPointer(currentAddress);
                   } else {
                      RaiseError($"Could not jump using pointer at {currentAddress:X6}");
+                     exitEditEarly = true;
                   }
                }
                ClearEdits(point);
@@ -2927,6 +3091,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   }
                } else if (destination != Pointer.NULL) {
                   RaiseError($"Could not jump using pointer at {currentAddress:X6}");
+                  exitEditEarly = true;
                }
                RequestMenuClose?.Invoke(this, EventArgs.Empty);
                result = true;
@@ -3025,6 +3190,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                }
                RefreshBackingData();
                SelectionEnd = GetSelectionSpan(SelectionStart).end;
+            } else {
+               // the table can't be extended: end the '+' edit, otherwise the next character is added to it and it is read as the hex byte '+3'
+               RefreshBackingData();
             }
             HandleErrorInfo(errorInfo);
             result = true;
@@ -3137,7 +3305,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                exitEditEarly = true;
                return;
             }
-            for (int i = 0; i < content.Length / 2; i++) {
+            // the bytes replace whatever is there, including pointers: the destinations of those pointers have to forget them while the cells still hold the pointers
+            var putLength = content.Length / 2;
+            var overwrittenPointers = new List<IFormattedRun>();
+            for (var run = Model.GetNextRun(index); run.Start < index + putLength && run.Start < Model.Count; run = Model.GetNextRun(run.Start + Math.Max(run.Length, 1))) {
+               if (run is PointerRun && run.Start + run.Length > index) overwrittenPointers.Add(run);
+            }
+            foreach (var pointer in overwrittenPointers) Model.ClearFormat(CurrentChange, pointer.Start, pointer.Length);
+            for (int i = 0; i < putLength; i++) {
                var data = byte.Parse(content.Substring(i * 2, 2), NumberStyles.HexNumber);
                CurrentChange.ChangeData(Model, index + i, data);
             }

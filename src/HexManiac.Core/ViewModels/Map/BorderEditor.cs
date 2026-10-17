@@ -156,7 +156,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var address = layout.GetAddress("borderblock");
          address += (yy * width + xx) * 2;
          var existingValue = model.ReadMultiByteValue(address, 2);
-         return existingValue;
+         return existingValue & 0x3FF; // (the block, without collision bits: those are not part of the picture)
       }
 
       private void RenderBorder(ModelArrayElement layout) {

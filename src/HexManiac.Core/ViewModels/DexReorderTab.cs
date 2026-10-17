@@ -17,6 +17,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private readonly IDataModel model;
       private readonly string dexOrder, dexInfo;
       private readonly bool isNational;
+      private readonly bool isExpansion; // pokeemerald-expansion (CUBE): see ExpansionDex
       private readonly StubCommand undo, redo;
 
       public ObservableCollection<SortablePokemon> Elements { get; } = new ObservableCollection<SortablePokemon>();
@@ -114,6 +115,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          this.dexOrder = dexOrder;
          this.dexInfo = dexInfo;
          this.isNational = isNational;
+         this.isExpansion = model.GetTable(dexOrder) == null && ExpansionDex.IsExpansionLayout(model);
          this.Save = viewPort.Save;
          this.SaveAs = viewPort.SaveAs;
 
@@ -142,6 +144,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void Refresh() {
          history.ChangeCompleted();
          Elements.Clear();
+         if (isExpansion) {
+            RefreshExpansion();
+            return;
+         }
 
          var dexOrder = (ITableRun)model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, this.dexOrder));
          var dexInfo = (ITableRun)model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, this.dexInfo));
@@ -190,6 +196,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (warnings.Count > 0) {
             var header = "Warning: Pokedex data in unexpected form!" + Environment.NewLine + Environment.NewLine;
             fs.ShowCustomMessageBox(header + Environment.NewLine.Join(warnings), showYesNoCancel: false);
+         }
+      }
+
+      /// <summary>
+      /// One element per national dex slot (with all the forms that share the number), or per regional slot.
+      /// Each element remembers the national number it stands for, which is what gets written back.
+      /// </summary>
+      private void RefreshExpansion() {
+         var byNational = ExpansionDex.SpeciesByNational(model);
+         IEnumerable<int> slots = isNational ? Enumerable.Range(1, ExpansionDex.NationalCount(model)) : ExpansionDex.ReadRegional(model);
+         foreach (var national in slots) {
+            byNational.TryGetValue(national, out var species);
+            var element = new SortablePokemon(model, species != null && species.Count > 0 ? species[0] : 0) { SpriteScale = SpriteScale, DexNumber = national };
+            if (isNational && species != null) foreach (var form in species.Skip(1)) element.AddSource(form);
+            Elements.Add(element);
+            element.MatchToFilter(filter);
          }
       }
 
@@ -243,6 +265,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void UpdateDexFromSortOrder() {
          var token = history.CurrentChange;
+         if (isExpansion) {
+            var order = Elements.Select(element => element.DexNumber).ToList();
+            if (isNational) {
+               ExpansionDex.ApplyNationalOrder(model, token, order);
+               for (int i = 0; i < Elements.Count; i++) Elements[i].DexNumber = i + 1; // slot N now holds national number N
+            } else {
+               ExpansionDex.WriteRegional(model, token, order);
+            }
+            return;
+         }
          // Elements is in the new desired pokedex order
          // update dexOrder / dexInfo to match
 
@@ -314,6 +346,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private readonly List<int> extraIndices;
 
       public int CanonicalIndex { get; }
+
+      /// <summary>Expansion dex only: the national dex number this element stands for.</summary>
+      public int DexNumber { get; set; }
       public IReadOnlyList<int> ExtraIndices => extraIndices;
       public short Transparent => -1;
       public int PixelWidth { get; }
@@ -331,10 +366,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public bool Selected { get => selected; set => TryUpdate(ref selected, value); }
 
       public SortablePokemon(IDataModel model, int index) {
-         var sprites = new ModelTable(model, model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.FrontSpritesTable));
-         var palettes = new ModelTable(model, model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.PokePalettesTable));
-         var sprite = sprites[index].GetSprite(sprites[index].GetFieldName(0));
-         var palette = palettes[index].GetPalette(palettes[index].GetFieldName(0));
+         int[,] sprite;
+         IReadOnlyList<short> palette;
+         if (model.GetTable(HardcodeTablesModel.FrontSpritesTable) != null) {
+            var sprites = new ModelTable(model, model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.FrontSpritesTable));
+            var palettes = new ModelTable(model, model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.PokePalettesTable));
+            sprite = sprites[index].GetSprite(sprites[index].GetFieldName(0));
+            palette = palettes[index].GetPalette(palettes[index].GetFieldName(0));
+         } else {
+            (sprite, palette) = ReadExpansionPicture(model, index);
+         }
          if (palette == null) palette = TileViewModel.CreateDefaultPalette(16);
          extraIndices = new List<int>();
 
@@ -346,6 +387,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          filterTerms = GenerateFilterTerms(model, index);
          Name = filterTerms.FirstOrDefault();
+      }
+
+      /// <summary>The expansion keeps the picture in the species table ('frontPic' / 'palette'); its first 64x64 frame is the one shown.</summary>
+      private static (int[,] sprite, IReadOnlyList<short> palette) ReadExpansionPicture(IDataModel model, int index) {
+         try {
+            var stats = model.GetTableModel(HardcodeTablesModel.PokemonStatsTable);
+            if (index <= 0 || stats == null || index >= stats.Count || !stats[index].HasField("frontPic") || !stats[index].HasField("palette")) return (null, null);
+            var image = IntroPictureSources.ReadCompressed(model.RawData, stats[index].GetAddress("frontPic"), stats[index].GetAddress("palette"));
+            if (image == null) return (null, null);
+            return (image.Pixels(), image.DisplayPalette());
+         } catch (Exception) {
+            return (null, null);
+         }
       }
 
       public void AddSource(int canonicalIndex) {
@@ -367,13 +421,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var terms = new List<string>();
 
          // pokemon name
-         var names = new ModelTable(model, model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.PokemonNameTable));
-         var name = names[pokemonIndex].GetStringValue(names[pokemonIndex].GetFieldName(0));
+         var nameTable = HardcodeTablesModel.GetSpeciesNameTable(model);
+         var names = model.GetTableModel(nameTable);
+         var name = string.Empty;
+         if (names != null && pokemonIndex < names.Count) {
+            var field = nameTable == HardcodeTablesModel.PokemonNameTable ? names[pokemonIndex].GetFieldName(0) : "name";
+            if (names[pokemonIndex].HasField(field)) name = names[pokemonIndex].GetStringValue(field);
+         }
          terms.Add(name);
 
          // pokemon types
          var statsTable = ReorderDex.GetTable(model, HardcodeTablesModel.PokemonStatsTable);
-         if (statsTable != null) {
+         if (statsTable != null && pokemonIndex < statsTable.ElementCount) {
             var stats = new ModelTable(model, statsTable.Start);
             terms.Add(stats[pokemonIndex].GetEnumValue("type1"));
             terms.Add(stats[pokemonIndex].GetEnumValue("type2"));

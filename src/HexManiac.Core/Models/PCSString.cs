@@ -245,6 +245,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (!TextMacrosIndex.TryGetValue(macroSet, out var textMacros)) textMacros = null;
 
          var nextExpectedNewline = NewlineMode.Wrap;
+         // true right after a line break that was written as nothing but one line break in the text.
+         // A second one directly after it would read back as a paragraph break (two line breaks in a row), so it gets written as an escape instead.
+         var afterPlainLineBreak = false;
 
          for (int i = 0; i < length; i++) {
             // check macros
@@ -252,6 +255,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                string macro = FindMacro(textMacros, data, startIndex + i);
                if (macro != null) {
                   result.Append(macro);
+                  afterPlainLineBreak = false;
                   i += TextMacros[macroSet][macro].Length - 1;
                   continue;
                }
@@ -262,24 +266,30 @@ namespace HavenSoft.HexManiac.Core.Models {
             // this line optimized for maximum speed. Otherwise would like to use the Newlines array.
             if (length > 1 && (currentByte == 0xFA || currentByte == 0xFB || currentByte == 0xFE)) {
                if (currentByte == 0xFB) { // paragraph
-                  if (includeNewlineCharacters) result.Append("\\pn");
+                  if (includeNewlineCharacters || afterPlainLineBreak) result.Append("\\pn");
                   result.AppendLine(Environment.NewLine);
                   nextExpectedNewline = NewlineMode.Wrap;
+                  afterPlainLineBreak = false;
                } else if (currentByte == 0xFE && nextExpectedNewline == NewlineMode.Wrap) {
                   if (includeNewlineCharacters) result.Append("\\n");
                   result.AppendLine();
                   nextExpectedNewline = NewlineMode.Feed;
+                  afterPlainLineBreak = !includeNewlineCharacters;
                } else if (currentByte == 0xFA && nextExpectedNewline == NewlineMode.Feed) {
-                  if (includeNewlineCharacters) result.Append("\\l");
+                  if (includeNewlineCharacters || afterPlainLineBreak) result.Append("\\l");
                   result.AppendLine();
                   nextExpectedNewline = NewlineMode.Feed;
+                  afterPlainLineBreak = !includeNewlineCharacters && !afterPlainLineBreak;
                } else {
                   result.AppendLine(PCS[currentByte]);
                   nextExpectedNewline = NewlineMode.Feed;
+                  afterPlainLineBreak = false;
                }
             } else if (PCS[currentByte] == null) {
+               afterPlainLineBreak = false;
                result.Append("\\!" + currentByte.ToHexString());
             } else {
+               afterPlainLineBreak = false;
                result.Append(PCS[currentByte]);
             }
 
@@ -289,9 +299,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                result.Append(data[startIndex + i + 1].ToString("X2"));
                i++;
             }
-            if (currentByte == FunctionEscape) {
+            if (currentByte == FunctionEscape && i < length - 1) {
+               // (a text that ends in the middle of an escape, at the end of the file, only has the arguments that are there)
                var escapeLength = GetLengthForControlCode(data[startIndex + i + 1]);
-               for (int j = 0; j < escapeLength; j++) result.Append(data[startIndex + i + 1 + j].ToString("X2"));
+               for (int j = 0; j < escapeLength && i + 1 + j < length; j++) result.Append(data[startIndex + i + 1 + j].ToString("X2"));
                i += escapeLength;
             }
 
@@ -319,6 +330,9 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          var lastNewLine = NewlineMode.None;
          var nextNewline = NewlineMode.Wrap;
+         // how many line breaks the text still holds that belong to the escape (\n, \l or \pn) just read:
+         // converting bytes to text writes one line break after \n and \l, and two after \pn. Any line break after those is a line break of its own.
+         var escapeLineBreaks = 0;
 
          if (!TextMacros.TryGetValue(macroSet, out var textMacros)) textMacros = null;
 
@@ -352,14 +366,20 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
 
             // check newlines
-            if (index < input.Length - doubleNewline.Length) {
-               var isNewline = input[index..].StartsWith(Environment.NewLine);
-               if (isNewline && nextNewline == NewlineMode.Explicit) {
+            // (this has to run for every position, including the last few characters: a line break in front of a short last line,
+            //  or at the very end of the text, used to be skipped as an unknown character, which silently glued the lines together)
+            if (index < input.Length) {
+               var isNewline = string.CompareOrdinal(input, index, Environment.NewLine, 0, Environment.NewLine.Length) == 0;
+               if (isNewline && nextNewline == NewlineMode.Explicit && escapeLineBreaks > 0) {
                   // don't add anything to result
                   // lastNewline still says what the most recent newline was
-                  // nextNewline will get reset after the next character
+                  // nextNewline will get reset after the next character, or after the last line break that belongs to the escape
+                  index += Environment.NewLine.Length;
+                  escapeLineBreaks -= 1;
+                  if (escapeLineBreaks == 0) nextNewline = lastNewLine == NewlineMode.Paragraph ? NewlineMode.Wrap : NewlineMode.Feed;
+                  continue;
                } else if (isNewline) {
-                  if (input[index..].StartsWith(doubleNewline)) {
+                  if (string.CompareOrdinal(input, index, doubleNewline, 0, doubleNewline.Length) == 0) {
                      (lastNewLine, nextNewline) = (NewlineMode.Paragraph, NewlineMode.Wrap);
                      result.Add(0xFB); // paragraph feed
                      index += doubleNewline.Length; ;
@@ -415,10 +435,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (i == 0xFA || i == 0xFB || i == 0xFE) {
                   // explicit newline
                   nextNewline = NewlineMode.Explicit;
+                  escapeLineBreaks = i == 0xFB ? 2 : 1;
                   lastNewLine = i switch {
                      0xFA => NewlineMode.Feed,
-                     0xFB => NewlineMode.Wrap,
-                     0xFE => NewlineMode.Paragraph,
+                     0xFB => NewlineMode.Paragraph,
+                     0xFE => NewlineMode.Wrap,
                      _ => default
                   };
                } else if (nextNewline == NewlineMode.Explicit) {
@@ -468,6 +489,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             else if (data[start + length] == ButtonEscape) length++;
             else if (data[start + length] == SpecialCharacterEscape) length++;
             else if (data[start + length] == FunctionEscape) {
+               if (start + length + 1 >= data.Count) return -1; // the data ends in the middle of the escape
                length += GetLengthForControlCode(data[start + length + 1]);
             }
             length++;

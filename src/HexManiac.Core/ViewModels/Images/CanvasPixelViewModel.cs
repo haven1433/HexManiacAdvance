@@ -34,24 +34,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
       public void Draw(IPixelViewModel foreground, int x, int y) {
          if (foreground == null) return;
          if (x >= PixelWidth || y >= PixelHeight) return;
-         for (int yy = 0; yy < foreground.PixelHeight; yy++) {
-            if (y + yy < 0 || y + yy >= PixelHeight) continue;
-            if (foreground.Transparent == -1) {
+         // This is the inner loop of every map render, so read the foreground's properties once
+         // instead of going through the interface for every pixel.
+         var (foregroundWidth, foregroundHeight, transparent) = (foreground.PixelWidth, foreground.PixelHeight, foreground.Transparent);
+         var foregroundData = foreground.PixelData;
+         if (foregroundData == null || foregroundData.Length < foregroundWidth * foregroundHeight) return;
+         var (width, height, data) = (PixelWidth, PixelHeight, PixelData);
+         var start = Math.Max(x, 0);
+         var end = Math.Min(x + foregroundWidth, width);
+         if (end <= start) return;
+         for (int yy = 0; yy < foregroundHeight; yy++) {
+            if (y + yy < 0 || y + yy >= height) continue;
+            if (transparent == -1) {
                // copy one row at a time, to account for gaps
-               var start = Math.Max(x, 0);
-               var end = Math.Min(x + foreground.PixelWidth, PixelWidth);
-               if (end > start) {
-                  Array.Copy(foreground.PixelData, foreground.PixelWidth * yy + start - x, PixelData, PixelWidth * (y + yy) + x, end - start);
-               }
+               Array.Copy(foregroundData, foregroundWidth * yy + start - x, data, width * (y + yy) + start, end - start);
             } else {
                // go through each pixel to look for transparency
-               for (int xx = 0; xx < foreground.PixelWidth; xx++) {
-                  var pixel = foreground.PixelData[foreground.PixelWidth * yy + xx];
-                  if (pixel == foreground.Transparent) continue;
-                  if (x + xx >= PixelWidth) continue;
-                  if (x + xx < 0) continue;
-                  int offset = PixelWidth * (y + yy) + (x + xx);
-                  PixelData[offset] = pixel;
+               var sourceRow = foregroundWidth * yy;
+               var destinationRow = width * (y + yy);
+               for (int xx = start - x; xx < end - x; xx++) {
+                  var pixel = foregroundData[sourceRow + xx];
+                  if (pixel == transparent) continue;
+                  data[destinationRow + x + xx] = pixel;
                }
             }
          }

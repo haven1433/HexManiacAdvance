@@ -391,6 +391,52 @@
             Visibility="{Binding Enabled, Converter={StaticResource BoolToVisibility}, ConverterParameter={x:Static Visibility.Hidden}}"
             DockPanel.Dock="Top"/>
 
+         <!-- The frames of an animation (only for an editor that shows a group of pictures): the dots select the frame, the palette has its own row below. -->
+         <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Margin="0,6,0,2"
+                    Foreground="{DynamicResource Secondary}"
+                    Text="{Binding FrameCaption}"
+                    Visibility="{Binding HasFrames, Converter={StaticResource BoolToVisibility}}"/>
+         <ItemsControl ItemsSource="{Binding FrameOptions}"
+                       Visibility="{Binding HasFrames, Converter={StaticResource BoolToVisibility}}"
+                       HorizontalAlignment="Center" MaxWidth="340" Margin="0,0,0,8"
+                       DockPanel.Dock="Top">
+            <ItemsControl.Resources>
+               <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+                  <Setter Property="Width" Value="30"/>
+                  <Setter Property="Height" Value="30"/>
+                  <Setter Property="Margin" Value="1"/>
+                  <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                  <Setter Property="VerticalContentAlignment" Value="Center"/>
+               </Style>
+            </ItemsControl.Resources>
+            <ItemsControl.ItemsPanel>
+               <ItemsPanelTemplate>
+                  <WrapPanel Orientation="Horizontal"/>
+               </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+               <DataTemplate>
+                  <RadioButton IsChecked="{Binding Selected}" Content="{Binding Name}">
+                     <RadioButton.ToolTip>
+                        <ToolTip>
+                           <DockPanel>
+                              <StackPanel Margin="5,0,0,0" Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Top">
+                                 <TextBlock Text="Shift + " VerticalAlignment="Center"/>
+                                 <Path Stretch="Uniform" Data="{hshmwpfr:Icon MiddleMouseButton}" Fill="{DynamicResource Secondary}"/>
+                              </StackPanel>
+                              <TextBlock>
+                                 <Run Text="{Binding Description, Mode=OneWay}"/>
+                                 <LineBreak/>
+                                 <Run Foreground="{DynamicResource Secondary}" FontStyle="Italic" Text="(Shift+Scroll to change frames)"/>
+                              </TextBlock>
+                           </DockPanel>
+                        </ToolTip>
+                     </RadioButton.ToolTip>
+                  </RadioButton>
+               </DataTemplate>
+            </ItemsControl.ItemTemplate>
+         </ItemsControl>
+
          <ItemsControl ItemsSource="{Binding SpritePageOptions}"
                        Visibility="{Binding HasMultipleSpritePages, Converter={StaticResource BoolToVisibility}}"
                        HorizontalAlignment="Center"
@@ -424,6 +470,10 @@
             </ItemsControl.ItemTemplate>
          </ItemsControl>
 
+         <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Margin="0,0,0,2"
+                    Foreground="{DynamicResource Secondary}"
+                    Text="{Binding PaletteCaption}"
+                    Visibility="{Binding ShowPaletteCaption, Converter={StaticResource BoolToVisibility}}"/>
          <ItemsControl ItemsSource="{Binding PalettePageOptions}"
                        Visibility="{Binding HasMultiplePalettePages, Converter={StaticResource BoolToVisibility}}"
                        HorizontalAlignment="Center"

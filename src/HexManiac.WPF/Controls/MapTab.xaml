@@ -83,6 +83,11 @@
                <local:AngleComboBox Direction="Out" Width="135" Height="20"
                   ItemsSource="{Binding PrimaryMap.BlockEditor.MovementPermissions}" SelectedIndex="{Binding CollisionIndex}" />
             </StackPanel>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5,2,0,0" Grid.Row="1">
+               <TextBlock Text="Grid opacity:" VerticalAlignment="Center" FontSize="11" />
+               <Slider Width="90" Minimum="0" Maximum="100" Value="{Binding CollisionGridOpacity}" VerticalAlignment="Center" Margin="6,0,0,0"
+                       ToolTip="How visible the movement-permission grid is (drag left to fade it out). Also in the View menu: Movement Permission Grid Opacity."/>
+            </StackPanel>
             <StackPanel Orientation="Vertical" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,0,12" Grid.Row="1" Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}">
                <local:AngleBorder Direction="Out" VerticalAlignment="Stretch" Content="Block ID" />
                <TextBlock Text="{Binding DrawBlockIndex}" HorizontalAlignment="Center" Margin="0,5,0,0" />
@@ -465,15 +470,42 @@
                         <local:AngleTextBox Grid.Row="10" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding Padding, UpdateSourceTrigger=PropertyChanged}" />
 
                         <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowBerryContent, Converter={StaticResource BoolToVisibility}}">
-                           <Grid>
+                           <Grid Visibility="{Binding HasBerrySpot, Converter={StaticResource BoolToVisibility}}">
+                              <Grid.ColumnDefinitions>
+                                 <ColumnDefinition />
+                                 <ColumnDefinition />
+                              </Grid.ColumnDefinitions>
+                              <Grid.RowDefinitions>
+                                 <RowDefinition />
+                                 <RowDefinition />
+                              </Grid.RowDefinitions>
+                              <local:AngleBorder Direction="Out" Content="Initial Berry:" />
+                              <local:AngleComboBox Direction="Right" Grid.Column="1" Margin="0,2,21,2" ItemsSource="{Binding BerryOptions}" SelectedIndex="{Binding SelectedBerry}"
+                                    ToolTip="The berry the new-game script plants on this tree (edits the setberrytree command for you)"/>
+                              <local:AngleButton Command="{res:MethodCommand GotoBerryCode}" Direction="Right" Grid.Column="1" HorizontalAlignment="Right"
+                                    Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}" ToolTip="Open the setberrytree command in the script">
+                                 <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                              </local:AngleButton>
+                              <local:AngleBorder Direction="Out" Content="Growth:" Grid.Row="1" />
+                              <local:AngleComboBox Direction="Right" Grid.Row="1" Grid.Column="1" Margin="0,2,21,2" ItemsSource="{Binding BerryStageVisuals}" SelectedIndex="{Binding SelectedBerryStage}"
+                                    ToolTip="How grown the tree is when a new game starts">
+                                  <local:AngleComboBox.ItemsPanel>
+                                     <ItemsPanelTemplate>
+                                        <WrapPanel Width="120" />
+                                     </ItemsPanelTemplate>
+                                  </local:AngleComboBox.ItemsPanel>
+                               </local:AngleComboBox>
+                           </Grid>
+                           <Grid Visibility="{Binding HasNoBerrySpot, Converter={StaticResource BoolToVisibility}}">
                               <Grid.ColumnDefinitions>
                                  <ColumnDefinition />
                                  <ColumnDefinition />
                               </Grid.ColumnDefinitions>
                               <local:AngleBorder Direction="Out" Content="Initial Berry:" />
-                              <local:AngleBorder Direction="Right" Grid.Column="1" Content="{Binding BerryText}" Margin="0,2,21,2" />
-                              <local:AngleButton Command="{res:MethodCommand GotoBerryCode}" Direction="Right" Grid.Row="7" Grid.Column="1" HorizontalAlignment="Right"
-                                    Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                              <local:AngleBorder Direction="Right" Grid.Column="1" Content="none (empty soil)" Margin="0,2,21,2"
+                                    ToolTip="The new-game script has no setberrytree line for this tree ID. Add one in scripts.newgame.berries to plant something here."/>
+                              <local:AngleButton Command="{res:MethodCommand GotoBerryCode}" Direction="Right" Grid.Column="1" HorizontalAlignment="Right"
+                                    Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}" ToolTip="Open the berry-planting script">
                                  <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
                               </local:AngleButton>
                            </Grid>
@@ -591,6 +623,16 @@
                                  <TextBlock Text="Item:" Margin="4,0"/>
                               </local:AngleBorder>
                               <local:AngleComboBox Grid.Column="1" Direction="Out" DataContext="{Binding ItemOptions}" />
+                           </Grid>
+                           <Grid Margin="0,4,0,0" Visibility="{Binding ShowItemQuantity, Converter={StaticResource BoolToVisibility}}">
+                              <Grid.ColumnDefinitions>
+                                 <ColumnDefinition />
+                                 <ColumnDefinition />
+                              </Grid.ColumnDefinitions>
+                              <local:AngleBorder Direction="Left">
+                                 <TextBlock Text="Count:" Margin="4,0"/>
+                              </local:AngleBorder>
+                              <local:AngleTextBox Grid.Column="1" Direction="Right" TextBinding="{Binding ItemQuantity, UpdateSourceTrigger=PropertyChanged}" />
                            </Grid>
                         </StackPanel>
 
@@ -1168,10 +1210,12 @@
                            </local:AngleMenuItem>
                         </Menu>
                         <!-- Tileset -->
-                        <Menu Grid.Row="6" Grid.Column="0" ToolTip="Tilesets are stored as a single .bin file that contains all the tiles.">
+                        <Menu Grid.Row="6" Grid.Column="0" ToolTip="A tileset can be exported as one ordinary .png picture with all the tiles (16 tiles per row), or as a single .bin file that contains all the tiles.">
                            <local:AngleMenuItem Direction="Left">
-                              <MenuItem Header="Import" Command="{res:MethodCommand ImportPrimaryTileset}" ToolTip="Import a single .bin file." />
-                              <MenuItem Header="Export" Command="{res:MethodCommand ExportPrimaryTileset}" ToolTip="Export a single .bin file." />
+                              <MenuItem Header="Import Image" Command="{res:MethodCommand ImportPrimaryTilesetImage}" ToolTip="Import all the tiles from a .png picture of the size that Export Image writes (128 pixels wide, 16 tiles per row). Only the tiles change: no palette is touched." />
+                              <MenuItem Header="Export Image" Command="{res:MethodCommand ExportPrimaryTilesetImage}" ToolTip="Export all the tiles as one .png picture (128 pixels wide, 16 tiles per row) that carries palette 0 of the tileset." />
+                              <MenuItem Header="Import .bin" Command="{res:MethodCommand ImportPrimaryTileset}" ToolTip="Import a single .bin file (a .png picture also works)." />
+                              <MenuItem Header="Export .bin" Command="{res:MethodCommand ExportPrimaryTileset}" ToolTip="Export a single .bin file." />
                            </local:AngleMenuItem>
                         </Menu>
                         <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="6" Grid.Column="1"
@@ -1183,10 +1227,12 @@
                                            ToolTip="{Binding ExpandSecondaryTilesetText}" Command="{Binding ExpandSecondaryTileset}" />
                         <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="6" Grid.Column="5"
                                            ToolTip="{Binding RepointSecondaryTilesetText}" Command="{Binding RepointSecondaryTileset}" />
-                        <Menu Grid.Row="6" Grid.Column="6" ToolTip="Tilesets are stored as a single .bin file that contains all the tiles.">
+                        <Menu Grid.Row="6" Grid.Column="6" ToolTip="A tileset can be exported as one ordinary .png picture with all the tiles (16 tiles per row), or as a single .bin file that contains all the tiles.">
                            <local:AngleMenuItem Direction="Right">
-                              <MenuItem Header="Import" Command="{res:MethodCommand ImportSecondaryTileset}" ToolTip="Import a single .bin file."/>
-                              <MenuItem Header="Export" Command="{res:MethodCommand ExportSecondaryTileset}" ToolTip="Export a single .bin file." />
+                              <MenuItem Header="Import Image" Command="{res:MethodCommand ImportSecondaryTilesetImage}" ToolTip="Import all the tiles from a .png picture of the size that Export Image writes (128 pixels wide, 16 tiles per row). Only the tiles change: no palette is touched." />
+                              <MenuItem Header="Export Image" Command="{res:MethodCommand ExportSecondaryTilesetImage}" ToolTip="Export all the tiles as one .png picture (128 pixels wide, 16 tiles per row) that carries the first palette the game uses for a secondary tileset (palette 6 in Emerald, palette 7 in FireRed and LeafGreen)." />
+                              <MenuItem Header="Import .bin" Command="{res:MethodCommand ImportSecondaryTileset}" ToolTip="Import a single .bin file (a .png picture also works)." />
+                              <MenuItem Header="Export .bin" Command="{res:MethodCommand ExportSecondaryTileset}" ToolTip="Export a single .bin file." />
                            </local:AngleMenuItem>
                         </Menu>
                         <!-- Palette -->
@@ -1216,7 +1262,7 @@
                                            ToolTip="{Binding CreatePrimaryTilesetAnimationsText}" Command="{Binding CreatePrimaryTilesetAnimations}" />
                         <local:AngleBorder Content="Animation" Direction="Out" Grid.Row="8" Grid.Column="2" Grid.ColumnSpan="3" />
                         <local:AngleButton Content="Create" Direction="Right" Grid.Row="8" Grid.Column="5"
-                                           ToolTip="{Binding CreatePrimaryTilesetAnimationsText}" Command="{Binding CreateSecondaryTilesetAnimations}" />
+                                           ToolTip="{Binding CreateSecondaryTilesetAnimationsText}" Command="{Binding CreateSecondaryTilesetAnimations}" />
                         <!-- Duplicate Map (Using Same Layout) -->
                         <local:AngleButton Content="Duplicate Map" Direction="Out" Grid.Row="9" Grid.Column="1" Grid.ColumnSpan="5" Width="200"
                                            ToolTip="{Binding DuplicateMapText}" Command="{Binding DuplicateMap}" />
@@ -1308,9 +1354,11 @@
                </local:AngleButton>
 
                <local:AngleBorder  Grid.Row="1" Content="Music:" Direction="Left" />
-               <local:AngleComboBox Grid.Row="1" Grid.Column="1" Direction="Out" Margin="0,2,4,2"
-                                    ItemsSource="{Binding MusicOptions}" SelectedIndex="{Binding Music}"
-                                    Visibility="{Binding HasMusicOptions, Converter={StaticResource BoolToVisibility}}" />
+               <Grid Grid.Row="1" Grid.Column="1" Visibility="{Binding HasMusicOptions, Converter={StaticResource BoolToVisibility}}">
+                  <!-- type in the box to search the song list -->
+                  <local:AngleComboBox DataContext="{Binding MusicFilter}" Direction="Out" Margin="0,2,4,2"
+                                       ScrollViewer.CanContentScroll="True" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" />
+               </Grid>
 
                <local:AngleBorder  Grid.Row="2" Content="Cave:" Direction="Left" />
                <local:AngleComboBox Grid.Row="2" Grid.Column="1" SelectedIndex="{Binding Cave}" ItemsSource="{Binding CaveOptions}" Direction="Out" Margin="0,2,4,2" />
@@ -1427,7 +1475,7 @@
          </ItemsControl.RenderTransform>
          <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-               <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="False" SnapsToDevicePixels="True"/>
+               <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="False" SnapsToDevicePixels="True" Loaded="MapCanvasLoaded"/>
             </ItemsPanelTemplate>
          </ItemsControl.ItemsPanel>
          <ItemsControl.ItemContainerStyle>

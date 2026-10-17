@@ -82,7 +82,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private void RefreshFromEventChange(object sender, EventArgs e) => RedrawEvents();
+      private void RefreshFromEventChange(object sender, EventArgs e) {
+         if (movingEvent) return; // an event that moves looks the same: the pictures of the events stay, and the map is drawn again by whoever moved it
+         RedrawEvents();
+      }
+      private bool movingEvent;
 
       private void CycleActiveEvent(object sender, EventCycleDirection direction) {
          // organize events into categories
@@ -174,10 +178,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private readonly object pixelWriteLock = new();
       private short[] pixelData; // picture of the map
+      private int renderedGridOpacity = BlockMapViewModel.DefaultCollisionGridOpacity; // the grid opacity that pixelData was drawn with
       public short[] PixelData {
          get {
             lock (pixelWriteLock) {
-               if (pixelData == null) FillMapPixelData();
+               // a map that wasn't on screen when the grid opacity changed still has the old grid in its picture
+               if (pixelData == null || renderedGridOpacity != CollisionGridOpacity) FillMapPixelData();
                return pixelData;
             }
          }
@@ -280,7 +286,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private void ClearPixelCache() {
+      /// <summary>Throw away the rendered map so it's redrawn (for example after the movement-permission grid strength changes).</summary>
+      public void ClearPixelCache() {
          lock (pixelWriteLock) {
             pixelData = null;
             NotifyPropertyChanged(nameof(PixelData));
@@ -300,8 +307,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var width = PixelWidth;
          var height = PixelHeight;
          RefreshMapSize();
-         LeftEdge -= (PixelWidth - width) / 2;
-         TopEdge -= (PixelHeight - height) / 2;
+         // the picture grows or shrinks around its center. The edges are in screen pixels, but the sizes are in picture pixels: scale the change
+         // (without this the map jumps sideways whenever the borders appear or disappear while zoomed)
+         LeftEdge -= (int)((PixelWidth - width) / 2 * SpriteScale);
+         TopEdge -= (int)((PixelHeight - height) / 2 * SpriteScale);
       }
 
       private IPixelViewModel borderBlock;
@@ -372,7 +381,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public int GotoNameIndex {
-         get => SortedAvailableNames.IndexOf(AvailableNames[SelectedNameIndex]);
+         get {
+            var index = SelectedNameIndex; // (a map can name a region section that the name table does not have)
+            return index < 0 || index >= AvailableNames.Count ? -1 : SortedAvailableNames.IndexOf(AvailableNames[index]);
+         }
          set {
             if (!value.InRange(0, SortedAvailableNames.Count)) return;
             var name = sortedAvailableNames[value];
@@ -501,7 +513,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                surfConnection.ConnectNewMap += (sender, e) => ConnectNewMap(e);
                surfConnection.ConnectExistingMap += (sender, e) => ConnectExistingMap(e);
                surfConnection.RequestRemoveConnection += (sender, e) => {
-                  var connections = AllMapsModel.Create(model, tokenFactory)[group][map].Connections;
+                  var connections = AllMapsModel.Create(model, tokenFactory)[group]?[map]?.Connections;
+                  if (connections == null) return; // (nothing to remove: for example, undo already took the connection away)
                   var toRemove = connections.Count.Range().Where(i => connections[i].Direction.IsAny(MapDirection.Dive, MapDirection.Emerge)).ToList();
                   RemoveConnections(toRemove);
                };
@@ -562,7 +575,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (options == null) options = 100.Range().Select(i => i.ToString()).ToList();
          foreach (var option in options) collection.Add(option);
          var spots = Flags.GetBerrySpots(model, ViewPort.Tools.CodeTool.ScriptParser);
-         return new(spots, collection);
+         return new(spots, collection, Flags.BerryIdOffset(model));
       }
 
       public void InformRepoint(DataMovedEventArgs e) {
@@ -616,6 +629,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          blockPixels = null;
          eventRenders = null;
+         ClearEventGroupCache();
          borderBlock = null;
          berryInfo = null;
          WildPokemon.ClearCache();
@@ -634,8 +648,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          Header.UpdateFromModel();
          ClearPixelCache();
          if (!MapScriptCollection.Unloaded) MapScriptCollection.Load(GetMapModel());
+         surfConnection?.RefreshFromModel(); // undo/redo may have added or removed the dive/emerge connection
          NotifyPropertiesChanged(nameof(BlockRenders), nameof(BlockPixels), nameof(BerryInfo));
          if (SelectedEvent != null) CycleActiveEvent(default, EventCycleDirection.None);
+      }
+
+      /// <summary>The View menu changed how graphics-variable events are drawn: draw all the events again.</summary>
+      public void RefreshEventGraphics() {
+         allOverworldSprites = null;
+         ClearEventGroupCache();
+         RedrawEvents();
       }
 
       public void RedrawEvents() {
@@ -647,17 +669,41 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void Scale(double x, double y, bool enlarge) {
          (lastDrawX, lastDrawY) = (-1, -1);
          var old = spriteScale;
-
-         if (enlarge && spriteScale < 10) {
-            if (spriteScale < 1) spriteScale *= 2;
-            else spriteScale += 1;
-         } else if (!enlarge && spriteScale > .1) {
-            if (spriteScale > 1) spriteScale -= 1;
-            else spriteScale /= 2;
-         }
-
+         spriteScale = NextScale(spriteScale, enlarge);
          if (old != spriteScale) UpdateEdgesFromScale(old, x - leftEdge, y - topEdge);
          NotifyPropertyChanged(nameof(SpriteScale));
+      }
+
+      /// <summary>The scale one zoom step away: whole numbers from 1 to 10, then halves below 1 (down to 1/16).</summary>
+      public static double NextScale(double scale, bool enlarge) {
+         if (enlarge && scale < 10) {
+            if (scale < 1) return scale * 2;
+            return scale + 1;
+         } else if (!enlarge && scale > .1) {
+            if (scale > 1) return scale - 1;
+            return scale / 2;
+         }
+         return scale;
+      }
+
+      /// <summary>
+      /// One frame of a zoom animation: put the map at the given scale, so that the screen point (x, y) stays over the same spot of the map.
+      /// The position is worked out from where the map was when the zoom started (startLeft, startTop, startScale), not from where it is now,
+      /// so the rounding of one frame doesn't add up over the animation. With whole-pixel start values and the final scale this gives
+      /// the same position that Scale gives.
+      /// Returns the exact position (the edges themselves are whole pixels). A zoom that gets redirected starts from the exact position:
+      /// at a small scale one pixel of rounding is many pixels once the map is zoomed in.
+      /// </summary>
+      public (double left, double top) ZoomFrame(double startLeft, double startTop, double startScale, double x, double y, double scale) {
+         (lastDrawX, lastDrawY) = (-1, -1);
+         var changed = spriteScale != scale;
+         spriteScale = scale;
+         var factor = 1 - scale / startScale;
+         var (dx, dy) = ((x - startLeft) * factor, (y - startTop) * factor);
+         LeftEdge = (int)Math.Round(startLeft) + (int)dx;
+         TopEdge = (int)Math.Round(startTop) + (int)dy;
+         if (changed) NotifyPropertyChanged(nameof(SpriteScale));
+         return (startLeft + dx, startTop + dy);
       }
 
       // check for other warps on this same tile and see what primary/secondary blockset is expected for the new map.
@@ -905,7 +951,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          for (int y = 0; y < 9; y++) {
             for (int x = 0; x < 9; x++) {
                var blockIndex = blockMap[x, y] & 0x3FF;
-               var blockRender = blockIndex < viewModel.BlockRenders.Count ? viewModel.BlockRenders[0] : null;
+               var blockRender = blockIndex < viewModel.BlockRenders.Count ? viewModel.BlockRenders[blockIndex] : null;
                canvas.Draw(blockRender, x * 16, y * 16);
             }
          }
@@ -939,7 +985,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var border = GetBorderThickness(layout);
          var (xx, yy) = ((int)x - border.West, (int)y - border.North);
-         if (xx < 0 || yy < 0 || xx > width || yy > height) return (-1, -1);
+         if (xx < 0 || yy < 0 || xx >= width || yy >= height) return (-1, -1);
          var start = layout.GetAddress("blockmap");
 
          var modelAddress = start + (yy * width + xx) * 2;
@@ -948,6 +994,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private int lastDrawVal, lastDrawX, lastDrawY;
+
+      /// <summary>
+      /// Drawing the same tile twice in a row is skipped (a drag over one tile draws it once).
+      /// A new click is always drawn, also when it is on the tile that was drawn last: after undo, or with another collision.
+      /// </summary>
+      public void StartNewStroke() => (lastDrawX, lastDrawY) = (-1, -1);
 
       /// <summary>
       /// If collisionIndex is not valid, it's ignored.
@@ -975,7 +1027,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var high = data >> 10;
          var low = data & 0x3FF;
          if (blockIndex >= 0 && blockIndex < blockRenders.Count) low = blockIndex;
-         if (collisionIndex >= 0 && collisionIndex < 0x3F) high = collisionIndex;
+         if (collisionIndex >= 0 && collisionIndex <= 0x3F) high = collisionIndex;
          lastDrawVal = model.ReadMultiByteValue(modelAddress, 2);
          (lastDrawX, lastDrawY) = (xx, yy);
          model.WriteMultiByteValue(modelAddress, 2, token, (high << 10) | low);
@@ -1026,9 +1078,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          // use maps in the game to figure out the corners
          foreach (var map in GetAllMaps()) {
+            if (map?.Layout?.PrimaryBlockset == null || map.Layout.SecondaryBlockset == null) continue; // a map whose tilesets cannot be found has nothing to teach
             if (map.Layout.PrimaryBlockset.Start != layout.PrimaryBlockset.Start && map.Layout.SecondaryBlockset.Start != layout.SecondaryBlockset.Start) continue;
 
             var blockMap = map.Layout.BlockMap;
+            if (blockMap.Model == null || blockMap.Start < 0 || blockMap.Width <= 0 || blockMap.Height <= 0) continue;
             for (int y = 0; y < blockMap.Height; y++) {
                bool topEdge = y == 0, bottomEdge = y == blockMap.Height - 1;
                for (int x = 0; x < blockMap.Width; x++) {
@@ -1237,7 +1291,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   var address = start + ((yy + y) * width + xx + x) * 2;
                   var block = blockValues == null ? -1 : blockValues[xx % blockValues.GetLength(0), yy % blockValues.GetLength(1)];
                   if (block == -1 && collisionHighlight >= 0) {
-                     var existingBlock = (model.ReadMultiByteValue(address, 2) & 0x3F);
+                     var existingBlock = (model.ReadMultiByteValue(address, 2) & 0x3FF);
                      block = (existingBlock | (collisionHighlight << 10));
                   }
                   if (block != -1 && model.ReadMultiByteValue(address, 2) != block) {
@@ -1281,25 +1335,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (collisionIndex < 0) collisionIndex = lastDrawVal >> 10;
          var (before, after) = (lastDrawVal, (collisionIndex << 10) | blockIndex);
          lock (pixelWriteLock) {
-            PaintBlock(token, new(xx - 1, yy), size, start, before, after);
-            PaintBlock(token, new(xx + 1, yy), size, start, before, after);
-            PaintBlock(token, new(xx, yy - 1), size, start, before, after);
-            PaintBlock(token, new(xx, yy + 1), size, start, before, after);
+            PaintBlock(token, new[] { new Point(xx - 1, yy), new Point(xx + 1, yy), new Point(xx, yy - 1), new Point(xx, yy + 1) }, size, start, before, after);
          }
          ClearPixelCache();
       }
 
-      private void PaintBlock(ModelDelta token, Point p, Point size, int start, int before, int after) {
+      // (a work list instead of a recursive call per block: a big map made of one block would not fit on the stack)
+      private void PaintBlock(ModelDelta token, Point[] firstPoints, Point size, int start, int before, int after) {
          waveFunctionActive?.Cancel();
          if (before == after) return;
-         if (p.X < 0 || p.Y < 0 || p.X >= size.X || p.Y >= size.Y) return;
-         var address = start + (p.Y * size.X + p.X) * 2;
-         if (model.ReadMultiByteValue(address, 2) != before) return;
-         model.WriteMultiByteValue(address, 2, token, after);
-         PaintBlock(token, p + new Point(-1, 0), size, start, before, after);
-         PaintBlock(token, p + new Point(1, 0), size, start, before, after);
-         PaintBlock(token, p + new Point(0, -1), size, start, before, after);
-         PaintBlock(token, p + new Point(0, 1), size, start, before, after);
+         var pending = new Stack<Point>(firstPoints);
+         while (pending.Count > 0) {
+            var p = pending.Pop();
+            if (p.X < 0 || p.Y < 0 || p.X >= size.X || p.Y >= size.Y) continue;
+            var address = start + (p.Y * size.X + p.X) * 2;
+            if (model.ReadMultiByteValue(address, 2) != before) continue;
+            model.WriteMultiByteValue(address, 2, token, after);
+            pending.Push(p + new Point(-1, 0));
+            pending.Push(p + new Point(1, 0));
+            pending.Push(p + new Point(0, -1));
+            pending.Push(p + new Point(0, 1));
+         }
       }
 
       public void PaintBlockBag(ModelDelta token, List<int> blockIndexes, int collisionIndex, double x, double y) {
@@ -1374,14 +1430,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var border = GetBorderThickness(layout);
          var (xx, yy) = ((int)x - border.West, (int)y - border.North);
-         if (xx < 0 || yy < 0 || xx > width || yy > height) return;
+         if (xx < 0 || yy < 0 || xx >= width || yy >= height) return;
          var start = layout.GetAddress("blockmap");
 
          Point right = new(1, 0), down = new(0, 1);
          var rnd = new Random();
          var toDraw = new Dictionary<Point, WaveCell>();
          var allCells = GetAllMatchingConnectedBlocks(xx, yy).ToList();
+         var originalValue = model.ReadMultiByteValue(start + (yy * width + xx) * 2, 2); // (every cell of allCells has this value)
          void Fill(Point p, int value) => model.WriteMultiByteValue(start + (p.Y * width + p.X) * 2, 2, token, value);
+         // the cells that were blanked but never got a block go back to what they were (unless something else was drawn on them since)
+         void RestoreBlankCells(IEnumerable<Point> cells) {
+            lock (pixelWriteLock) foreach (var p in cells) if (model.ReadMultiByteValue(start + (p.Y * width + p.X) * 2, 2) == 0) Fill(p, originalValue);
+         }
 
          lock (pixelWriteLock) {
             // set all effected spaces to 0 so they won't count toward eachother's wave-function
@@ -1398,7 +1459,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (toDraw.Count < 300) attemptLimit *= 2;
          while (toDraw.Count > 0) {
             var cellsWithRestrictions = toDraw.Values.Where(cell => cell.HasRestrictions);
-            var smallest = cellsWithRestrictions.Select(v => v.Probabilities.Count).Min(); // what is the smallest number of options
+            var smallest = cellsWithRestrictions.Select(v => v.Probabilities.Count).DefaultIfEmpty(0).Min(); // what is the smallest number of options (0 when nothing around these cells says what belongs there, like a map nobody has drawn on)
 
             if (smallest > 0 && (stack.Count == 0 || stack.Sum(item => item.AttemptCount) < attemptLimit) && !cancelToken.IsCancellationRequested) {
                // good case: we have a cell to callapse
@@ -1409,7 +1470,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                var attempt = cell.Collapse(rnd);
                var uncollapsedNeighbors = GetUncollapsedNeighbors(point, toDraw);
                stack.Add(new(new(point, cell), attempt & 0x3FF, uncollapsedNeighbors));
-               lock (pixelWriteLock) Fill(point, cell.Collapse(rnd));
+               lock (pixelWriteLock) Fill(point, attempt); // (the block that is remembered as chosen has to be the block that is drawn)
 
                toDraw.Remove(point);
                foreach (var neighbor in new List<Point> { point - right, point + right, point - down, point + down, point - right - down, point + right - down, point - right + down, point + right + down }) {
@@ -1421,7 +1482,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                //  (1) last collapse caused a contradiction - need to backtrack
                //      or
                //  (2) we've been backtracking too much along this line, we need to back out and try something else.
+               if (cancelToken.IsCancellationRequested) {
+                  // the user went on to something else: keep what was drawn so far, and don't overwrite what they draw now
+                  RestoreBlankCells(toDraw.Keys.ToList());
+                  break;
+               }
                if (stack.Count == 0) {
+                  // nothing has been collapsed: put the area back the way it was, instead of leaving it blank
+                  RestoreBlankCells(toDraw.Keys.ToList());
                   viewPort.RaiseError("Wave Function Collapse failed: no valid options remain.");
                   break;
                }
@@ -1479,8 +1547,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (xx < 0 || yy < 0) return;
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          if (xx >= width || yy >= height) return;
-         ev.X = xx;
-         ev.Y = yy;
+         // Dragging an event over the map moves it a tile at a time. Where it is doesn't change how it looks, so the pictures of the events (each one is looked up in the ROM,
+         // and a sprite with dynamic graphics even reads the map's scripts) are kept, instead of being made again for every tile.
+         movingEvent = true;
+         try {
+            ev.X = xx;
+            ev.Y = yy;
+         } finally {
+            movingEvent = false;
+         }
          SelectedEvent = ev;
          ClearPixelCache();
       }
@@ -1504,7 +1579,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       const int SizeX = 7, SizeY = 7;
       public IPixelViewModel AutoCrop(int warpID) {
-         if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
+         if (allOverworldSprites == null) allOverworldSprites = GetOverworldSpriteRenders(model);
          if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
          var map = GetMapModel();
          if (map == null) return null;
@@ -1800,6 +1875,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          // select which map to add
          var keys = options.Keys.ToList();
+         if (keys.Count == 0) {
+            viewPort.RaiseError("There is no map that this map can be connected to in that direction.");
+            return;
+         }
          var enumViewModel = new EnumViewModel(keys.Select(key => MapIDToText(model, key)).ToArray());
 
          tutorials.Complete(Tutorial.RightClick_CreateConnection);
@@ -2007,7 +2086,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var targetID = 1;
          var takenIDs = events.TryGetSubTable("objects", out var eventTable) ? eventTable.Select(ev => ev.TryGetValue("id", out int id) ? id : 0).ToHashSet() : new HashSet<int>();
          while (targetID < element.Table.ElementCount && takenIDs.Contains(targetID)) targetID++;
-         if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
+         if (allOverworldSprites == null) allOverworldSprites = GetOverworldSpriteRenders(model);
          if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
          var newEvent = new ObjectEventViewModel(this, GotoAddress, element, eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo) {
             X = 0, Y = 0,
@@ -2305,6 +2384,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void FillMapPixelData() {
+         renderedGridOpacity = CollisionGridOpacity;
          var layout = GetLayout();
          if (layout == null) return;
          lock (blockRenders) {
@@ -2385,8 +2465,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          pixelData = canvas.PixelData;
       }
 
+      public const int DefaultCollisionGridOpacity = 40;
+      private static int collisionGridOpacity = DefaultCollisionGridOpacity;
+
+      /// <summary>
+      /// 0 to 100: how strongly the movement-permission grid is drawn over matching blocks.
+      /// Shared by every map and saved with the application settings. The View menu and the slider in the map editor both change this value.
+      /// The default draws the grid as dark as it was before the setting existed.
+      /// </summary>
+      public static int CollisionGridOpacity {
+         get => collisionGridOpacity;
+         set => collisionGridOpacity = value.LimitToRange(0, 100);
+      }
+
+      /// <summary>How dark the movement-permission grid is drawn (0 = invisible, 31 = black).</summary>
+      public static int CollisionHighlightStrength => (CollisionGridOpacity * 31 + 50) / 100;
+
       private void HighlightCollision(short[] pixelData, int x, int y) {
-         new CanvasPixelViewModel(PixelWidth, PixelHeight, pixelData).DarkenRect(x, y, 16, 16, 8);
+         if (CollisionHighlightStrength <= 0) return;
+         new CanvasPixelViewModel(PixelWidth, PixelHeight, pixelData).DarkenRect(x, y, 16, 16, CollisionHighlightStrength.LimitToRange(1, 31));
       }
 
       private void HighlightBlock(short[] pixelData, int x, int y) {
@@ -2492,15 +2589,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private IReadOnlyList<IPixelViewModel> allOverworldSprites;
       public IReadOnlyList<IPixelViewModel> AllOverworldSprites {
          get {
-            if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
+            if (allOverworldSprites == null) allOverworldSprites = GetOverworldSpriteRenders(model);
             return allOverworldSprites;
          }
          init => allOverworldSprites = value;
       }
-      public static IPixelViewModel GetDefaultOW(IDataModel model) {
-         var defaultSpriteAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.PokeIconsTable + "/0/icon/");
+      public static IPixelViewModel GetDefaultOW(IDataModel model) => GetPokemonIconAsSprite(model, 0) ?? new ReadonlyPixelViewModel(16, 16);
+
+      /// <summary>The icon of a species, shaped like an overworld sprite (null if the ROM has no icon for it). Species 0 is the question mark, species 1 the first Pokemon of the Pokedex.</summary>
+      public static IPixelViewModel GetPokemonIconAsSprite(IDataModel model, int species) {
+         var defaultSpriteAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.PokeIconsTable + $"/{species}/icon/");
          var defaultSpriteRun = model.GetNextRun(defaultSpriteAddress) as ISpriteRun;
-         var defaultImage = defaultSpriteRun == null ? new ReadonlyPixelViewModel(16, 16) : model.CurrentCacheScope.GetImage(defaultSpriteRun);
+         if (defaultSpriteRun == null) {
+            // decomp-based ROMs keep the icon inside the species table
+            defaultSpriteAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.PokemonStatsTable + $"/{species}/icon/");
+            defaultSpriteRun = model.GetNextRun(defaultSpriteAddress) as ISpriteRun;
+         }
+         if (defaultSpriteRun == null) return null;
+         var defaultImage = model.CurrentCacheScope.GetImage(defaultSpriteRun);
          if (defaultImage.PixelHeight > 24) {
             var canvas = new CanvasPixelViewModel(defaultImage.PixelWidth, 24) { Transparent = defaultImage.PixelData[0] };
             canvas.Draw(defaultImage, 0, 24 - Math.Min(32, defaultImage.PixelHeight));
@@ -2508,6 +2614,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          return defaultImage;
       }
+      /// <summary>
+      /// Rendering every overworld sprite takes a noticeable amount of time, and a new map view model is created
+      /// for every navigation (warps, back/forward, goto), so share the renders until the data changes.
+      /// </summary>
+      public static IReadOnlyList<IPixelViewModel> GetOverworldSpriteRenders(IDataModel model) {
+         return model.CurrentCacheScope.GetOrAdd("overworld-sprite-renders:" + ObjectEventViewModel.GraphicsVariableDisplay, () => RenderOWs(model));
+      }
+
       public static List<IPixelViewModel> RenderOWs(IDataModel model) {
          var list = new List<IPixelViewModel>();
          var run = model.GetTable(HardcodeTablesModel.OverworldSprites);
@@ -2519,20 +2633,40 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return list;
       }
 
+      /// <summary>
+      /// Building the event view models is expensive (each object event inspects its script, trainer data, etc).
+      /// The event list is requested constantly (every time the mouse moves to a new tile, every click, every redraw),
+      /// so reuse the same event view models until the model data actually changes.
+      /// The model's cache scope is replaced whenever any data in the model is written, so it works as a version stamp.
+      /// </summary>
+      private sealed record EventGroupCache(ModelCacheScope Version, EventGroupModel Events);
+      private EventGroupCache eventGroupCache;
+
+      private void ClearEventGroupCache() => eventGroupCache = null;
+
       public EventGroupModel EventGroup {
          get {
-            if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
-            if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
-            var map = GetMapModel();
-            if (map == null) return null;
-            var eventsTable = map.GetSubTable("events");
-            if (eventsTable == null) return null;
-            var eventElements = eventsTable[0];
-            if (eventElements == null) return null;
-            var events = new EventGroupModel(this, GotoAddress, GotoBankMap, eventElements, eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
-            events.DataMoved += HandleEventDataMoved;
+            var version = model.CurrentCacheScope;
+            var cache = eventGroupCache;
+            if (version != null && cache != null && cache.Version == version) return cache.Events;
+            var events = BuildEventGroup();
+            eventGroupCache = events == null || version == null ? null : new(version, events);
             return events;
          }
+      }
+
+      private EventGroupModel BuildEventGroup() {
+         if (allOverworldSprites == null) allOverworldSprites = GetOverworldSpriteRenders(model);
+         if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
+         var map = GetMapModel();
+         if (map == null) return null;
+         var eventsTable = map.GetSubTable("events");
+         if (eventsTable == null) return null;
+         var eventElements = eventsTable[0];
+         if (eventElements == null) return null;
+         var events = new EventGroupModel(this, GotoAddress, GotoBankMap, eventElements, eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
+         events.DataMoved += HandleEventDataMoved;
+         return events;
       }
 
       private IReadOnlyList<IEventViewModel> GetEvents() {
@@ -2678,8 +2812,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var blockModel2 = layoutModel.SecondaryBlockset.FullBlocksetModel;
             var primaryMax = BlockmapRun.GetMaxUsedBlock(model, blockmapRun.Start, blockmapRun.BlockWidth, blockmapRun.BlockHeight, blockmapRun.PrimaryBlocks);
             var secondaryMax = BlockmapRun.GetMaxUsedBlock(model, blockmapRun.Start, blockmapRun.BlockWidth, blockmapRun.BlockHeight, 1024) - blockmapRun.PrimaryBlocks;
-            primaryMax = Math.Max(primaryMax, mapRepointer.EstimateBlockCount(layout, true).currentCount);
-            secondaryMax = Math.Max(secondaryMax, mapRepointer.EstimateBlockCount(layout, false).currentCount);
+            primaryMax = Math.Max(primaryMax, mapRepointer.EstimateBlockCount(layout, true).currentCount - 1);
+            secondaryMax = Math.Max(secondaryMax, mapRepointer.EstimateBlockCount(layout, false).currentCount - 1);
             BlockmapRun.WriteBlocks(tokenFactory, primaryMax, secondaryMax, blockModel1, blockModel2, blocks);
          }
 
@@ -2700,8 +2834,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var blockModel2 = layoutModel.SecondaryBlockset.FullBlocksetModel;
             var primaryMax = BlockmapRun.GetMaxUsedBlock(model, blockmapRun.Start, blockmapRun.BlockWidth, blockmapRun.BlockHeight, blockmapRun.PrimaryBlocks);
             var secondaryMax = BlockmapRun.GetMaxUsedBlock(model, blockmapRun.Start, blockmapRun.BlockWidth, blockmapRun.BlockHeight, 1024) - blockmapRun.PrimaryBlocks;
-            primaryMax = Math.Max(primaryMax, mapRepointer.EstimateBlockCount(layout, true).currentCount);
-            secondaryMax = Math.Max(secondaryMax, mapRepointer.EstimateBlockCount(layout, false).currentCount);
+            primaryMax = Math.Max(primaryMax, mapRepointer.EstimateBlockCount(layout, true).currentCount - 1);
+            secondaryMax = Math.Max(secondaryMax, mapRepointer.EstimateBlockCount(layout, false).currentCount - 1);
             BlockmapRun.WriteBlockAttributes(tokenFactory, primaryMax, secondaryMax, blockModel1, blockModel2, attributes);
          }
 
@@ -2719,25 +2853,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return MapIDToText(model, group, map);
       }
 
-      public static string MapIDToText(IDataModel model, int group, int map) {
-         var offset = model.IsFRLG() ? 0x58 : 0;
-
-         var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start);
-         var bank = mapBanks[group].GetSubTable("maps");
-         if (bank == null) return $"{group}-{map}";
-         if (bank.Count <= map) return $"{group}-{map}";
-         var mapTable = bank[map]?.GetSubTable("map");
-         if (mapTable == null) return $"{group}-{map}";
-         if (!mapTable[0].HasField("regionSectionID")) return $"{group}-{map}";
-         var key = mapTable[0].GetValue("regionSectionID") - offset;
-
-         var names = model.GetTableModel(HardcodeTablesModel.MapNameTable);
-         var name = names == null ? string.Empty : names[key].GetStringValue("name");
-         name = SanitizeName(name);
-         if (name.Length == 0) name = "(unnamed)";
-
-         return $"{name}.{group}-{map}";
-      }
+      public static string MapIDToText(IDataModel model, int group, int map) => new MapNameLookup(model).Text(group, map);
 
       #endregion
 
@@ -2832,7 +2948,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public MapDirection OppositeDirection => Direction.Reverse();
    }
 
-   public record BerryInfo(IDictionary<int, BerrySpot> BerryMap, ObservableCollection<string> BerryOptions);
+   /// <param name="IdOffset">What to subtract from a setberrytree berry id to index BerryOptions (see Flags.BerryIdOffset).</param>
+   public record BerryInfo(IDictionary<int, BerrySpot> BerryMap, ObservableCollection<string> BerryOptions, int IdOffset = 1);
 
    public class ConnectionModel {
       private readonly ModelArrayElement connection;
@@ -2979,5 +3096,45 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       None = 0,
       Shrink = 1,
       Enlarge = 2,
+   }
+
+   /// <summary>
+   /// Works out the display names of maps ("Littleroot Town.0-9").
+   /// Everything that is the same for every map (the bank table, the name table, the name of a region) is looked up once,
+   /// so listing all of a ROM's maps (hundreds of them) doesn't do it all again for each one.
+   /// </summary>
+   public sealed class MapNameLookup {
+      private readonly int offset;
+      private readonly ModelTable mapBanks, names;
+      private readonly Dictionary<int, ModelTable> banks = new();
+      private readonly Dictionary<int, string> regionNames = new();
+
+      public MapNameLookup(IDataModel model) {
+         offset = model.IsFRLG() ? 0x58 : 0;
+         mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start);
+         names = model.GetTableModel(HardcodeTablesModel.MapNameTable);
+      }
+
+      public string Text(int group, int map) {
+         if (!banks.TryGetValue(group, out var bank)) {
+            bank = mapBanks[group].GetSubTable("maps");
+            banks[group] = bank;
+         }
+         if (bank == null) return $"{group}-{map}";
+         if (bank.Count <= map) return $"{group}-{map}";
+         var mapTable = bank[map]?.GetSubTable("map");
+         if (mapTable == null) return $"{group}-{map}";
+         if (!mapTable[0].HasField("regionSectionID")) return $"{group}-{map}";
+         var key = mapTable[0].GetValue("regionSectionID") - offset;
+
+         if (!regionNames.TryGetValue(key, out var name)) {
+            name = names == null ? string.Empty : names[key].GetStringValue("name");
+            name = BlockMapViewModel.SanitizeName(name);
+            if (name.Length == 0) name = "(unnamed)";
+            regionNames[key] = name;
+         }
+
+         return $"{name}.{group}-{map}";
+      }
    }
 }

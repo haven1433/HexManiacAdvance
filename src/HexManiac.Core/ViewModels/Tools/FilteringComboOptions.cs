@@ -38,6 +38,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             if (interactionType != InteractionType.None) return;
             if (selectedIndex < 0 || selectedIndex >= FilteredOptions.Count) return;
+            if (value < 0 || value >= FilteredOptions.Count) return; // a cleared (-1) or stale selection from the dropdown is ignored instead of throwing
             interactionType = InteractionType.DropDown;
             selectedIndex = value;
             dropDownIsOpen = false;
@@ -77,6 +78,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (interactionType != InteractionType.None) return;
          interactionType = InteractionType.Update;
          bool notifyOptions = false, notifyDropOpen = false;
+         if (options is not IReadOnlyCollection<ComboOption>) options = options.ToList(); // the options are enumerated up to three times below: don't recompute a lazy sequence each time
 
          // warning: this might be a performance sink. It might be faster to replace elements, rather than replacing the full collection.
          if (AllOptions == null || !AllOptions.Select(option => option.Text).SequenceEqual(options.Select(option => option.Text))) {

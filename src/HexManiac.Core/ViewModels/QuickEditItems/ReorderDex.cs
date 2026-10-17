@@ -25,11 +25,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var pokenames = GetTable(model, HardcodeTablesModel.PokemonNameTable);
          var frontSprites = GetTable(model, HardcodeTablesModel.FrontSpritesTable);
          var pokepalettes = GetTable(model, HardcodeTablesModel.PokePalettesTable);
-         return dexOrder != null && pokenames != null && dexInfo != null && frontSprites != null && pokepalettes != null;
+         if (dexOrder != null && pokenames != null && dexInfo != null && frontSprites != null && pokepalettes != null) return true;
+         // pokeemerald-expansion (CUBE): the order lives in the species table and the hoenn->national table.
+         // Stays enabled when that layout is recognized, so that Run can explain anything missing instead of the item just being grayed out.
+         return ExpansionDex.IsExpansionLayout(model);
       }
 
       public Task<ErrorInfo> Run(IViewPort viewPortInterface) {
          var viewPort = (ViewPort)viewPortInterface;
+         var model = viewPort.Model;
+         if (GetTable(model, dexTableName) == null && ExpansionDex.IsExpansionLayout(model)) {
+            var reason = ExpansionDex.WhyUnavailable(model);
+            if (reason != null) return Task.FromResult(new ErrorInfo(reason));
+         }
          viewPort.OpenDexReorderTab(dexTableName);
          return Task.FromResult(ErrorInfo.NoError);
       }

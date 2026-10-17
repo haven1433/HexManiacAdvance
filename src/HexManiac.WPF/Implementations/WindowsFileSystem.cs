@@ -65,7 +65,9 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             if (Clipboard.ContainsImage()) {
                try {
                   var bitmapSource = Clipboard.GetImage();
-                  return DecodeImage(bitmapSource);
+                  if (bitmapSource == null) return (default, default);
+                  var decoded = DecodeImage(bitmapSource);
+                  return decoded.image == null ? (default, default) : decoded;
                } catch (COMException) {
                   // something else was using the clipboard... couldn't copy
                   var window = (MainWindow)Application.Current.MainWindow;
@@ -88,6 +90,18 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          var result = dialog.ShowDialog();
          if (result != true) return null;
          return LoadFile(dialog.FileName);
+      }
+
+      public IReadOnlyList<LoadedFile> OpenFiles(string extensionDescription = null, params string[] extensionOptions) {
+         var dialog = new OpenFileDialog { Filter = CreateFilterFromOptions(extensionDescription, extensionOptions), Multiselect = true };
+         var result = dialog.ShowDialog();
+         var files = new List<LoadedFile>();
+         if (result != true) return files;
+         foreach (var fileName in dialog.FileNames) {
+            var file = LoadFile(fileName);
+            if (file != null) files.Add(file);
+         }
+         return files;
       }
 
       public string OpenFolder() {
@@ -560,8 +574,14 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                }
             }
          } else {
-            MessageBox.Show($"Current version does not support converting PixelFormats.{format}");
-            return (null, frame.PixelWidth);
+            // the clipboard hands out Bgr32, Pbgra32, Bgr555, Gray8 and others: let WPF convert them all to something we read above
+            try {
+               var converted = new FormatConvertedBitmap(frame, PixelFormats.Bgra32, null, 0);
+               return DecodeImage(converted);
+            } catch (Exception e) when (e is NotSupportedException || e is ArgumentException || e is InvalidOperationException) {
+               MessageBox.Show($"Current version does not support converting PixelFormats.{format}");
+               return (null, frame.PixelWidth);
+            }
          }
 
          return (data, frame.PixelWidth);
@@ -630,11 +650,9 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          return (short)((r << 10) | (g << 5) | (b << 0));
       }
 
-      private static string CreateFilterFromOptions(string description, params string[] extensionOptions) {
-         if (description == null) return string.Empty;
-         var extensions = string.Join(",", extensionOptions.Select(option => $"*.{option}"));
-         return $"{description}|{extensions}|All Files|*.*";
-      }
+      // the dialogs separate the patterns of one filter with ';' (not ','): see FileDialogFilter
+      private static string CreateFilterFromOptions(string description, params string[] extensionOptions)
+         => FileDialogFilter.Create(description, extensionOptions);
 
       #region StackOverflow: how to open a file's properties dialog (https://stackoverflow.com/questions/1936682/how-do-i-display-a-files-properties-dialog-from-c)
 

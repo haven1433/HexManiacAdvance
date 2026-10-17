@@ -30,7 +30,7 @@
       <KeyBinding Key="Delete" Command="{Binding DeleteColor}"/>
    </UserControl.InputBindings>
    <DockPanel>
-      <StackPanel Margin="10,0,0,0" DockPanel.Dock="Left" VerticalAlignment="Center">
+      <StackPanel x:Name="ToolButtons" Margin="10,0,0,0" DockPanel.Dock="Left" VerticalAlignment="Center">
          <Decorator>
             <Button Command="{Binding CreateGradient}">
                <Path Data="{hsv:Icon Gradient}" Fill="{DynamicResource Primary}" Stretch="Uniform" Width="20" Height="20"/>

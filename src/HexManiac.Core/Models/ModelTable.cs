@@ -358,19 +358,25 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (seg is ArrayRunPointerSegment pointerSeg) {
             var destination = model.ReadPointer(valueAddress);
             if (destination < 0 || destination >= model.Count) return null;
-            var error = ArrayRun.TryParse(model, fieldName, pointerSeg.InnerFormat, destination, SortedSpan.One(valueAddress), table.ElementContent, out var childTable);
-            if (error.HasError) {
-               childTable = model.GetNextRun(destination) as ITableRun;
-            }
-            if (childTable == null) {
-               // one last try, with validation turned off
-               error = ArrayRun.TryParse(model, fieldName, pointerSeg.InnerFormat, destination, SortedSpan.One(valueAddress), table.ElementContent, false, out childTable);
-               if (error.HasError) return null;
-            }
+            var childTable = model.CurrentCacheScope.GetOrAddSubTable(destination, valueAddress, fieldName, pointerSeg.InnerFormat, () => ParseSubTable(fieldName, pointerSeg, destination, valueAddress));
+            if (childTable == null) return null;
             return new ModelTable(model, destination, tokenFactory, childTable);
          } else {
             return null; // format didn't match expected, give up
          }
+      }
+
+      private ITableRun ParseSubTable(string fieldName, ArrayRunPointerSegment pointerSeg, int destination, int valueAddress) {
+         var error = ArrayRun.TryParse(model, fieldName, pointerSeg.InnerFormat, destination, SortedSpan.One(valueAddress), table.ElementContent, out var childTable);
+         if (error.HasError) {
+            childTable = model.GetNextRun(destination) as ITableRun;
+         }
+         if (childTable == null) {
+            // one last try, with validation turned off
+            error = ArrayRun.TryParse(model, fieldName, pointerSeg.InnerFormat, destination, SortedSpan.One(valueAddress), table.ElementContent, false, out childTable);
+            if (error.HasError) return null;
+         }
+         return childTable;
       }
 
       /// <summary>

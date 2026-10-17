@@ -26,6 +26,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
    public class Selection : ViewModelCore {
       private const int DefaultPreferredWidth = 0x10;
+      /// <summary>
+      /// Widest row the data view will align to. Tables from decomp-based ROMs (pokeemerald-expansion) have elements larger than 256 bytes.
+      /// </summary>
+      public const int MaxDataWidth = 0x400;
 
       private readonly IDataModel model;
       private readonly ChangeHistory<ModelDelta> history;
@@ -499,7 +503,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private int CoerceWidth(int width) {
-         var desiredWidth = preferredWidth.LimitToRange(1, 0x100);
+         var desiredWidth = preferredWidth.LimitToRange(1, MaxDataWidth);
          if (preferredWidth == -1 || preferredWidth == width) return width;
          if (!allowMultipleElementsPerLine) return desiredWidth;
 

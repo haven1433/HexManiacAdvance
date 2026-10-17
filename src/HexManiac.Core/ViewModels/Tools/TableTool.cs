@@ -22,18 +22,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public string Name => "Table";
 
-      public IReadOnlyList<string> TableSections {
-         get {
-            var sections = UnmatchedArrays.Select(array => {
-               var parts = model.GetAnchorFromAddress(-1, array.Start).Split('.');
-               if (parts.Length > 2) return string.Join(".", parts.Take(2));
-               return parts[0];
-            }).Distinct().ToList();
-            sections.Sort();
-            return sections;
-         }
-      }
-
+      public IReadOnlyList<string> TableSections => GetTableNames().Sections;
       private int selectedTableSection;
       public int SelectedTableSection {
          get => selectedTableSection;
@@ -45,15 +34,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public IReadOnlyList<string> TableList {
          get {
-            if (selectedTableSection == -1 || selectedTableSection >= TableSections.Count) return new string[0];
-            var selectedSection = TableSections[selectedTableSection];
-            var tableList = UnmatchedArrays
-               .Select(array => model.GetAnchorFromAddress(-1, array.Start))
-               .Where(name => name.StartsWith(selectedSection + "."))
-               .Select(name => name.Substring(selectedSection.Length + 1))
-               .ToList();
-            tableList.Sort();
-            return tableList;
+            var names = GetTableNames();
+            if (selectedTableSection == -1 || selectedTableSection >= names.Sections.Count) return new string[0];
+            return names.TablesIn(names.Sections[selectedTableSection]);
          }
       }
 
@@ -92,6 +75,45 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
             return list;
          }
+      }
+
+      /// <summary>
+      /// The names behind the two dropdowns at the top of the tool (section, table).
+      /// Working them out means looking at every table in the ROM, and every refresh asks for them several times,
+      /// so they are remembered until the data changes. That also means the dropdowns get the same list back
+      /// and don't have to throw away and rebuild their items each time the cursor moves.
+      /// </summary>
+      private sealed class TableNames {
+         public IReadOnlyList<string> Sections { get; }
+         private readonly List<string> names;
+         private readonly Dictionary<string, IReadOnlyList<string>> tablesInSection = new();
+
+         public TableNames(List<string> names) {
+            this.names = names;
+            var sections = names.Select(name => {
+               var parts = name.Split('.');
+               if (parts.Length > 2) return string.Join(".", parts.Take(2));
+               return parts[0];
+            }).Distinct().ToList();
+            sections.Sort();
+            Sections = sections;
+         }
+
+         public IReadOnlyList<string> TablesIn(string section) {
+            lock (tablesInSection) {
+               if (tablesInSection.TryGetValue(section, out var existing)) return existing;
+               var tableList = names
+                  .Where(name => name.StartsWith(section + "."))
+                  .Select(name => name.Substring(section.Length + 1))
+                  .ToList();
+               tableList.Sort();
+               return tablesInSection[section] = tableList;
+            }
+         }
+      }
+
+      private TableNames GetTableNames() {
+         return model.CurrentCacheScope.GetOrAdd("table-tool-names", () => new TableNames(UnmatchedArrays.Select(array => model.GetAnchorFromAddress(-1, array.Start)).ToList()));
       }
 
       private string currentElementName;
@@ -292,7 +314,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          CurrentElementName = "The Table tool only works if your cursor is on table data.";
       }
 
+      public const string TrainerSlidesTable = "data.trainers.slides";
+
       public IList<IArrayElementViewModel> Children => Groups.SelectMany(group => group.Members).ToList();
+
+      private bool widenedForSecondaryColumn;
+
+      /// <summary>
+      /// The overworld sprites get one more column to the right of their fields: the field effects and the reflection palettes (see <see cref="OverworldSecondaryElementViewModel"/>).
+      /// The tool panel grows to make room for it the first time, if it is narrower than three columns need; the panel can be made narrower again by hand, and then it stays that way.
+      /// </summary>
+      private void AddOverworldSecondaryColumn() {
+         while (Groups.Count <= childIndexGroup) AddGroup();
+         AddChild(new OverworldSecondaryElementViewModel(viewPort));
+         Groups[childIndexGroup].Close();
+         childIndexGroup++;
+         if (!widenedForSecondaryColumn) {
+            widenedForSecondaryColumn = true;
+            viewPort.EnsureToolPanelWidth(OverworldSecondaryElementViewModel.WantedToolPanelWidth);
+         }
+      }
+
+      /// <summary>Switches the secondary overworld panel next to the overworld sprites to another section.</summary>
+      public void ShowSecondarySection(OverworldSecondarySection section) {
+         foreach (var panel in Children.OfType<OverworldSecondaryElementViewModel>()) panel.Show(section);
+      }
 
       private void AddGroup() {
          Groups.Add(new TableGroupViewModel(viewPort) {
@@ -332,7 +378,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             UsageChildren[usageChildInsertionIndex] = child;
          }
          usageChildInsertionIndex++;
-         NotifyPropertyChanged(nameof(HasUsageOptions));
       }
 
       private bool dataForCurrentRunChangeUpdate;
@@ -341,6 +386,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          foreach (var group in Groups) {
             foreach (var member in group.Members) {
                if (member is ComboBoxArrayElementViewModel box && box.FilteringComboOptions.DropDownIsOpen) return;
+               if (member is TableRowsStreamElementViewModel rows && rows.IsDropDownOpen) return;
             }
          }
 
@@ -348,7 +394,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          dataChangedTimer.DelayCall(TimeSpan.FromSeconds(.6), DataForCurrentRunChangedCore);
       }
 
+      /// <summary>
+      /// What the content of the tool was built from. Building the content for a table element is the expensive part of selecting a tab (sprites, palettes, long lists of choices),
+      /// so when a tab is selected again and nothing it was built from has changed, the content can stay as it is: see <see cref="IsUpToDate"/>.
+      /// </summary>
+      private (long edits, int address, bool spartanMode, string fieldFilter, bool useMultiFieldFeature)? builtFrom;
+      private (long edits, int address, bool spartanMode, string fieldFilter, bool useMultiFieldFeature) CurrentSignature => (ModelEditStamp.Current, address, viewPort.SpartanMode, fieldFilter, useMultiFieldFeature);
+
+      /// <summary>
+      /// True if the content is exactly what <see cref="DataForCurrentRunChanged"/> would build right now:
+      /// the last build finished, and since then no model has been edited and the cursor, the filter and the modes are the same.
+      /// A model that is still loading is never up to date, because it finds its tables in the background without going through the edit counter.
+      /// </summary>
+      public bool IsUpToDate => builtFrom.HasValue && model.InitializationWorkload.IsCompleted && builtFrom.Value == CurrentSignature;
+
+      /// <summary>The same as <see cref="DataForCurrentRunChanged"/>, but does nothing if the content is already <see cref="IsUpToDate"/>.</summary>
+      public void DataForCurrentRunChangedIfNeeded() {
+         if (!IsUpToDate) DataForCurrentRunChanged();
+      }
+
       private void DataForCurrentRunChangedCore() {
+         builtFrom = null; // until this build is over, the content is not trustworthy
+         DataForCurrentRunChangedBuild();
+         if (model.InitializationWorkload.IsCompleted) builtFrom = CurrentSignature;
+      }
+
+      private void DataForCurrentRunChangedBuild() {
          foreach (var group in Groups) {
             foreach (var member in group.Members) ClearHandlers(member);
          }
@@ -365,11 +436,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             using (Scope(ref dataForCurrentRunChangeUpdate, true, val => dataForCurrentRunChangeUpdate = val)) {
                NotifyPropertyChanged(nameof(TableSections));
             }
+            NotifyPropertyChanged(nameof(HasUsageOptions));
             return;
          }
 
          dataForCurrentRunChangeUpdate = true;
          var basename = model.GetAnchorFromAddress(-1, array.Start);
+         var hasAnchorName = !string.IsNullOrEmpty(basename);
          var anchorParts = basename.Split('.');
          NotifyPropertyChanged(nameof(TableSections));
          if (anchorParts.Length == 1) {
@@ -394,10 +467,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             UpdateCurrentElementSelector(array, index);
 
             TableGroupViewModel streamGroup = null;
+            var showsOverworldSprites = false;
             var elementOffset = array.Start + array.ElementLength * index;
             if (array is not ArrayRun arrayRun) {
                if (Groups.Count == 2) {
                   streamGroup = Groups[1];
+                  streamGroup.GroupName = TableGroupViewModel.DefaultName; // don't keep the title this group had for the previous table (a stray "Icon" bar above a wild encounter list)
                   streamGroup.Open();
                } else {
                   streamGroup = new TableGroupViewModel(viewPort) {
@@ -436,12 +511,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   while (Groups.Count <= childIndexGroup) AddGroup();
                   var helperGroup = streamGroup ?? Groups[childIndexGroup];
                   foreach (var table in group.Tables) {
-                     var (tableName, partition) = (table, 0);
-                     var parts = table.Split(ArrayRunSplitterSegment.Separator);
-                     if (parts.Length == 2) {
-                        tableName = parts[0];
-                        if (!int.TryParse(parts[1], out partition)) partition = 0;
-                     }
+                     var member = TableGroupMember.Parse(table);
+                     var (tableName, partition) = (member.TableName, member.Partition);
 
                      var currentArrayStart = model.GetAddressFromAnchor(new(), -1, tableName);
                      if (model.GetNextRun(currentArrayStart) is not ArrayRun currentArray) continue;
@@ -450,7 +521,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                         elementOffset = currentArray.Start + currentArray.ElementLength * currentIndex;
                         var header = new SplitterArrayElementViewModel(viewPort, tableName, elementOffset);
                         AddChild(header);
-                        Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, currentArray, currentIndex, header, helperGroup, partition);
+                        Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, currentArray, currentIndex, header, helperGroup, partition, member.Fields);
+                        // a picture is worth a thousand clicks: offer the gallery of every overworld sprite
+                        if (tableName == HardcodeTablesModel.OverworldSprites) {
+                           AddChild(new SpriteGalleryElementViewModel(viewPort, currentIndex));
+                           showsOverworldSprites = true;
+                        }
+                        // the field effects (grass, ripples, dust, ...): their frames with the palette the game uses, and the palette one click away
+                        if (FieldEffects.IsFieldEffectTable(tableName)) AddChild(new FieldEffectElementViewModel(viewPort, currentIndex));
+                        // expansion trainers: the battle messages (trainer slides) live in their own table, one click away
+                        if (tableName == HardcodeTablesModel.TrainerTableName && (member.HasFieldList ? member.ShowsField("name") : partition == 2) && model.GetTable(TrainerSlidesTable) is ITableRun slides && currentIndex < slides.ElementCount) {
+                           var slideIndex = currentIndex;
+                           AddChild(new ButtonArrayElementViewModel("Battle messages…", "Edit what this trainer says during battle (first turn, last Pokémon, low HP, ...)", () => viewPort.Goto.Execute($"{TrainerSlidesTable}/{slideIndex}")));
+                        }
                      }
                   }
                   while (Groups.Count <= childIndexGroup) AddGroup();
@@ -460,16 +543,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
 
             if (Groups.Count == 1) {
+               streamGroup.Close(); // before the view hears about the group, so it gets all of the group at once
                Groups.Add(streamGroup);
-               streamGroup.Close();
                childIndexGroup++;
             } else if (streamGroup != null) {
                while (Groups.Count <= childIndexGroup) AddGroup();
-               Groups[childIndexGroup] = streamGroup;
                streamGroup.Close();
+               // putting the very same group back would still tell the view that the group was replaced, and it would rebuild everything in it
+               if (!ReferenceEquals(Groups[childIndexGroup], streamGroup)) Groups[childIndexGroup] = streamGroup;
                childIndexGroup++;
             }
-            AddChildrenFromStreams(array, basename, index);
+            if (showsOverworldSprites && OverworldSecondaryElementViewModel.IsSupported(model)) AddOverworldSecondaryColumn();
+            if (array is not ArrayRun && streamGroup != null) streamGroup.GroupName = NameForStreamGroup(streamGroup);
+            if (hasAnchorName || basename != array.Start.ToString("X6")) AddChildrenFromStreams(array, basename, index); // no stream, table, script or map can use a table that has no name (like an encounter list): skip the search through the whole ROM
          }
 
          while (Groups.Count > childIndexGroup) Groups.RemoveAt(Groups.Count - 1);
@@ -496,8 +582,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (child is SplitterArrayElementViewModel splitter) splitter.UpdateCollapsed(fieldFilter);
          }
 
+         // an animation preview shows what the sprites next to it show: now that they are done, it can catch up, so a new pokemon's animation
+         // replaces the old one in the same step as the new sprites (without this, it would catch up after its debounce, a visible moment later)
+         foreach (var child in Children) {
+            if (child is PokemonAnimationPreviewViewModel preview) preview.UpdateNow();
+         }
+
          foreach (var group in Groups) Debug.Assert(!group.IsOpen, "You forgot to close a group! " + group.GroupName);
+         NotifyPropertyChanged(nameof(HasUsageOptions)); // once, when all the usage buttons are in place (not after each one)
          NotifyPropertyChanged(nameof(Children));
+      }
+
+      /// <summary>
+      /// An embedded table (one found through a pointer, like a wild encounter list) is titled with its address on the left,
+      /// so the group of linked data on the right gets a title as well: the name of the field it came from, if there is just one.
+      /// </summary>
+      private static string NameForStreamGroup(TableGroupViewModel group) {
+         var streams = group.Members.OfType<StreamElementViewModel>().Where(stream => stream.Parent != null).ToList();
+         return streams.Count == 1 ? streams[0].ParentName : TableGroupViewModel.DefaultName;
       }
 
       private void AddHandlers(IArrayElementViewModel member) {
@@ -554,16 +656,50 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(address + array.ElementLength - 1);
       }
 
+      // There are tens of thousands of streams and thousands of tables in a ROM, and which of them refer to a table
+      // only changes when the data does: look once per table instead of on every refresh.
+      // Which streams and tables use a table depends on the formats of the whole ROM (model.Streams alone goes through every run: 4 ms in CUBE),
+      // and it can only change when a run (a format) of a model changed: typing a number into the table changes none. Keep the answer until then.
+      private long usingCacheStamp = -1;
+      private readonly Dictionary<string, IReadOnlyList<IStreamRun>> streamsUsingCache = new();
+      private readonly Dictionary<string, IReadOnlyList<ArrayRun>> arraysUsingCache = new();
+
+      private bool UsingCacheIsValid() {
+         var stamp = ModelEditStamp.RunsCurrent;
+         if (!model.InitializationWorkload.IsCompleted) return false; // a model that is still loading finds its tables without going through the edit counter
+         if (usingCacheStamp != stamp) {
+            streamsUsingCache.Clear();
+            arraysUsingCache.Clear();
+            usingCacheStamp = stamp;
+         }
+         return true;
+      }
+
+      private IReadOnlyList<IStreamRun> StreamsUsing(string basename) {
+         var useCache = UsingCacheIsValid();
+         if (useCache && streamsUsingCache.TryGetValue(basename, out var cached)) return cached;
+         var result = model.CurrentCacheScope.GetOrAdd<IReadOnlyList<IStreamRun>>("table-tool-streams-using:" + basename, () => model.Streams.Where(stream => stream.DependsOn(basename)).ToList());
+         if (useCache) streamsUsingCache[basename] = result;
+         return result;
+      }
+
+      private IReadOnlyList<ArrayRun> ArraysUsing(string basename) {
+         var useCache = UsingCacheIsValid();
+         if (useCache && arraysUsingCache.TryGetValue(basename, out var cached)) return cached;
+         var result = model.CurrentCacheScope.GetOrAdd<IReadOnlyList<ArrayRun>>("table-tool-arrays-using:" + basename, () => model.Arrays.Where(table => table.DependsOn(basename)).ToList());
+         if (useCache) arraysUsingCache[basename] = result;
+         return result;
+      }
+
       private void AddChildrenFromStreams(ITableRun array, string basename, int index) {
          var plmResults = new List<(int, int)>();
          var eggResults = new List<(int, int)>();
          var trainerResults = new List<int>();
          var streamResults = new List<(int, int)>();
-         foreach (var child in model.Streams) {
-            if (!child.DependsOn(basename)) continue;
+         foreach (var child in StreamsUsing(basename)) {
             if (child is PLMRun plmRun) plmResults.AddRange(plmRun.Search(index));
             if (child is EggMoveRun eggRun) eggResults.AddRange(eggRun.Search(basename, index));
-            if (child is TrainerPokemonTeamRun trainerRun) trainerResults.AddRange(trainerRun.Search(basename, index));
+            if (child is ITrainerTeamRun trainerRun) trainerResults.AddRange(trainerRun.Search(basename, index));
             if (child is TableStreamRun streamRun) streamResults.AddRange(streamRun.Search(basename, index));
          }
          var parentOffset = array is ArrayRun arrayRun ? arrayRun.ParentOffset.BeginningMargin : 0;
@@ -599,8 +735,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }));
          }
 
-         foreach (var table in model.Arrays) {
-            if (!table.DependsOn(basename)) continue;
+         foreach (var table in ArraysUsing(basename)) {
             var results = new List<(int, int)>(table.Search(model, basename, index));
             if (results.Count == 0) continue;
             var name = model.GetAnchorFromAddress(-1, table.Start);
@@ -635,7 +770,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          // maps
-         if (viewPort.MapEditor != null && viewPort.MapEditor.IsValidState && !viewPort.SpartanMode) {
+         // Only tables that can be referenced from map events can have map uses.
+         // Skip the (expensive, delayed) map search entirely for every other table.
+         var canHaveMapUses =
+            basename == HardcodeTablesModel.OverworldSprites ||
+            basename == HardcodeTablesModel.ItemsTableName ||
+            basename == HardcodeTablesModel.MapNameTable ||
+            viewPort.Tools.CodeTool.ScriptParser.DependsOn(basename).Any();
+         if (canHaveMapUses && viewPort.MapEditor != null && viewPort.MapEditor.IsValidState && !viewPort.SpartanMode) {
             var mapOptions = new MapOptionsArrayElementViewModel(dispatcher, loadMapUsageTimer, viewPort.MapEditor, basename, index);
             mapOptions.MapPreviews.CollectionChanged += (sender, e) => NotifyPropertyChanged(nameof(HasUsageOptions));
             AddUsageChild(mapOptions); // always add, but invisible when empty

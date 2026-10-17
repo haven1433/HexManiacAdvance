@@ -480,6 +480,86 @@ pokemart <auto>
       }
 
       [Fact]
+      public void Decoration_Auto_Compiles() {
+         // decorationmart <auto> used to throw a NotImplementedException (a copy-paste slip handled Mart twice and Decor never)
+         EventScript = @"
+decorationmart <auto>
+{
+1
+2
+}
+  end
+";
+
+         Assert.Equal(1, Model.ReadMultiByteValue(6, 2));
+         Assert.Equal(2, Model.ReadMultiByteValue(8, 2));
+         Assert.Equal(0, Model.ReadMultiByteValue(10, 2));
+         Assert.Equal(6, Model.ReadPointer(1));
+      }
+
+      [Fact]
+      public void SpriteTemplate_Auto_WritesTheFieldsThatWereTyped() {
+         Tool.Mode = CodeMode.AnimationScript;
+         Tool.Contents[0].Content = @"
+createsprite <auto> 2
+{
+tileTag     : 10184
+paletteTag  : 10273
+oam         : <000100>
+anims       : <null>
+images      : <null>
+affineAnims : <null>
+callback    : <000200>
+}
+  end
+".Replace("\r\n", "\n").Replace("\n", Environment.NewLine);
+
+         // createsprite is 1 command byte, a 4 byte template pointer and 1 byte of priority; then 'end'
+         var template = Model.ReadPointer(1);
+         Assert.True(template > 5, "the template is written after the script");
+         Assert.Equal(10184, Model.ReadMultiByteValue(template + 0, 2));
+         Assert.Equal(10273, Model.ReadMultiByteValue(template + 2, 2));
+         Assert.Equal(0x100, Model.ReadPointer(template + 4));
+         Assert.Equal(0x200, Model.ReadPointer(template + 20));
+      }
+
+      [Fact]
+      public void ScriptEndsWithPaddingNopsAfterEnd_Compile_NoExtraEndIsAdded() {
+         // the nops after an end command keep an inline stream aligned: another end command shifted the stream by a byte
+         EventScript = "end;nop;nop;nop";
+
+         Assert.Equal(0x02, Model[0]);
+         Assert.Equal(0x00, Model[1]);
+         Assert.Equal(0x00, Model[2]);
+         Assert.Equal(0x00, Model[3]);
+         Assert.Equal(0xFF, Model[4]);
+      }
+
+      [Fact]
+      public void ScriptWithRawByte_Compile_RawByteIsWritten() {
+         // decompiling bytes that are not a command writes ".raw XX": the compiler has to read that back
+         EventScript = "nop;.raw FE;end";
+
+         Assert.Equal(0x00, Model[0]);
+         Assert.Equal(0xFE, Model[1]);
+         Assert.Equal(0x02, Model[2]);
+         Assert.Equal(0xFF, Model[3]);
+      }
+
+      [Fact]
+      public void ScriptWithRawByte_LabelAfterIt_GotoUsesTheRightAddress() {
+         // goto is 5 bytes, then 2 raw bytes: the label is at 7
+         EventScript = "goto <routine>;.raw FE;.raw FE;routine:;end";
+
+         Assert.Equal(0x05, Model[0]);
+         Assert.Equal(0x07, Model[1]);
+         Assert.Equal(0x08, Model[4]);
+         Assert.Equal(0xFE, Model[5]);
+         Assert.Equal(0xFE, Model[6]);
+         Assert.Equal(0x02, Model[7]);
+      }
+
+      [Fact]
       public void Mart_Decompile_Auto() {
          ViewPort.Edit($"^some.script`xse` 86 <006> 02 01 00 02 00 03 00 00 00 @006 ^[item:{HardcodeTablesModel.ItemsTableName}]!0000");
 
@@ -833,6 +913,34 @@ label2:;goto <000050>;end";
          Assert.Equal("Defeat", defeat.Trim('"'));
       }
 
+      [Fact]
+      public void TrainerScript_AutoThenFixedTextPointer_BothStreamsCompile() {
+         // one command with two stream pointers, the first <auto> and the second a plain address:
+         // the compiler looked up the deferred stream with an index that assumed both were <auto> (ArgumentOutOfRangeException)
+         SetFullModel(0xFF);
+
+         EventScript = "trainerbattle 0 0 0 <auto> <100>;{;Start;};{;Win;};end";
+
+         var start = Model.TextConverter.Convert(Model, Model.ReadPointer(6), 10);
+         Assert.Equal("Start", start.Trim('"'));
+         Assert.Equal("\"Win\"", Model.TextConverter.Convert(Model, 0x100, 0x20));
+      }
+
+      [Theory]
+      [InlineData("msgbox.default <100>\r\n{")]
+      [InlineData("msgbox.default <100>\r\n{\r")]
+      [InlineData("msgbox.default <100>\r\n{x")]
+      [InlineData("x{")]
+      [InlineData("nop\r\n  {")]
+      public void InsertMissingClosers_OpenBraceAtTheEndOfTheText_CaretElsewhere_DoesNotThrow(string script) {
+         // a script that ends right after "{" (a truncated paste, or a caret at the start) used to insert the "}" past the end of the text
+         var result = script;
+
+         ScriptParser.InsertMissingClosers(ref result, 0);
+
+         Assert.Contains("}", result);
+      }
+
       [Theory]
       [InlineData("<", 0)]
       [InlineData("=", 1)]
@@ -890,6 +998,42 @@ label2:;goto <000050>;end";
          EventScript = "if.compare.goto 0x4000 = 7 <720010>";
          var expected = "21 00 40 07 00 06 01 10 00 72 08 02".ToByteArray();
          Assert.All(expected.Length.Range(), i => Assert.Equal(expected[i], Model[i]));
+      }
+
+      [Fact]
+      public void ScriptWithAPointerBackToItsStart_GrowsUntilItMoves_NoRunListsTheOldCopyOfAPointerAsItsSource() {
+         WriteEventScript(0x10, "end");
+         ViewPort.Goto.Execute(0x10);
+         EventScript = "section0:;nop;goto <section1>;section1:;nop;goto <section0>"; // the second section points back to the start of the script
+         ViewPort.Edit("@04 <010> "); // something outside the script points to it too
+         ViewPort.Edit("@1C ^blocker\"\" "); // the script cannot grow in place
+         ViewPort.Goto.Execute(0x10);
+
+         EventScript = "section0:;nop;goto <section1>;section1:;nop;nop;nop;nop;nop;nop;nop;nop;nop;nop;goto <section0>";
+
+         var runs = Enumerable.Range(0, Model.Count).Select(Model.GetNextRun).Where(run => run.Start < Model.Count).Distinct().ToList();
+         Assert.Contains(runs, run => run is IScriptStartRun && run.Start > 0x20); // the script moved
+         foreach (var run in runs.Where(run => run.PointerSources != null)) {
+            Assert.All(run.PointerSources, source => Assert.True(Model.ReadPointer(source) == run.Start, $"{run.GetType().Name} {run.Start:X2} lists {source:X2}, which points to {Model.ReadPointer(source):X2}"));
+         }
+      }
+
+      [Fact]
+      public void ScriptWithAPointerToUnformattedMovementData_GrowsUntilItMoves_StreamNoLongerListsTheOldCopyOfThePointerAsItsSource() {
+         ViewPort.Edit("^some.script`xse` 4F 00 00 <008> 02 01 02 03 FE @008 ^[move.movementtypes]!FE ");
+         Model.ClearFormat(ViewPort.ChangeHistory.CurrentChange, 3, 4); // the pointer in the script and the stream it points to have no format, like a script that was loaded from a rom
+         Model.ClearFormat(ViewPort.ChangeHistory.CurrentChange, 8, 4);
+         Assert.IsNotType<TableStreamRun>(Model.GetNextRun(8));
+         ViewPort.Goto.Execute(0);
+
+         EventScript = "nop;nop;nop;nop;nop;nop;nop;nop;applymovement 0 <008>;end"; // the movement data is right after the script, so the script moves to grow
+
+         var runs = Enumerable.Range(0, Model.Count).Select(Model.GetNextRun).Where(run => run.Start < Model.Count).Distinct().ToList();
+         Assert.Contains(runs, run => run is IScriptStartRun && run.Start > 0); // the script moved
+         Assert.Contains(runs, run => run is TableStreamRun && run.Start == 8); // the movement data was formatted as a stream because the script points to it
+         foreach (var run in runs.Where(run => run.PointerSources != null)) {
+            Assert.All(run.PointerSources, source => Assert.True(Model.ReadPointer(source) == run.Start, $"{run.GetType().Name} {run.Start:X2} lists {source:X2}, which points to {Model.ReadPointer(source):X2}"));
+         }
       }
 
       [Fact]

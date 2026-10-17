@@ -68,6 +68,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       bool TryGetUsefulHeader(int address, out string header);
       bool TryGetList(string name, out ValidationList nameArray);
+      IReadOnlyList<Code.IScriptLine> GetScriptLines(IReadOnlyList<Code.IScriptLine> sharedLines);
 
       bool IsAtEndOfArray(int dataIndex, out ITableRun tableRun); // is this byte the first one after the end of a table run? (also return true if the table is length 0 and starts right here)
 
@@ -188,6 +189,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             RawData[index] = value;
             ClearCacheScope();
             changes.Add(index);
+            ModelEditStamp.Bump();
          }
       }
 
@@ -274,11 +276,19 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public virtual bool TryGetList(string name, out ValidationList list) { list = null; return false; }
 
+      /// <summary>
+      /// The event-script command reference to use for this ROM. By default this is the shared reference,
+      /// but a ROM's metadata can put extra lines in front of it (see PokemonModel).
+      /// </summary>
+      public virtual IReadOnlyList<Code.IScriptLine> GetScriptLines(IReadOnlyList<Code.IScriptLine> sharedLines) => sharedLines;
+
       public abstract bool IsAtEndOfArray(int dataIndex, out ITableRun tableRun);
 
       public virtual void Load(byte[] newData, StoredMetadata metadata) {
          InitializationWorkload.Wait();
          RawData = newData;
+         ClearCacheScope(); // all of the data is new, so nothing cached from the old data is valid
+         ModelEditStamp.BumpRuns();
       }
 
       public abstract void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run);
@@ -488,8 +498,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          var sourceArray = model.GetNextRun(enumSourceAddress) as ArrayRun;
          if (sourceArray == null) return false;
          using (ModelCacheScope.CreateScope(model)) {
-            var allNames = sourceArray.ElementNames;
-            if (allNames.Count == 0) return false;
+            IReadOnlyList<string> allNames = sourceArray.ElementNames;
+            // the expansion keeps names inside a bigger table (data.pokemon.stats): those names come from the table's options
+            if (allNames.Count == 0) allNames = model.GetOptions(mainEnumSegment.EnumName);
+            if (allNames == null || allNames.Count == 0) return false;
             var list = new List<string>();
 
             for (int i = 0; i < enumArray.ElementCount; i++) {
@@ -646,7 +658,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public static ErrorInfo CompleteArrayExtension(this IDataModel model, ModelDelta changeToken, int count, ref ITableRun table) {
          var currentArrayName = model.GetAnchorFromAddress(-1, table.Start);
          if (!table.CanAppend) {
-            return new ErrorInfo($"Cannot extend {currentArrayName}.");
+            return new ErrorInfo($"Cannot extend {(string.IsNullOrEmpty(currentArrayName) ? table.Start.ToAddress() : currentArrayName)}.");
          }
 
          var initialTableName = model.GetAnchorFromAddress(-1, table.Start);
@@ -753,7 +765,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          int elementOffset = table.ElementLength * elementIndex;
          foreach (var segment in table.ElementContent) {
             if (segment is ArrayRunPointerSegment pSegment) {
-               var destination = model.ReadPointer(table.Start + elementOffset + segmentOffset);
+               var source = table.Start + elementOffset + segmentOffset;
+               if (source < 0 || source + 4 > model.Count) yield break; // an element index outside the data (ex: a pointer source that no longer belongs to a table)
+               var destination = model.ReadPointer(source);
                if (model.GetNextRun(destination) is T result && result.Start == destination) yield return result;
             }
             segmentOffset += segment.Length;

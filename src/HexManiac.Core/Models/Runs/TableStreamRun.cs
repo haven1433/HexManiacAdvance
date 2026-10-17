@@ -308,7 +308,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             // write default value
             var seg = ElementContent[j];
             if (unwritten.Contains(j)) {
-               if (seg.Type == ElementContentType.Pointer) model.WriteMultiByteValue(Start + segmentOffset, 4, token, 0);
+               if (seg.Type == ElementContentType.Pointer) model.UpdateArrayPointer(token, seg, ElementContent, default, Start + segmentOffset, Pointer.NULL); // also tells the old destination that this cell no longer points to it
                if (seg.Type == ElementContentType.Integer) model.WriteMultiByteValue(Start + segmentOffset, seg.Length, token, 0);
                changeAddresses.Add(Start + segmentOffset);
                changedSegments.Add(j);

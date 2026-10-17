@@ -18,7 +18,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          if (!int.TryParse(Format.Substring(5), out var length)) length = 0;
          if (length < 1) return false;
          length = length.LimitToRange(1, 1000);
-         if (token is not NoDataChangeDeltaModel) owner.ObserveRunWritten(token, new AsciiRun(owner, destination, length, SortedSpan.One(source)));
+         if (token is not NoDataChangeDeltaModel) {
+            var asciiRun = new AsciiRun(owner, destination, length, SortedSpan.One(source));
+            owner.ClearFormat(token, asciiRun.Start + 1, asciiRun.Length - 1); // formats that start inside the new one would overlap it
+            owner.ObserveRunWritten(token, asciiRun);
+         }
          return true;
       }
 

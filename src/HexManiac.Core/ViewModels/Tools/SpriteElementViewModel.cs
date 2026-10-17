@@ -180,7 +180,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (palette != null) spriteTool.PaletteAddress = palette.Start;
             spriteTool.PalettePage = CurrentPalette;
             if (palettes.Count > CurrentPalette && palettes[CurrentPalette].Pages == sRun.Pages) spriteTool.PalettePage = CurrentPage;
-            command.Execute(fs);
+            spriteTool.SpriteSourceAddress = Start; // (lets the import copy shared overworld sprite data before it changes it)
+            try {
+               command.Execute(fs);
+            } finally {
+               spriteTool.SpriteSourceAddress = -1;
+            }
          }
       }
 
@@ -204,11 +209,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var index = 0;
          foreach (var palette in run.FindRelatedPalettes(ViewPort.Model, start)) {
             var name = ViewPort.BuildElementName(ViewPort.Model, palette.Start);
-            var ps = new SelectionViewModel { Name = name, Selected = index == currentPalette, Index = index };
-            ps.Bind(nameof(ps.Selected), (o, e) => { if (o.Selected) CurrentPalette = o.Index; });
             if (index < PaletteSelection.Count) {
-               PaletteSelection[index] = ps;
+               // switching to another pokemon: the radio buttons stay, they only get another name (replacing them would make the view build new ones)
+               var existing = PaletteSelection[index];
+               existing.Name = name;
+               existing.Index = index;
+               SetPaletteSelected(existing, index == currentPalette);
             } else {
+               var ps = new SelectionViewModel { Name = name, Selected = index == currentPalette, Index = index };
+               ps.Bind(nameof(ps.Selected), (o, e) => { if (!updatingPaletteSelection && o.Selected) CurrentPalette = o.Index; });
                PaletteSelection.Add(ps);
             }
             index += 1;
@@ -218,8 +227,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public ObservableCollection<SelectionViewModel> PaletteSelection { get; } = new ObservableCollection<SelectionViewModel>();
+
+      // Choosing a palette is what the radio buttons do (see UpdateAvailablePalettes). Setting them from here is not choosing: it must not come back as a choice.
+      private bool updatingPaletteSelection;
+      private void SetPaletteSelected(SelectionViewModel selection, bool selected) {
+         var original = updatingPaletteSelection;
+         updatingPaletteSelection = true;
+         try { selection.Selected = selected; } finally { updatingPaletteSelection = original; }
+      }
+
       private void UpdatePaletteSelection() {
-         for (int i = 0; i <= MaxPalette; i++) PaletteSelection[i].Selected = i == currentPalette;
+         for (int i = 0; i <= MaxPalette; i++) SetPaletteSelected(PaletteSelection[i], i == currentPalette);
       }
 
       /// <summary>
@@ -291,18 +309,33 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          PixelData = SpriteTool.Render(pixels, palette, paletteFormat.InitialBlankPages, CurrentPage);
 
-         NotifyPropertyChanged(nameof(PixelWidth));
-         NotifyPropertyChanged(nameof(PixelHeight));
-         NotifyPropertyChanged(nameof(PixelData));
+         // The picture is told once about its new pixels. Its size and scale are only announced when they are not what the picture was last told:
+         // another pokemon's sprite has the same size, so the common case is a single notification (each one makes the view write the whole bitmap again).
+         double scale;
          if (SpriteTool.MaxSpriteWidth < PixelWidth) {
-            SpriteScale = .5;
+            scale = .5;
          } else if (SpriteTool.MaxSpriteWidth > PixelWidth * 2) {
-            SpriteScale = 2;
+            scale = 2;
          } else {
-            SpriteScale = 1;
+            scale = 1;
          }
-         NotifyPropertyChanged(nameof(SpriteScale));
+         var scaleChanged = scale != SpriteScale || !announcedOnce;
+         SpriteScale = scale;
+         var sizeChanged = PixelWidth != announcedWidth || PixelHeight != announcedHeight || !announcedOnce;
+         (announcedWidth, announcedHeight, announcedOnce) = (PixelWidth, PixelHeight, true);
+         if (scaleChanged) NotifyPropertyChanged(nameof(SpriteScale));
+         if (sizeChanged) {
+            NotifyPropertyChanged(nameof(PixelWidth));
+            NotifyPropertyChanged(nameof(PixelHeight));
+         }
+         NotifyPropertyChanged(nameof(PixelData));
       }
+
+      private int announcedWidth, announcedHeight;
+      private bool announcedOnce;
+
+      /// <summary>The colours the picture is drawn with right now (the selected palette).</summary>
+      public IReadOnlyList<short> GetCurrentColors() => GetDesiredPalette(Start, CurrentPage, false, out _);
 
       /// <summary>
       /// If the hint is a table name, only match palettes from that table.

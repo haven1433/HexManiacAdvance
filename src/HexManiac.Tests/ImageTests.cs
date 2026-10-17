@@ -209,6 +209,58 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
+      public void EditLzGroupHeader_FirstTokenCompressed_RunStaysValid() {
+         SetFullModel(0xFF);
+         var raw = Enumerable.Range(0, 400).Select(i => (byte)((i * i / 7) ^ (i % 5))).ToArray();
+         var compressed = LZRun.Compress(raw, 0, raw.Length);
+         CreateLzRun(0, compressed.ToArray());
+         var length = Model.GetNextRun(0).Length;
+         Assert.Equal(compressed.Count, length);
+
+         // type FF into the first group header and the cells after it: the first token of the data cannot be compressed, there is nothing to copy from yet
+         for (int i = 0; i < 12; i++) ViewPort.Edit($"@{4 + i:X} FF ");
+
+         var run = Model.GetNextRun(0);
+         Assert.True(run.Length > 0, $"the run has the length {run.Length}");
+         Assert.NotNull(LZRun.Decompress(Model, 0));
+         for (int i = 0; i < run.Length; i++) Assert.IsAssignableFrom<IDataFormat>(run.CreateDataFormat(Model, run.Start + i)); // the data can still be shown
+      }
+
+      [Fact]
+      public void EditDecompressedLength_TooShortForTheSpriteFormat_EditIsRefusedAndSpriteStaysValid() {
+         SetFullModel(0xFF);
+         var compressed = LZRun.Compress(Enumerable.Range(0, 128).Select(i => (byte)(i / 3)).ToArray(), 0, 128);
+         for (int i = 0; i < compressed.Count; i++) Model[i] = compressed[i];
+         Model.ObserveRunWritten(ViewPort.CurrentChange, new LzSpriteRun(new SpriteFormat(4, 2, 2, null), Model, 0)); // 2x2 tiles at 4 bits per pixel need 128 bytes
+         var before = Model.RawData.Take(compressed.Count).ToArray();
+         Assert.Equal(compressed.Count, Model.GetNextRun(0).Length);
+
+         ViewPort.Edit("@01 9 "); // 9 bytes cannot hold the picture
+
+         var run = Model.GetNextRun(0);
+         Assert.IsType<LzSpriteRun>(run);
+         Assert.Equal(compressed.Count, run.Length);
+         Assert.Equal(before, Model.RawData.Take(compressed.Count).ToArray());
+         for (int i = 0; i < run.Length; i++) Assert.IsAssignableFrom<IDataFormat>(run.CreateDataFormat(Model, run.Start + i));
+      }
+
+      [Fact]
+      public void EditDecompressedLength_TooShortForThePaletteFormat_EditIsRefusedAndPaletteStaysValid() {
+         SetFullModel(0xFF);
+         var compressed = LZRun.Compress(Enumerable.Range(0, 32).Select(i => (byte)(i * 5)).ToArray(), 0, 32);
+         for (int i = 0; i < compressed.Count; i++) Model[i] = compressed[i];
+         Model.ObserveRunWritten(ViewPort.CurrentChange, new LzPaletteRun(new PaletteFormat(4, 1), Model, 0)); // 16 colors need 32 bytes
+         var before = Model.RawData.Take(compressed.Count).ToArray();
+
+         ViewPort.Edit("@01 9 ");
+
+         var run = Model.GetNextRun(0);
+         Assert.IsType<LzPaletteRun>(run);
+         Assert.Equal(compressed.Count, run.Length);
+         Assert.Equal(before, Model.RawData.Take(compressed.Count).ToArray());
+      }
+
+      [Fact]
       public void CanEditLzDataViaStreamTool() {
          SetFullModel(0xFF);
          CreateLzRun(0,
@@ -403,6 +455,19 @@ namespace HavenSoft.HexManiac.Tests {
          run = (IPaletteRun)Model.GetNextRun(0x90);
          var sprite2 = run.FindDependentSprites(Model).Single();
          Assert.Equal(0x40, sprite2.Start);
+      }
+
+      [Fact]
+      public void PalettePointerNearTheEndOfTheData_ShowInTableTool_DoesNotThrow() {
+         // a palette pointer typed into a table can point at the last bytes of the file, where there is no room for 16 colors
+         ViewPort.Edit("@10 <1F8> @10 ^palettes[pointer<`ucp4`>]1 ");
+
+         ViewPort.Goto.Execute(0x10);
+         ViewPort.Tools.SelectedTool = ViewPort.Tools.TableTool;
+         var children = ViewPort.Tools.TableTool.Children.ToList();
+         if (Model.GetNextRun(0x1F8) is IPaletteRun run) run.GetPalette(Model, 0);
+
+         Assert.NotEmpty(children);
       }
 
       [Fact]

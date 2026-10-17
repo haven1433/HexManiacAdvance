@@ -59,11 +59,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       public IPaletteRun SetPalette(IDataModel model, ModelDelta token, int page, IReadOnlyList<short> colors) {
-         page %= Pages;
          var pageLength = PaletteFormat.ExpectedByteLengthPerPage;
+         // More colors than one page holds are the colors of the whole palette (a 256 color picture shows all 16 pages of 16 colors at once): they start with the first page.
+         page = colors.Count * 2 > pageLength ? 0 : page % Pages;
          var start = Start + page * pageLength;
+         var colorsThatFit = (Pages - page) * pageLength / 2;
+         if (colors.Count > colorsThatFit) colors = colors.Take(colorsThatFit).ToList();
 
-         var data = new byte[pageLength];
+         // start from the unused bit of each color that is stored now, so SetPalette keeps it (see UnusedColorBit)
+         var data = new byte[Math.Max(pageLength, colors.Count * 2)];
+         for (int i = 1; i < data.Length; i += 2) data[i] = start + i < model.Count ? (byte)(model[start + i] & 0x80) : (byte)0;
          SetPalette(data, 0, colors);
          for (int i = 0; i < data.Length; i++) token.ChangeData(model, start + i, data[i]);
          return this;
@@ -76,7 +81,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public static IReadOnlyList<short> GetPalette(IReadOnlyList<byte> data, int start, int count) {
          var results = new List<short>();
          for (int i = 0; i < count; i++) {
-            var color = (short)data.ReadMultiByteValue(start + i * 2, 2);
+            // a palette that starts near the end of the data has no room for all its colors: the missing ones are black
+            var color = start + i * 2 + 1 < data.Count && start + i * 2 >= 0 ? (short)data.ReadMultiByteValue(start + i * 2, 2) : (short)0;
             results.Add(FlipColorChannels(color));
          }
          return results;
@@ -85,14 +91,42 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       /// <summary>
       /// We render colors as 16-bit bgr values, 5 bits per channel. B is the high channel.
       /// The GBA stores colors in a 16-bit rgb value, 5 bits per channel. R is the high channel.
+      /// Bit 15 of each color that is already in <paramref name="data"/> is kept (see <see cref="UnusedColorBit"/>); a zeroed array gives colors with bit 15 clear.
       /// </summary>
       public static void SetPalette(byte[] data, int start, IReadOnlyList<short> colors) {
          for (int i = 0; i < colors.Count; i++) {
             var color = FlipColorChannels(colors[i]);
             data[start + i * 2 + 0] = (byte)(color >> 0);
-            data[start + i * 2 + 1] = (byte)(color >> 8);
+            data[start + i * 2 + 1] = (byte)(((color >> 8) & 0x7F) | (data[start + i * 2 + 1] & 0x80));
          }
       }
+
+      /// <summary>
+      /// The GBA only looks at the lower 15 bits of a color. Bit 15 does nothing to the picture, but some games and hacks keep a flag there.
+      /// The palette editor works with 15-bit colors (<see cref="GetPalette(IDataModel, int)"/> never shows bit 15), so every place that writes a color back
+      /// must leave the bit that is stored now as it is: a color that was EE FA stays EE FA when only its red, green or blue changes. A color that is not stored yet has the bit clear.
+      /// </summary>
+      public const int UnusedColorBit = 0x8000;
+
+      /// <summary>
+      /// Makes the 16 bits to store for a color: the 15 bits of <paramref name="newColor"/> as they go in the ROM (red in the low bits), and bit 15 of what is <paramref name="storedNow"/>.
+      /// </summary>
+      public static short KeepUnusedColorBit(int storedNow, int newColor) => (short)((newColor & 0x7FFF) | (storedNow & UnusedColorBit));
+
+      /// <summary>
+      /// Writes one color (15 bits, as they go in the ROM: red in the low bits) to the two bytes at <paramref name="address"/>, keeping the bit 15 that is stored there now.
+      /// Returns true if any byte changed.
+      /// </summary>
+      public static bool WriteStoredColor(IDataModel model, ModelDelta token, int address, int newColor) {
+         var storedNow = model.ReadMultiByteValue(address, 2);
+         return model.WriteMultiByteValue(address, 2, token, KeepUnusedColorBit(storedNow, newColor) & 0xFFFF);
+      }
+
+      /// <summary>
+      /// Writes one color the way the palette editor holds it (<see cref="FlipColorChannels(short)"/> turns it into what the ROM stores), keeping the bit 15 that is stored there now.
+      /// Returns true if any byte changed.
+      /// </summary>
+      public static bool WriteColor(IDataModel model, ModelDelta token, int address, short color) => WriteStoredColor(model, token, address, FlipColorChannels(color));
 
       /// <summary>
       /// the gba and WPF do color channels reversed

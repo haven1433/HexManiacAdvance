@@ -805,6 +805,84 @@ namespace HavenSoft.HexManiac.Tests {
          property.GetSetMethod(true).Invoke(Model, new object[] { converter });
       }
 
+      [Fact]
+      public void LineBreakBeforeAShortLastLine_Convert_KeepsTheLineBreak() {
+         // a line break within the last few characters of the text used to be skipped as an unknown character,
+         // which glued the two lines together ("Hello" + "I") and flagged the text as containing bad characters
+         var bytes = PCSString.Convert("Hello" + Environment.NewLine + "I", out var containsBadCharacters);
+
+         Assert.False(containsBadCharacters);
+         Assert.Equal(8, bytes.Count);
+         Assert.Equal(0xFE, bytes[5]);
+      }
+
+      [Fact]
+      public void TextEndsWithLineBreak_Convert_KeepsTheLineBreak() {
+         var bytes = PCSString.Convert("Hello" + Environment.NewLine, out var containsBadCharacters);
+
+         Assert.False(containsBadCharacters);
+         Assert.Equal(new byte[] { 0xC2, 0xD9, 0xE0, 0xE0, 0xE3, 0xFE, 0xFF }, bytes.ToArray());
+      }
+
+      [Fact]
+      public void TextWithEscapedLineBreakFollowedByRealLineBreak_Convert_IsNotBadCharacters() {
+         var bytes = PCSString.Convert("A\\n" + Environment.NewLine + "B", out var containsBadCharacters);
+
+         Assert.False(containsBadCharacters);
+         Assert.Equal(4, bytes.Count); // A, FE, B, FF
+      }
+
+      [Fact]
+      public void LineBreakCodesInAnyOrder_ConvertToTextAndBack_SameBytes() {
+         // \n (FE), \l (FA) and \pn (FB) next to each other, or around a character: the text must hold on to every one of them
+         var a = (byte)PCSString.PCS.IndexOf("A");
+         var alphabet = new byte[] { a, 0xFA, 0xFB, 0xFE };
+         var failures = new List<string>();
+         var sequences = new List<List<byte>> { new List<byte>() };
+         for (int length = 1; length <= 6; length++) {
+            foreach (var sequence in sequences.Where(s => s.Count == length - 1).ToList()) {
+               foreach (var next in alphabet) sequences.Add(sequence.Append(next).ToList());
+            }
+         }
+         foreach (var sequence in sequences.Where(s => s.Count > 0)) {
+            var bytes = sequence.Append((byte)0xFF).ToArray();
+            var text = PCSString.Convert(bytes, 0, bytes.Length);
+            var back = PCSString.Convert(text, out var containsBadCharacters);
+            if (containsBadCharacters || !back.SequenceEqual(bytes)) failures.Add($"{BitConverter.ToString(bytes)} -> {text.Replace("\r", "\\r").Replace("\n", "\\N")} -> {BitConverter.ToString(back.ToArray())}");
+         }
+         Assert.True(failures.Count == 0, $"{failures.Count} of {sequences.Count - 1} sequences changed: {string.Join("; ", failures.Take(8))}");
+      }
+
+      [Fact]
+      public void TextWithTwoWrappedLinesAndAScroll_ConvertToTextAndBack_SameBytes() {
+         // the second \n of a text is written as an escape, and the next line break must still be read as the scroll it was
+         var a = (byte)PCSString.PCS.IndexOf("A");
+         var bytes = new byte[] { a, 0xFE, a, 0xFE, a, 0xFA, a, 0xFF };
+
+         var text = PCSString.Convert(bytes, 0, bytes.Length);
+         var back = PCSString.Convert(text, out var containsBadCharacters);
+
+         Assert.False(containsBadCharacters);
+         Assert.Equal(bytes, back.ToArray());
+      }
+
+      [Fact]
+      public void FunctionEscapeCutOffByTheEndOfTheData_Convert_DoesNotThrow() {
+         // a text at the very end of a file that stops inside an escape (\CC xx): the escape reads its arguments from bytes that are not there
+         var a = (byte)PCSString.PCS.IndexOf("A");
+         foreach (var data in new[] { new byte[] { a, 0xFC }, new byte[] { a, 0xFC, 0x04 }, new byte[] { a, 0xFC, 0x0B } }) {
+            var text = PCSString.Convert(data, 0, data.Length);
+            Assert.StartsWith("\"A", text);
+         }
+      }
+
+      [Fact]
+      public void FunctionEscapeCutOffByTheEndOfTheData_ReadString_IsNotAString() {
+         var a = (byte)PCSString.PCS.IndexOf("A");
+         Assert.Equal(-1, PCSString.ReadString(new byte[] { a, 0xFC }, 0, false));
+         Assert.Equal(-1, PCSString.ReadString(new byte[] { a, 0xFC, 0x04 }, 0, false));
+      }
+
       private void Write(IDataModel model, ref int i, string characters) {
          foreach (var c in characters.ToCharArray())
             model[i++] = (byte)PCSString.PCS.IndexOf(c.ToString());

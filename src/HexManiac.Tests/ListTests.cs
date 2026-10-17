@@ -159,6 +159,21 @@ DefaultHash = '''0BEEDA92'''
       }
 
       [Fact]
+      public void EnumComboBox_SelectedIndexOutOfRange_IsIgnored() {
+         // the dropdown reports -1 when its selection is cleared; that used to throw an ArgumentOutOfRangeException
+         Model.SetList("list", new[] { "a", "b", "c" });
+         ViewPort.Edit("@100 ^table2[y:list]2 01 00 02 00 @100 ");
+         var tool = (ComboBoxArrayElementViewModel)ViewPort.Tools.TableTool.Children.Single(e => e is ComboBoxArrayElementViewModel cbaevm && cbaevm.Name == "y");
+
+         tool.SelectedIndex = -1;
+         tool.SelectedIndex = 3;
+         tool.SelectedIndex = 99;
+
+         Assert.Equal(1, Model[0x100]);
+         Assert.Equal(1, tool.SelectedIndex);
+      }
+
+      [Fact]
       public void ElementWithSpace_CopyBitFlags_ResultHasQuotes() {
          Model.SetList("list", new[] { "noSpaces", "with spaces" });
          Model[0] = 2;

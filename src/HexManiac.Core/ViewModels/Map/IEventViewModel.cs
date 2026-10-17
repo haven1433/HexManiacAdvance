@@ -306,6 +306,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       protected void RaiseEventVisualUpdated() => EventVisualUpdated.Raise(this);
 
+      /// <summary>the segment as it is for the element at this address: a switch field (like the argument of a signpost) is a pointer or a number, depending on another field. Null if it is not a pointer.</summary>
+      private static ArrayRunElementSegment GetPointerSegment(IDataModel model, ITableRun table, ArrayRunElementSegment segment, int address) {
+         if (segment is ArrayRunRecordSegment record) segment = record.CreateConcrete(model, table, address);
+         return segment.Type == ElementContentType.Pointer ? segment : null;
+      }
+
       protected bool DeleteElement(string parentCountField) {
          var table = element.Table;
          var model = element.Model;
@@ -313,12 +319,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var offset = table.ConvertByteOffsetToArrayOffset(element.Start);
          var editCount = table.ElementCount - offset.ElementIndex - 1;
          for (int i = 0; i < editCount; i++) {
+            // switch fields depend on another field of their element: find out what they are before that other field gets overwritten
+            var destinationStart = element.Start + i * element.Length;
+            var sourceStart = destinationStart + element.Length;
+            var oldPointer = new ArrayRunElementSegment[table.ElementContent.Count];
+            var newPointer = new ArrayRunElementSegment[table.ElementContent.Count];
+            int segmentStart = 0;
+            for (int j = 0; j < table.ElementContent.Count; j++) {
+               if (table.ElementContent[j] is ArrayRunRecordSegment) {
+                  oldPointer[j] = GetPointerSegment(model, table, table.ElementContent[j], destinationStart + segmentStart);
+                  newPointer[j] = GetPointerSegment(model, table, table.ElementContent[j], sourceStart + segmentStart);
+               }
+               segmentStart += table.ElementContent[j].Length;
+            }
+
             int segmentOffset = 0;
             for (int j = 0; j < table.ElementContent.Count; j++) {
                var source = element.Start + (i + 1) * element.Length + segmentOffset;
                var destination = source - element.Length;
                var length = table.ElementContent[j].Length;
-               if (table.ElementContent[j].Type == ElementContentType.Pointer) {
+               if (table.ElementContent[j] is ArrayRunRecordSegment) {
+                  // the one that is moved over is no longer pointing at its script: its pointer source goes away
+                  if (oldPointer[j] != null) model.UpdateArrayPointer(token, null, null, 0, destination, Pointer.NULL);
+                  var pointer = newPointer[j] == null ? Pointer.NULL : model.ReadPointer(source);
+                  if (pointer >= 0) {
+                     model.UpdateArrayPointer(token, newPointer[j], table.ElementContent, offset.ElementIndex, destination, pointer);
+                  } else {
+                     model.WriteMultiByteValue(destination, length, token, model.ReadMultiByteValue(source, length));
+                  }
+               } else if (table.ElementContent[j].Type == ElementContentType.Pointer) {
                   model.UpdateArrayPointer(token, table.ElementContent[j], table.ElementContent, offset.ElementIndex, destination, model.ReadPointer(source));
                } else {
                   model.WriteMultiByteValue(destination, length, token, model.ReadMultiByteValue(source, length));
@@ -327,6 +356,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          }
          if (table.ElementCount > 1) {
+            // the last element falls off the table. Its switch fields are cleared without knowing what they were, so let go of its pointers first.
+            var lastStart = table.Start + (table.ElementCount - 1) * table.ElementLength;
+            int segmentStart = 0;
+            foreach (var segment in table.ElementContent) {
+               if (segment is ArrayRunRecordSegment && GetPointerSegment(model, table, segment, lastStart + segmentStart) != null) {
+                  model.UpdateArrayPointer(token, null, null, 0, lastStart + segmentStart, Pointer.NULL);
+               }
+               segmentStart += segment.Length;
+            }
             var shorterTable = table.Append(token, -1);
             model.ObserveRunWritten(token, shorterTable);
          } else {
@@ -426,7 +464,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public class ObjectEventViewModel : BaseEventViewModel {
       private readonly BlockMapViewModel parent;
-      private readonly ScriptParser parser;
+      private ScriptParser parser => parent.ViewPort.Tools.CodeTool.ScriptParser; // not cached: the editor rebuilds its parser once the ROM's own commands are loaded
+      internal ScriptParser Parser => parser;
       private readonly EventTemplate eventTemplate;
       private readonly BerryInfo berries;
       private readonly Action<int> gotoAddress;
@@ -449,7 +488,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             element.SetValue("graphics", value);
             RaiseEventVisualUpdated();
             NotifyPropertyChanged();
-            NotifyPropertyChanged(nameof(HasGraphicsInTransitionScript), nameof(CanAddDynamicGraphicsToTransitionScript));
+            NotifyPropertiesChanged(nameof(HasGraphicsInTransitionScript), nameof(CanAddDynamicGraphicsToTransitionScript));
          }
       }
 
@@ -464,7 +503,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             graphicsText = value;
             if (!graphicsText.TryParseInt(out var result)) return;
             Graphics = result;
-            NotifyPropertyChanged(nameof(CanAddDynamicGraphicsToTransitionScript), nameof(HasGraphicsInTransitionScript));
+            NotifyPropertiesChanged(nameof(CanAddDynamicGraphicsToTransitionScript), nameof(HasGraphicsInTransitionScript));
             if (HasGraphicsInTransitionScript) LoadDynamicOverworldGraphicsCategories();
          }
       }
@@ -485,7 +524,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Dynamic Overworld Graphics
 
-      public bool CanAddDynamicGraphicsToTransitionScript => !HasGraphicsInTransitionScript && ShowGraphicsAsText && Graphics >= 240;
+      public const string DynamicGraphicsStartConstant = "map.dynamicgfx.start";
+      /// <summary>
+      /// The first of the 16 'graphics variable' ids (OBJ_EVENT_GFX_VAR_0): their picture is whatever the var holds at runtime.
+      /// It is 240 in the vanilla games, but pokeemerald-expansion has far more sprites, so its ROM metadata says where they start.
+      /// </summary>
+      public static int GetDynamicGraphicsStart(IDataModel model) => model.TryGetUnmappedConstant(DynamicGraphicsStartConstant, out var start) && start > 0 ? start : 240;
+      private int DynamicStart => GetDynamicGraphicsStart(element.Model);
+      /// <summary>true for the 16 graphics-variable ids (OBJ_EVENT_GFX_VAR_0 .. OBJ_EVENT_GFX_VAR_F).</summary>
+      public static bool IsDynamicGraphics(IDataModel model, int graphics) {
+         var start = GetDynamicGraphicsStart(model);
+         return graphics >= start && graphics < start + 16;
+      }
+
+      public bool CanAddDynamicGraphicsToTransitionScript => !HasGraphicsInTransitionScript && ShowGraphicsAsText && Graphics >= DynamicStart;
 
       public void AddDynamicGraphicsToTransitionScript() {
          if (HasGraphicsInTransitionScript) return;
@@ -499,7 +551,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
             parent.ViewPort.GotoScript(script.ScriptAddress);
             var body = tool.Contents[0];
-            body.Content = $"setvar gfx{Graphics - 240} 18" + Environment.NewLine + body.Content;
+            body.Content = $"setvar gfx{Graphics - DynamicStart} 18" + Environment.NewLine + body.Content;
+            GraphicsVariableSprites.Invalidate(element.Model);
             break;
          }
          if (!transitionScriptFound) {
@@ -509,6 +562,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      /// <summary>The first sprite that a script of this map gives to the graphics variable of this event (-1 if none does).</summary>
+      private int FindGraphicsVariableSpriteInMap() {
+         if (parent == null) return -1;
+         var assignments = GraphicsVariableSprites.InMap(element.Model, parser, parent.GetMapModel());
+         return assignments.For(Graphics - DynamicStart).DefaultIfEmpty(-1).First();
+      }
+
+      /// <summary>The first sprite that a script of this map gives to any graphics variable (-1 if none does).</summary>
+      private int FindAnyGraphicsVariableSpriteInMap() {
+         if (parent == null) return -1;
+         var assignments = GraphicsVariableSprites.InMap(element.Model, parser, parent.GetMapModel());
+         return assignments.Any().DefaultIfEmpty(-1).First();
+      }
+
       public int PullValueFromTransitionScript() {
          var scripts = new MapScriptCollection(parent.ViewPort, eventTemplate);
          scripts.Load(parent.GetMapModel());
@@ -516,11 +583,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (script.ScriptOptions[script.ScriptTypeIndex].Option != "Transition") continue;
 
             var spots = Flags.GetAllScriptSpots(Element.Model, parser, new[] { script.ScriptAddress }, 0x16).
-               Where(spot => Element.Model.ReadMultiByteValue(spot.Address + 1, 2) == 0x4010 + Graphics - 240); // setvar gfxN
+               Where(spot => Element.Model.ReadMultiByteValue(spot.Address + 1, 2) == 0x4010 + Graphics - DynamicStart); // setvar gfxN
 
             var spot = spots.FirstOrDefault();
             if (spot is null) continue;
-            var categoryIndex = DynamicOverworldGraphicsCategories.SelectedIndex;
+            var categoryIndex = dynamicCategories.SelectedIndex;
             var dynamicValue = element.Model.ReadMultiByteValue(spot.Address + 3, 2);
             return dynamicValue;
          }
@@ -536,7 +603,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             foreach (var script in scripts.Scripts) {
                if (script.ScriptOptions[script.ScriptTypeIndex].Option != "Transition") continue;
                var spots = Flags.GetAllScriptSpots(Element.Model, parser, new[] { script.ScriptAddress }, 0x16).
-                  Where(spot => Element.Model.ReadMultiByteValue(spot.Address + 1, 2) == 0x4010 + Graphics - 240); // setvar gfxN
+                  Where(spot => Element.Model.ReadMultiByteValue(spot.Address + 1, 2) == 0x4010 + Graphics - DynamicStart); // setvar gfxN
 
                if (spots.Count() > 0) return true;
             }
@@ -544,29 +611,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
       public void UpdateDynamicOverworldGraphicsInScript() {
-         if (DynamicOverworldGraphicsSelectedIndex == -1) return;
+         if (!dynamicGraphicsLoaded || dynamicGraphicsIndex == -1) return;
          var scripts = new MapScriptCollection(parent.ViewPort, eventTemplate);
          scripts.Load(parent.GetMapModel());
          foreach (var script in scripts.Scripts) {
             if (script.ScriptOptions[script.ScriptTypeIndex].Option != "Transition") continue;
 
             var spots = Flags.GetAllScriptSpots(Element.Model, parser, new[] { script.ScriptAddress }, 0x16).
-               Where(spot => Element.Model.ReadMultiByteValue(spot.Address + 1, 2) == 0x4010 + Graphics - 240); // setvar gfxN
+               Where(spot => Element.Model.ReadMultiByteValue(spot.Address + 1, 2) == 0x4010 + Graphics - DynamicStart); // setvar gfxN
 
             var spot = spots.FirstOrDefault();
             if (spot is null) continue;
-            var categoryIndex = DynamicOverworldGraphicsCategories.SelectedIndex;
+            var categoryIndex = dynamicCategories.SelectedIndex;
             var dynamicOffset = 0;
-            if (DynamicOverworldGraphicsCategories.FilteredOptions[categoryIndex].Text == "Pokemon Icons") dynamicOffset = 10000;
-            if (DynamicOverworldGraphicsCategories.FilteredOptions[categoryIndex].Text == "Expanded Overworld Sprites") dynamicOffset = 20000;
+            if (dynamicCategories.FilteredOptions[categoryIndex].Text == "Pokemon Icons") dynamicOffset = 10000;
+            if (dynamicCategories.FilteredOptions[categoryIndex].Text == "Expanded Overworld Sprites") dynamicOffset = 20000;
             var existingValue = Element.Model.ReadMultiByteValue(spot.Address + 3, 2);
-            if (existingValue == DynamicOverworldGraphicsSelectedIndex + dynamicOffset) continue;
-            Element.Model.WriteMultiByteValue(spot.Address + 3, 2, Token, DynamicOverworldGraphicsSelectedIndex + dynamicOffset);
+            if (existingValue == dynamicGraphicsIndex + dynamicOffset) continue;
+            Element.Model.WriteMultiByteValue(spot.Address + 3, 2, Token, dynamicGraphicsIndex + dynamicOffset);
+            GraphicsVariableSprites.Invalidate(Element.Model);
             RaiseEventVisualUpdated();
          }
       }
       private IDisposable previousCategoryListener;
       private void LoadDynamicOverworldGraphicsCategories() {
+         dynamicGraphicsLoaded = true;
          var options = new List<string>();
          if (Element.Model.GetTable("graphics.overworld.sprites") != null) options.Add("Overworld Sprites");
          if (Element.Model.GetTable("graphics.overworld.pokemon") != null) options.Add("Pokemon Icons");
@@ -578,7 +647,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          foreach (var script in scripts.Scripts) {
             if (script.ScriptOptions[script.ScriptTypeIndex].Option != "Transition") continue;
             var spots = Flags.GetAllScriptSpots(Element.Model, parser, new[] { script.ScriptAddress }, 0x16).
-               Where(spot => Element.Model.ReadMultiByteValue(spot.Address + 1, 2) == 0x4010 + Graphics - 240); // setvar gfxN
+               Where(spot => Element.Model.ReadMultiByteValue(spot.Address + 1, 2) == 0x4010 + Graphics - DynamicStart); // setvar gfxN
             var spot = spots.FirstOrDefault();
             if (spot is null) continue;
             var desiredTable = Element.Model.ReadMultiByteValue(spot.Address + 3, 2) / 10000;
@@ -589,34 +658,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          previousCategoryListener?.Dispose();
-         DynamicOverworldGraphicsCategories.Update(options.Select((option, i) => new ComboOption(option, i)), selectedIndex);
+         dynamicCategories.Update(options.Select((option, i) => new ComboOption(option, i)), selectedIndex);
          LoadDynamicOverworldGraphicsOptions();
-         previousCategoryListener = DynamicOverworldGraphicsCategories.Bind(nameof(FilteringComboOptions.SelectedIndex), (options, args) => LoadDynamicOverworldGraphicsOptions());
+         previousCategoryListener = dynamicCategories.Bind(nameof(FilteringComboOptions.SelectedIndex), (options, args) => LoadDynamicOverworldGraphicsOptions());
       }
 
       // depending on the selected category, load the sprites
       private void LoadDynamicOverworldGraphicsOptions() {
          var model = element.Model;
-         var categoryText = DynamicOverworldGraphicsCategories.FilteredOptions[DynamicOverworldGraphicsCategories.SelectedIndex].Text;
+         var categoryText = dynamicCategories.FilteredOptions[dynamicCategories.SelectedIndex].Text;
          if (categoryText == "Overworld Sprites") {
-            DynamicOverworldOptions.Clear();
-            foreach (var option in Options) DynamicOverworldOptions.Add(VisualComboOption.CreateFromSprite(option.Text, option.PixelData, option.PixelWidth, option.Index, 2, true));
+            dynamicOptions.Clear();
+            foreach (var option in Options) dynamicOptions.Add(VisualComboOption.CreateFromSprite(option.Text, option.PixelData, option.PixelWidth, option.Index, 2, true));
             DynamicOverworldGraphicsSelectedIndex = PullValueFromTransitionScript();
          } else if (categoryText == "Pokemon Icons") {
             int index = -1;
-            DynamicOverworldOptions.Clear();
+            dynamicOptions.Clear();
             foreach (var mon in new ModelTable(model, model.GetTable("graphics.overworld.pokemon"))) {
                index += 1;
                var run = model.GetNextRun(mon.GetAddress("sprite")) as ISpriteRun;
                if (run is null) continue;
                var sprite = ReadonlyPixelViewModel.Create(model, run);
                sprite = ReadonlyPixelViewModel.Crop(sprite, 0, 0, sprite.PixelWidth, sprite.PixelWidth);
-               DynamicOverworldOptions.Add(VisualComboOption.CreateFromSprite(index.ToString(), sprite.PixelData, sprite.PixelWidth, index, 2, true));
+               dynamicOptions.Add(VisualComboOption.CreateFromSprite(index.ToString(), sprite.PixelData, sprite.PixelWidth, index, 2, true));
             }
             DynamicOverworldGraphicsSelectedIndex = PullValueFromTransitionScript() - 10000;
          } else if (categoryText == "Expanded Overworld Sprites") {
             int index = -1;
-            DynamicOverworldOptions.Clear();
+            dynamicOptions.Clear();
             foreach (var item in new ModelTable(model, model.GetTable("graphics.overworld.sprites20k"))) {
                index += 1;
                var sprites = item.GetSubTable("sprites");
@@ -624,15 +693,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                var run = model.GetNextRun(sprites[0].GetAddress("sprite")) as ISpriteRun;
                if (run is null) continue;
                var sprite = ReadonlyPixelViewModel.Create(model, run);
-               DynamicOverworldOptions.Add(VisualComboOption.CreateFromSprite(index.ToString(), sprite.PixelData, sprite.PixelWidth, index, 2, true));
+               dynamicOptions.Add(VisualComboOption.CreateFromSprite(index.ToString(), sprite.PixelData, sprite.PixelWidth, index, 2, true));
             }
             DynamicOverworldGraphicsSelectedIndex = PullValueFromTransitionScript() - 20000;
          }
       }
-      public FilteringComboOptions DynamicOverworldGraphicsCategories { get; } = new();
+      // Filling these means rendering every sprite of a category (hundreds of pictures at twice the size), and the object events of a map are made again whenever the map's data
+      // changes (every tile an event is dragged over, every property of a new event). Only the event whose panel is open needs them, so they are filled when the panel first asks.
+      private readonly FilteringComboOptions dynamicCategories = new();
+      private readonly ObservableCollection<VisualComboOption> dynamicOptions = new();
+      private bool dynamicGraphicsLoaded;
       private int dynamicGraphicsIndex;
-      public int DynamicOverworldGraphicsSelectedIndex { get => dynamicGraphicsIndex; set => Set(ref dynamicGraphicsIndex, value, old => UpdateDynamicOverworldGraphicsInScript()); }
-      public ObservableCollection<VisualComboOption> DynamicOverworldOptions { get; } = new();
+      private void EnsureDynamicGraphicsLoaded() {
+         if (dynamicGraphicsLoaded || !showGraphicsAsText) return;
+         LoadDynamicOverworldGraphicsCategories();
+      }
+      public FilteringComboOptions DynamicOverworldGraphicsCategories { get { EnsureDynamicGraphicsLoaded(); return dynamicCategories; } }
+      public int DynamicOverworldGraphicsSelectedIndex { get { EnsureDynamicGraphicsLoaded(); return dynamicGraphicsIndex; } set => Set(ref dynamicGraphicsIndex, value, old => UpdateDynamicOverworldGraphicsInScript()); }
+      public ObservableCollection<VisualComboOption> DynamicOverworldOptions { get { EnsureDynamicGraphicsLoaded(); return dynamicOptions; } }
 
       #endregion
 
@@ -665,7 +743,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int RangeX {
          get => element.GetValue("range") & 0xF;
          set {
-            element.SetValue("range", (RangeY << 4) | value);
+            element.SetValue("range", (RangeY << 4) | (value & 0xF)); // (each is 4 bits: a bigger number must not spill into the other)
             rangeXY = null;
             NotifyPropertyChanged(nameof(RangeXY));
             RaiseEventVisualUpdated();
@@ -675,7 +753,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int RangeY {
          get => element.GetValue("range") >> 4;
          set {
-            element.SetValue("range", (value << 4) | RangeX);
+            element.SetValue("range", ((value & 0xF) << 4) | RangeX);
             rangeXY = null;
             NotifyPropertyChanged(nameof(RangeXY));
             RaiseEventVisualUpdated();
@@ -692,7 +770,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             rangeXY = value;
             var parts = value.Split(new[] { ',', ' ', '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length != 2) return;
-            if (parts[0].TryParseInt(out int x) && parts[1].TryParseInt(out int y)) element.SetValue("range", (y << 4) | x);
+            if (parts[0].TryParseInt(out int x) && parts[1].TryParseInt(out int y)) element.SetValue("range", ((y & 0xF) << 4) | (x & 0xF));
             NotifyPropertyChanged(nameof(RangeX));
             NotifyPropertyChanged(nameof(RangeY));
             NotifyPropertyChanged();
@@ -716,7 +794,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             element.SetValue("trainerRangeOrBerryID", value);
             RaiseEventVisualUpdated();
-            NotifyPropertiesChanged(nameof(ShowBerryContent), nameof(BerryText));
+            berryStageVisuals = null;
+            NotifyPropertiesChanged(nameof(ShowBerryContent), nameof(BerryText), nameof(HasBerrySpot), nameof(HasNoBerrySpot), nameof(SelectedBerry), nameof(SelectedBerryStage), nameof(BerryStageVisuals));
             NotifyPropertyChanged();
          }
       }
@@ -740,7 +819,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                null;
             NotifyPropertiesChanged(
                nameof(ScriptAddressText),
-               nameof(ShowItemContents), nameof(ItemContents),
+               nameof(ShowItemContents), nameof(ItemContents), nameof(ShowItemQuantity), nameof(ItemQuantity),
                nameof(ShowNpcText), nameof(NpcTextEditor),
                nameof(ShowTrainerContent), nameof(TrainerClass), nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeTextEditor), nameof(TrainerAfterTextEditor), nameof(TrainerWinTextEditor), nameof(TrainerTeam),
                nameof(ShowRematchTrainerContent),
@@ -792,7 +871,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
             NotifyPropertiesChanged(
                nameof(ScriptAddress),
-               nameof(ShowItemContents), nameof(ItemContents),
+               nameof(ShowItemContents), nameof(ItemContents), nameof(ShowItemQuantity), nameof(ItemQuantity),
                nameof(ShowNpcText), nameof(NpcTextEditor),
                nameof(ShowTrainerContent), nameof(TrainerClass), nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeTextEditor), nameof(TrainerAfterTextEditor), nameof(TrainerWinTextEditor), nameof(TrainerTeam),
                nameof(ShowRematchTrainerContent),
@@ -849,10 +928,40 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public IPixelViewModel DefaultOW { get; }
-      public ObservableCollection<VisualComboOption> Options { get; } = new();
+
+      // The option lists below are large (every overworld sprite, every item, every trainer)
+      // and are only needed when this event is shown in the event panel.
+      // Object events get created for every event on the map, so build these lists on first use instead of in the constructor.
+      private readonly IReadOnlyList<IPixelViewModel> overworldSprites;
+      private ObservableCollection<VisualComboOption> options;
+      public ObservableCollection<VisualComboOption> Options {
+         get {
+            if (options == null) {
+               var list = new ObservableCollection<VisualComboOption>();
+               for (int i = 0; i < overworldSprites.Count; i++) list.Add(VisualComboOption.CreateFromSprite(i.ToString(), overworldSprites[i].PixelData, overworldSprites[i].PixelWidth, i, 2, true));
+               options = list;
+            }
+            return options;
+         }
+      }
+
       public FilteringComboOptions FacingOptions { get; } = new();
-      public ObservableCollection<string> ClassOptions { get; } = new();
-      public FilteringComboOptions ItemOptions { get; } = new();
+
+      private ObservableCollection<string> classOptions;
+      public ObservableCollection<string> ClassOptions => classOptions ??= new(element.Model.GetOptions(HardcodeTablesModel.TrainerClassNamesTable));
+
+      private readonly FilteringComboOptions itemOptions = new();
+      private bool itemOptionsLoaded;
+      public FilteringComboOptions ItemOptions {
+         get {
+            if (!itemOptionsLoaded) {
+               itemOptionsLoaded = true;
+               itemOptions.Update(ComboOption.Convert(element.Model.GetOptions(HardcodeTablesModel.ItemsTableName)), ItemContents);
+               itemOptions.Bind(nameof(itemOptions.SelectedIndex), (sender, e) => ItemContents = itemOptions.ModelValue);
+            }
+            return itemOptions;
+         }
+      }
 
       #region Extended Properties
 
@@ -860,19 +969,42 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       // We can provide an enriched editing experience in the event panel.
       // These are the 'show' properties for those controls.
 
-      public bool ShowItemContents => EventTemplate.GetItemAddress(element.Model, this) != Pointer.NULL;
+      /// <summary>
+      /// pokeemerald-expansion's item balls all run the same script (Common_EventScript_FindItem) and keep the item
+      /// in the event's 'berry id' field and the amount in the X range, so the item is changed without touching any script.
+      /// </summary>
+      public bool IsSharedScriptItemBall => element.Model.TryGetUnmappedConstant(FindItemScriptConstant, out var script) && script >= 0 && ScriptAddress == script;
+      public const string FindItemScriptConstant = "map.finditem.script";
+
+      public bool ShowItemContents => IsSharedScriptItemBall || EventTemplate.GetItemAddress(element.Model, this) != Pointer.NULL;
 
       public int ItemContents {
          get {
+            if (IsSharedScriptItemBall) return TrainerRangeOrBerryID;
             var itemAddress = EventTemplate.GetItemAddress(element.Model, this);
             if (itemAddress == Pointer.NULL) return -1;
             return element.Model.ReadMultiByteValue(itemAddress, 2);
          }
          set {
+            if (IsSharedScriptItemBall) {
+               TrainerRangeOrBerryID = value;
+               ItemOptions.Update(ItemOptions.AllOptions, value);
+               NotifyPropertyChanged();
+               return;
+            }
             var itemAddress = EventTemplate.GetItemAddress(element.Model, this);
             if (itemAddress == Pointer.NULL) return;
             element.Model.WriteMultiByteValue(itemAddress, 2, element.Token, value);
             ItemOptions.Update(ItemOptions.AllOptions, value);
+            NotifyPropertyChanged();
+         }
+      }
+
+      public bool ShowItemQuantity => IsSharedScriptItemBall;
+      public int ItemQuantity {
+         get => RangeX == 0 ? 1 : RangeX;
+         set {
+            RangeX = value.LimitToRange(1, 15);
             NotifyPropertyChanged();
          }
       }
@@ -888,11 +1020,69 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Trainer Content
 
-      public FilteringComboOptions TrainerOptions { get; } = new();
+      private readonly FilteringComboOptions trainerOptions = new();
+      private bool trainerOptionsLoaded;
+      public FilteringComboOptions TrainerOptions {
+         get {
+            if (!trainerOptionsLoaded) {
+               trainerOptionsLoaded = true;
+               RefreshTrainerOptions();
+               trainerOptions.Bind(nameof(trainerOptions.SelectedIndex), (options, args) => {
+                  this.eventTemplate.UseTrainerFlag(trainerOptions.SelectedIndex);
+                  var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
+                  element.Model.WriteMultiByteValue(trainerContent.TrainerIndexAddress, 2, () => element.Token, trainerOptions.SelectedIndex);
+                  TeamVisualizations.Clear();
+                  trainerSprite = null;
+                  trainerName = teamText = null;
+                  trainerBeforeText = trainerWinText = trainerAfterText = null;
+                  NotifyPropertiesChanged(nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeTextEditor), nameof(TrainerWinTextEditor), nameof(TrainerAfterTextEditor), nameof(TrainerTeam), nameof(TrainerClass));
+               });
+            }
+            return trainerOptions;
+         }
+      }
 
-      public bool ShowTrainerContent => EventTemplate.GetTrainerContent(element.Model, this) != null && TrainerType != 0;
+      public bool ShowTrainerContent => EventTemplate.GetTrainerContent(element.Model, this) != null && (TrainerType != 0 || IsBattleInsideScript);
 
-      public TextEditorViewModel TrainerContent { get; } = new();
+      /// <summary>
+      /// Rivals and gym leaders don't use the trainer-type fields: their (longer) script starts a trainerbattle somewhere after
+      /// the dialogue. The trainer editor is still useful for them.
+      /// </summary>
+      public bool IsBattleInsideScript => EventTemplate.FindTrainerBattleInScript(element.Model, parser, this) != Pointer.NULL;
+
+      // The trainer team editor is only needed when this event is shown in the event panel.
+      // Serializing the team (and rendering its icons) is expensive, so build it on first use.
+      private TextEditorViewModel trainerContentEditor;
+      private bool updatingTrainerContentEditor;
+      public TextEditorViewModel TrainerContent {
+         get {
+            if (trainerContentEditor == null) {
+               trainerContentEditor = new TextEditorViewModel { PreFormatter = ExpansionTrainerTeamRun.TeamFormatterFor(element.Model) };
+               RefreshTrainerContentEditor();
+               trainerContentEditor.Bind(nameof(TextEditorViewModel.Content), (sender, e) => {
+                  if (updatingTrainerContentEditor) return;
+                  TrainerTeam = sender.Content;
+               });
+            }
+            return trainerContentEditor;
+         }
+      }
+
+      /// <summary>
+      /// Keep the team editor in sync with the team (for example, after picking a different trainer).
+      /// Without this, the editor keeps showing the previous trainer's team, and editing it would write that team into the new trainer.
+      /// </summary>
+      private void RefreshTrainerContentEditor() {
+         if (trainerContentEditor == null) return;
+         var text = TrainerTeam ?? string.Empty;
+         if (trainerContentEditor.Content == text) return;
+         updatingTrainerContentEditor = true;
+         try {
+            trainerContentEditor.Content = text;
+         } finally {
+            updatingTrainerContentEditor = false;
+         }
+      }
 
       public int TrainerClass {
          get {
@@ -917,9 +1107,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (trainerSprite != null) return trainerSprite;
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
             if (trainerContent == null) return null;
-            var spriteIndex = element.Model[trainerContent.TrainerClassAddress + 2];
-            var spriteAddress = element.Model.GetTableModel(HardcodeTablesModel.TrainerSpritesName)[spriteIndex].GetAddress("sprite");
-            var spriteRun = element.Model.GetNextRun(spriteAddress) as ISpriteRun;
+            if (!trainerContent.TrainerSpriteAddress.InRange(0, element.Model.Count)) return null;
+            var spriteIndex = element.Model[trainerContent.TrainerSpriteAddress];
+            // hacks can point at a sprite that doesn't exist in the table: show no sprite rather than failing to show the event
+            var spriteAddress = EventTemplate.GetTrainerSpriteAddress(element.Model, spriteIndex);
+            if (!spriteAddress.InRange(0, element.Model.Count)) return null;
+            if (element.Model.GetNextRun(spriteAddress) is not ISpriteRun spriteRun || spriteRun.Start != spriteAddress) return null;
             return trainerSprite = ReadonlyPixelViewModel.Create(element.Model, spriteRun, true, .5);
          }
       }
@@ -930,7 +1123,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (trainerName != null) return trainerName;
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
             if (trainerContent == null) return null;
-            var text = element.Model.TextConverter.Convert(element.Model, trainerContent.TrainerNameAddress, 12);
+            var text = element.Model.TextConverter.Convert(element.Model, trainerContent.TrainerNameAddress, trainerContent.TrainerNameLength);
             return trainerName = text.Trim('"');
          }
          set {
@@ -938,11 +1131,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
             if (trainerContent == null) return;
             var bytes = element.Model.TextConverter.Convert(value, out _);
-            while (bytes.Count > 12) {
+            var nameLength = trainerContent.TrainerNameLength;
+            while (bytes.Count > nameLength) {
                bytes.RemoveAt(bytes.Count - 1);
                bytes[bytes.Count - 1] = 0xFF;
             }
-            while (bytes.Count < 12) bytes.Add(0);
+            while (bytes.Count < nameLength) bytes.Add(0);
             element.Token.ChangeData(element.Model, trainerContent.TrainerNameAddress, bytes);
             NotifyPropertyChanged();
             var options = TrainerOptions.AllOptions.ToList();
@@ -958,10 +1152,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
          var options = new List<ComboOption>();
+         var layout = TrainerLayout.For(trainerTable.Run);
          for (int i = 0; i < trainers.Count; i++) {
-            options.Add(CreateOption(i, trainerTable[i].GetValue(1), trainers[i]));
+            options.Add(CreateOption(i, element.Model[trainerTable[i].Start + layout.ClassOffset], trainers[i]));
          }
-         TrainerOptions.Update(options, trainerContent?.TrainerIndex ?? 0);
+         trainerOptions.Update(options, trainerContent?.TrainerIndex ?? 0);
       }
 
       private TextEditorViewModel trainerBeforeText, trainerWinText, trainerAfterText;
@@ -977,7 +1172,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (trainerContent == null) return null;
             var address = element.Model.ReadPointer(trainerContent.TeamPointer);
             if (address < 0 || address >= element.Model.Count) return null;
-            if (element.Model.GetNextRun(address) is not TrainerPokemonTeamRun run) return null;
+            if (element.Model.GetNextRun(address) is not ITrainerTeamRun run) return null;
             if (run.Start != address) return null;
             if (TeamVisualizations.Count == 0) UpdateTeamVisualizations(run);
             return teamText = run.SerializeRun();
@@ -988,20 +1183,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (trainerContent == null) return;
             var address = element.Model.ReadPointer(trainerContent.TeamPointer);
             if (address < 0 || address >= element.Model.Count) return;
-            if (element.Model.GetNextRun(address) is not TrainerPokemonTeamRun run) return;
+            if (element.Model.GetNextRun(address) is not ITrainerTeamRun run) return;
             if (run.Start != address) return;
-            var newRun = run.DeserializeRun(value, element.Token, false, false, out _);
+            var newRun = run.DeserializeRun(value, element.Token, out _, out _);
             element.Model.ObserveRunWritten(element.Token, newRun);
             if (newRun.Start != run.Start) DataMoved.Raise(this, new("Trainer Team", newRun.Start));
-            UpdateTeamVisualizations(newRun);
+            UpdateTeamVisualizations(newRun as IStreamRun);
             NotifyPropertyChanged();
          }
       }
 
       public ObservableCollection<IPixelViewModel> TeamVisualizations { get; } = new();
 
-      private void UpdateTeamVisualizations(TrainerPokemonTeamRun team) {
+      private void UpdateTeamVisualizations(IStreamRun team) {
          TeamVisualizations.Clear();
+         if (team == null) return;
          foreach (var vis in team.Visualizations) {
             TeamVisualizations.Add(vis);
          }
@@ -1011,7 +1207,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ICommand OpenTrainerData => StubCommand(ref openTrainerData, () => {
          var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
          if (trainerContent == null) return;
-         gotoAddress(trainerContent.TrainerClassAddress - 1);
+         gotoAddress(trainerContent.TrainerStart);
       });
 
       public static ComboOption CreateOption(IReadOnlyList<string> classOptions, int index, int trainerClass, string name) => new($"{index} - {classOptions[trainerClass.LimitToRange(0, classOptions.Count - 1)]} {name}", index);
@@ -1023,7 +1219,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (trainerContent == null) return null;
          var address = element.Model.ReadPointer(trainerContent.TeamPointer);
          if (address < 0 || address >= element.Model.Count) return null;
-         if (element.Model.GetNextRun(address) is not TrainerPokemonTeamRun run) return null;
+         if (element.Model.GetNextRun(address) is not ITrainerTeamRun run) return null;
          if (run.Start != address) return null;
          return run.GetAutoCompleteOptions(line, lineIndex, characterIndex);
       }
@@ -1070,7 +1266,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void ReplaceRematchScript() {
          // TODO replace script with simple trainer script (keep before/during/after battle text if we can)
          var content = EventTemplate.GetRematchTrainerContent(element.Model, parser, this);
-         string before = "<auto>", win = "<auto", after = "<auto>";
+         if (content == null) return; // not a rematch trainer: there is nothing to replace
+         string before = "<auto>", win = "<auto>", after = "<auto>";
          if (content.BeforeTextPointer != Pointer.NULL) before = $"<{content.BeforeTextPointer:X6}>";
          if (content.WinTextPointer != Pointer.NULL) win = $"<{content.WinTextPointer:X6}>";
          if (content.AfterTextPointer != Pointer.NULL) after = $"<{content.AfterTextPointer:X6}>";
@@ -1150,7 +1347,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          get {
             var content = tutorContent.Value;
             if (content != null && TutorOptions.AllOptions == null) {
-               TutorOptions.Update(ComboOption.Convert(element.Model.GetOptions(HardcodeTablesModel.MoveTutors)), TutorNumber);
+               // the expansion hands the tutor script a move id: the list is every move. Vanilla hands it an index into the tutor table.
+               var tutorList = Flags.IsExpansion(element.Model) ? HardcodeTablesModel.GetMoveNameTable(element.Model) : HardcodeTablesModel.MoveTutors;
+               TutorOptions.Update(ComboOption.Convert(element.Model.GetOptions(tutorList)), TutorNumber);
                TutorOptions.Bind(nameof(TutorOptions.SelectedIndex), (sender, e) => TutorNumber = TutorOptions.SelectedIndex);
             }
             return tutorContent.Value != null;
@@ -1171,12 +1370,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             if (tutorContent.Value == null) return;
             element.Model.WriteMultiByteValue(tutorContent.Value.TutorAddress, 2, Token, value);
+            EventTemplate.UpdateTutorMoveName(element.Model, tutorContent.Value, value, Token); // the question names the move
          }
       }
 
       public FilteringComboOptions TutorOptions { get; } = new();
 
-      public void GotoTutors() => gotoAddress(element.Model.GetTableModel(HardcodeTablesModel.MoveTutors)[TutorNumber].Start);
+      public void GotoTutors() {
+         var table = Flags.IsExpansion(element.Model) ? HardcodeTablesModel.GetMoveNameTable(element.Model) : HardcodeTablesModel.MoveTutors;
+         var tutors = element.Model.GetTableModel(table);
+         if (tutors == null || TutorNumber < 0 || TutorNumber >= tutors.Count) return;
+         gotoAddress(tutors[TutorNumber].Start);
+      }
 
       #endregion
 
@@ -1190,10 +1395,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          get {
             var content = tradeContent.Value;
             if (content != null && TradeOptions.AllOptions == null) {
-               var pokenames = element.Model.GetOptions(HardcodeTablesModel.PokemonNameTable);
+               var pokenames = element.Model.GetOptions(HardcodeTablesModel.GetSpeciesNameTable(element.Model));
                var options = new List<string>();
                foreach (var trade in element.Model.GetTableModel(HardcodeTablesModel.TradeTable)) {
-                  if (!trade.TryGetValue("receive", out int receive) || !trade.TryGetValue("give", out int give)) {
+                  // vanilla calls the species you hand over 'give'; the expansion calls it 'requested'
+                  var giveField = trade.HasField("give") ? "give" : "requested";
+                  if (!trade.TryGetValue("receive", out int receive) || !trade.TryGetValue(giveField, out int give) || give >= pokenames.Count || receive >= pokenames.Count) {
                      options.Add(options.Count.ToString());
                   } else {
                      options.Add($"{pokenames[give]} -> {pokenames[receive]}");
@@ -1236,7 +1443,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          get {
             var content = legendaryContent.Value;
             if (content != null && PokemonOptions.AllOptions == null) {
-               var options = ComboOption.Convert(element.Model.GetOptions(HardcodeTablesModel.PokemonNameTable));
+               var options = ComboOption.Convert(element.Model.GetOptions(HardcodeTablesModel.GetSpeciesNameTable(element.Model)));
                PokemonOptions.Update(options, element.Model.ReadMultiByteValue(content.SetWildBattle + 1, 2));
                PokemonOptions.Bind(nameof(PokemonOptions.SelectedIndex), (sender, e) => {
                   element.Model.WriteMultiByteValue(content.Cry + 1, 2, element.Token, PokemonOptions.SelectedIndex);
@@ -1254,7 +1461,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public FilteringComboOptions PokemonOptions { get; } = new();
-      public void GotoPokemon() => gotoAddress(element.Model.GetTableModel(HardcodeTablesModel.PokemonNameTable)[PokemonOptions.SelectedIndex].Start);
+      public void GotoPokemon() => gotoAddress(element.Model.GetTableModel(HardcodeTablesModel.GetSpeciesNameTable(element.Model))[PokemonOptions.SelectedIndex].Start);
       public int Level {
          get => legendaryContent.Value == null ? -1 : element.Model[legendaryContent.Value.SetWildBattle + 3];
          set {
@@ -1312,7 +1519,12 @@ show:
 
       #region Berry Content
 
-      public bool ShowBerryContent => TrainerType == 0 && TrainerRangeOrBerryID != 0;
+      /// <summary>A berry tree: an object with the berry-tree movement type whose 'trainer range' field holds the tree id.</summary>
+      public bool ShowBerryContent => TrainerType == 0 && TrainerRangeOrBerryID != 0 && IsBerryTreeMovement(element.Model, MoveType);
+
+      /// <summary>True when the new-game script plants something on this tree (so there's a setberrytree command to edit).</summary>
+      public bool HasBerrySpot => ShowBerryContent && berries.BerryMap.ContainsKey(TrainerRangeOrBerryID);
+      public bool HasNoBerrySpot => ShowBerryContent && !HasBerrySpot;
 
       public string BerryText {
          get {
@@ -1325,10 +1537,139 @@ show:
          }
       }
 
+      public ObservableCollection<string> BerryOptions => berries.BerryOptions;
+
+      /// <summary>Which berry the new-game script plants here. Changing it rewrites the setberrytree command.</summary>
+      public int SelectedBerry {
+         get => berries.BerryMap.TryGetValue(TrainerRangeOrBerryID, out var spot) ? spot.BerryID : -1;
+         set {
+            if (value < 0 || !berries.BerryMap.TryGetValue(TrainerRangeOrBerryID, out var spot) || spot.BerryID == value) return;
+            var model = element.Model;
+            if (spot.Address + 3 >= model.Count) return;
+            var token = element.Token;
+            token.ChangeData(model, spot.Address + 2, (byte)(value + berries.IdOffset));
+            berries.BerryMap[TrainerRangeOrBerryID] = spot with { BerryID = value };
+            berryStageVisuals = null;
+            NotifyPropertiesChanged(nameof(SelectedBerry), nameof(BerryText), nameof(BerryStageVisuals));
+            RaiseEventVisualUpdated();
+         }
+      }
+
+      public static readonly IReadOnlyList<string> BerryStageNames = new[] { "Planted", "Sprouted", "Taller", "Flowering", "Has berries", "Trunk", "Budding" };
+
+      /// <summary>The growth stages this ROM's trees have: the vanilla games stop at 'Has berries', the expansion also has the trunk and budding stages.</summary>
+      private int BerryStageCount => BerryTreeGraphics.StageCount(element.Model).LimitToRange(1, BerryStageNames.Count);
+      public IReadOnlyList<string> BerryStageOptions => BerryStageNames.Take(BerryStageCount).ToList();
+
+      /// <summary>How far along the tree is when the game starts (0 = planted ... 4 = has berries).</summary>
+      public int SelectedBerryStage {
+         get => berries.BerryMap.TryGetValue(TrainerRangeOrBerryID, out var spot) ? (spot.Stage - 1).LimitToRange(0, BerryStageCount - 1) : -1;
+         set {
+            if (value < 0 || !berries.BerryMap.TryGetValue(TrainerRangeOrBerryID, out var spot) || spot.Stage == value + 1) return;
+            var model = element.Model;
+            if (spot.Address + 3 >= model.Count) return;
+            element.Token.ChangeData(model, spot.Address + 3, (byte)(value + 1));
+            berries.BerryMap[TrainerRangeOrBerryID] = spot with { Stage = value + 1 };
+            NotifyPropertyChanged();
+            RaiseEventVisualUpdated();
+         }
+      }
+
       public void GotoBerryCode() {
          if (berries.BerryMap.TryGetValue(TrainerRangeOrBerryID, out BerrySpot spot)) {
             gotoAddress(spot.Address);
+         } else {
+            var script = element.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, "scripts.newgame.berries");
+            if (script < 0) script = element.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, "scripts.newgame.setflags");
+            if (script >= 0) gotoAddress(script);
          }
+      }
+
+      /// <summary>
+      /// Berry trees don't use their own graphics: the game draws gBerries[berry].treePicTable with the tree's growth stage.
+      /// Returns null if this object isn't a berry tree the editor knows about.
+      /// </summary>
+      private IPixelViewModel RenderBerryTree(IDataModel model) {
+         if (TrainerType != 0 || TrainerRangeOrBerryID == 0) return null;
+         if (!IsBerryTreeMovement(model, MoveType)) return null;
+         if (!berries.BerryMap.TryGetValue(TrainerRangeOrBerryID, out var spot)) return null;
+         return RenderBerryStage(model, spot.BerryID, spot.Stage - 1);
+      }
+
+      /// <summary>
+      /// Which frame of the berry's picture table the game shows (first frame of that stage's animation) for each growth stage,
+      /// in the order of BerryStageNames: planted, sprouted, taller, flowering, berries, then the two save-compatibility stages
+      /// (trunk, budding) that look like 'taller'.
+      /// </summary>
+      private static readonly int[] BerryFrameForStage = { 0, 1, 3, 5, 7, 3, 3 };
+
+      /// <param name="stage">0 = planted ... 6 = budding</param>
+      public static IPixelViewModel RenderBerryStage(IDataModel model, int berryIndex, int stage) {
+         // the expansion lists the tree's frames and palettes in the berry stats, the vanilla games in two arrays (see BerryTreeGraphics)
+         if (!BerryTreeGraphics.TryGetTables(model, berryIndex, out var picTable, out var slots)) return null;
+         stage = stage.LimitToRange(0, Math.Min(BerryFrameForStage.Length, BerryTreeGraphics.StageCount(model)) - 1);
+         int frame = BerryFrameForStage[stage];
+         // the frame table ends where the data isn't a plausible {pointer, size} pair: clamp to the last real frame
+         int frameCount = 0;
+         while (frameCount < 16 && picTable + frameCount * 8 + 8 <= model.Count && model.ReadPointer(picTable + frameCount * 8) >= 0 && model.ReadMultiByteValue(picTable + frameCount * 8 + 4, 2) is > 0 and <= 4096) frameCount++;
+         if (frameCount == 0) return null;
+         frame = Math.Min(frame, frameCount - 1);
+         var data = model.ReadPointer(picTable + frame * 8);
+         var size = model.ReadMultiByteValue(picTable + frame * 8 + 4, 2);
+         const int widthTiles = 2;
+         int heightTiles = size / 32 / widthTiles;
+         if (heightTiles <= 0 || data < 0 || data + size > model.Count) return null;
+         var palettes = model.GetTableModel(HardcodeTablesModel.OverworldPalettes);
+         int slot = slots + stage < model.Count ? model[slots + stage] - 2 : -1;
+         IReadOnlyList<short> palette = null;
+         if (palettes != null && slot >= 0 && slot < palettes.Count && model.GetNextRun(palettes[slot].GetAddress("pal")) is IPaletteRun paletteRun) palette = paletteRun.GetPalette(model, 0);
+         palette ??= TileViewModel.CreateDefaultPalette(16);
+         // like every other sprite: palette entry 0 is the background, drawn as transparent
+         // (the map treats -1 as 'no transparency', so the background needs a real color that no other pixel uses)
+         palette = SpriteTool.CreatePaletteWithUniqueTransparentColor(palette);
+         int width = widthTiles * 8, height = heightTiles * 8;
+         var pixels = new short[width * height];
+         for (int t = 0; t < widthTiles * heightTiles; t++) {
+            int tx = (t % widthTiles) * 8, ty = (t / widthTiles) * 8;
+            for (int y = 0; y < 8; y++) {
+               for (int x = 0; x < 8; x++) {
+                  var b = model[data + t * 32 + y * 4 + x / 2];
+                  var index = x % 2 == 0 ? b & 0xF : b >> 4;
+                  pixels[(ty + y) * width + tx + x] = palette[index];
+               }
+            }
+         }
+         return new ReadonlyPixelViewModel(width, height, pixels, palette[0]);
+      }
+
+      /// <summary>A picture of the tree at every growth stage, for the 'Growth' dropdown.</summary>
+      private ObservableCollection<VisualComboOption> berryStageVisuals;
+      public ObservableCollection<VisualComboOption> BerryStageVisuals {
+         get {
+            if (berryStageVisuals != null) return berryStageVisuals;
+            var options = berryStageVisuals = new ObservableCollection<VisualComboOption>();
+            if (!berries.BerryMap.TryGetValue(TrainerRangeOrBerryID, out var spot)) return options;
+            for (int stage = 0; stage < BerryStageCount; stage++) {
+               var image = RenderBerryStage(element.Model, spot.BerryID, stage);
+               if (image == null) { options.Add(VisualComboOption.CreateFromSprite(BerryStageNames[stage], new short[16 * 16], 16, stage, 1, false)); continue; }
+               options.Add(VisualComboOption.CreateFromSprite(BerryStageNames[stage], image.PixelData, image.PixelWidth, stage, 2, false));
+            }
+            return options;
+         }
+      }
+
+      private static int berryTreeMovementType = -2;
+      private static bool IsBerryTreeMovement(IDataModel model, int moveType) {
+         if (berryTreeMovementType == -2) {
+            berryTreeMovementType = 57; // MOVEMENT_TYPE_BERRY_TREE_GROWTH in the vanilla games
+            // 'movementtypes' is HMA's list of movement actions; a ROM's object movement types are in 'objectmovementtypes' (or the CamelCase 'FacingOptions')
+            foreach (var listName in new[] { "objectmovementtypes", "FacingOptions" }) {
+               if (!model.TryGetList(listName, out var types)) continue;
+               var index = types.FindIndex(name => name != null && name.Replace("_", "").Contains("BerryTree", StringComparison.OrdinalIgnoreCase));
+               if (index >= 0) { berryTreeMovementType = index; break; }
+            }
+         }
+         return moveType == berryTreeMovementType;
       }
 
       #endregion
@@ -1347,17 +1688,32 @@ show:
          ShowBerryContent
       );
 
-      public ObservableCollection<EventTextViewModel> BasicText { get; } = new();
-      public ObservableCollection<int> BasicItemAddresses { get; } = new();
-      public ObservableCollection<int> BasicFlagAddresses { get; } = new();
+      // The 'basic' content requires walking the event's script several times.
+      // It's only shown for the selected event, so it's filled the first time any of it is requested.
+      private bool basicContentLoaded;
+      private void EnsureBasicContent() {
+         if (basicContentLoaded) return;
+         basicContentLoaded = true;
+         if (ShowNoContent) FillBasicContent();
+      }
+
+      private readonly ObservableCollection<EventTextViewModel> basicText = new();
+      private readonly ObservableCollection<int> basicItemAddresses = new(), basicFlagAddresses = new();
+      private readonly FilteringComboOptions basicItem = new();
+      public ObservableCollection<EventTextViewModel> BasicText { get { EnsureBasicContent(); return basicText; } }
+      public ObservableCollection<int> BasicItemAddresses { get { EnsureBasicContent(); return basicItemAddresses; } }
+      public ObservableCollection<int> BasicFlagAddresses { get { EnsureBasicContent(); return basicFlagAddresses; } }
       private int basicFlag = -1;
-      public FilteringComboOptions BasicItem { get; } = new();
+      public FilteringComboOptions BasicItem { get { EnsureBasicContent(); return basicItem; } }
       public bool HasBasicItem => (BasicItem.AllOptions?.Count ?? 0) > 0;
-      public int BasicFlag { get => basicFlag; set => Set(ref basicFlag, value, old => NotifyPropertyChanged(nameof(HasBasicFlag))); }
-      public bool HasBasicFlag => basicFlag != -1;
+      public int BasicFlag {
+         get { EnsureBasicContent(); return basicFlag; }
+         set => Set(ref basicFlag, value, old => NotifyPropertyChanged(nameof(HasBasicFlag)));
+      }
+      public bool HasBasicFlag => BasicFlag != -1;
       private string basicFlagText = string.Empty;
       public string BasicFlagText {
-         get => basicFlagText;
+         get { EnsureBasicContent(); return basicFlagText; }
          set => Set(ref basicFlagText, value, old => {
             if (!basicFlagText.TryParseHex(out int result)) return;
             foreach (var address in BasicFlagAddresses) element.Model.WriteMultiByteValue(address, 2, Token, result);
@@ -1459,43 +1815,28 @@ show:
 
       public ObjectEventViewModel(BlockMapViewModel parent, Action<int> gotoAddress, ModelArrayElement objectEvent, EventTemplate eventTemplate, IReadOnlyList<IPixelViewModel> sprites, IPixelViewModel defaultSprite, BerryInfo berries) : base(objectEvent, "objectCount") {
          this.parent = parent;
-         this.parser = parent.ViewPort.Tools.CodeTool.ScriptParser;
          this.gotoAddress = gotoAddress;
          this.eventTemplate = eventTemplate;
          this.berries = berries;
-         for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i, 2, true));
+         overworldSprites = sprites;
          DefaultOW = defaultSprite;
-         ShowGraphicsAsText = Graphics >= Options.Count;
+         showGraphicsAsText = Graphics >= sprites.Count; // the lists of dynamic graphics are filled when the event panel first asks for them
          objectEvent.Model.TryGetList("FacingOptions", out var list);
          FacingOptions.Update(ComboOption.Convert(list), MoveType);
-         FacingOptions.Bind(nameof(FacingOptions.SelectedIndex), (sender, e) => MoveType = FacingOptions.ModelValue);
-         foreach (var item in objectEvent.Model.GetOptions(HardcodeTablesModel.TrainerClassNamesTable)) ClassOptions.Add(item);
-         ItemOptions.Update(ComboOption.Convert(objectEvent.Model.GetOptions(HardcodeTablesModel.ItemsTableName)), ItemContents);
-         ItemOptions.Bind(nameof(ItemOptions.SelectedIndex), (sender, e) => ItemContents = ItemOptions.ModelValue);
-
-         RefreshTrainerOptions();
-         TrainerOptions.Bind(nameof(TrainerOptions.SelectedIndex), (options, args) => {
-            this.eventTemplate.UseTrainerFlag(TrainerOptions.SelectedIndex);
-            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-            element.Model.WriteMultiByteValue(trainerContent.TrainerIndexAddress, 2, () => element.Token, TrainerOptions.SelectedIndex);
-            TeamVisualizations.Clear();
-            trainerSprite = null;
-            trainerName = teamText = null;
-            trainerBeforeText = trainerWinText = trainerAfterText = null;
-            NotifyPropertiesChanged(nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeTextEditor), nameof(TrainerWinTextEditor), nameof(TrainerAfterTextEditor), nameof(TrainerTeam), nameof(TrainerClass));
+         FacingOptions.Bind(nameof(FacingOptions.SelectedIndex), (sender, e) => {
+            if (FacingOptions.SelectedIndex >= 0) MoveType = FacingOptions.ModelValue; // (a movement type without a name selects nothing: keep the number it has)
          });
 
          tutorContent = new Lazy<TutorEventContent>(() => EventTemplate.GetTutorContent(element.Model, parser, this));
          martContent = new Lazy<MartEventContent>(() => EventTemplate.GetMartContent(element.Model, parser, this));
          tradeContent = new Lazy<TradeEventContent>(() => EventTemplate.GetTradeContent(element.Model, parser, this.ScriptAddress));
          legendaryContent = new Lazy<LegendaryEventContent>(() => EventTemplate.GetLegendaryEventContent(element.Model, parser, this));
-         if (ShowNoContent) FillBasicContent();
 
          UpdateScriptError(ScriptAddress);
 
-         TrainerContent.PreFormatter = new TrainerTextFormatter(objectEvent.Model);
-         TrainerContent.Content = TrainerTeam;
-         TrainerContent.Bind(nameof(TextEditorViewModel.Content), (sender, e) => TrainerTeam = sender.Content);
+         PropertyChanged += (sender, e) => {
+            if (e.PropertyName == nameof(TrainerTeam)) RefreshTrainerContentEditor();
+         };
       }
 
       public override int TopOffset => 16 - (EventRender?.PixelHeight ?? 0);
@@ -1511,17 +1852,19 @@ show:
             76 => 76, // invisible
             _ => 0,
          };
-         EventRender = Render(model, owTable, DefaultOW, Graphics, facing, PullValueFromTransitionScript);
+         if (parent != null) GraphicsVariableSprites.RegisterParser(model, parser);
+         EventRender = RenderBerryTree(model) ?? Render(model, owTable, DefaultOW, Graphics, facing, FindGraphicsVariableSpriteInMap, FindAnyGraphicsVariableSpriteInMap);
          NotifyPropertyChanged(nameof(EventRender));
       }
 
       /// <param name="facing">(0, 1, 2, 3) = (down, up, left, right)</param>
-      public static IPixelViewModel Render(IDataModel model, ModelTable owTable, IPixelViewModel defaultOW, int index, int facing, Func<int> dynamicSprites) {
+      /// <param name="dynamicSprites">For a graphics variable: the sprite that a script of the map gives to this variable (-1 if none does).</param>
+      /// <param name="dynamicFallback">For a graphics variable: a sprite that a script of the map gives to any graphics variable (-1 if none does).</param>
+      public static IPixelViewModel Render(IDataModel model, ModelTable owTable, IPixelViewModel defaultOW, int index, int facing, Func<int> dynamicSprites, Func<int> dynamicFallback = null) {
          // special case: gfx variables
-         if (index >= 240 && index <= 255) {
-            var fromScript = dynamicSprites();
-            if (fromScript > -1) index = fromScript;
-         }
+         // Which sprite the var holds is decided by scripts at runtime (a transition script on some maps, a trigger, an NPC's own script, ... on others).
+         // What the editor shows instead is a View menu choice (GraphicsVariableDisplay).
+         if (IsDynamicGraphics(model, index)) return RenderDynamicGraphics(model, owTable, defaultOW, index, dynamicSprites, dynamicFallback);
 
          // special case: expanded OWs for pokemon / sprites20k (HMA expansion utility integration)
          ModelTable dataTable;
@@ -1546,6 +1889,7 @@ show:
          var sprites = data.GetSubTable("sprites");
 
          int graphicsAddress;
+         var requestedFacing = -1;
          bool invisible = false;
          bool flip = false;
          if (sprites == null) {
@@ -1557,6 +1901,7 @@ show:
             invisible = facing == 76;
             flip = facing == 3;
             if (facing == 3) facing = 2;
+            requestedFacing = facing;
             if (facing >= sprites.Count) facing = 0;
             graphicsAddress = sprites.Run.Start;
          }
@@ -1573,9 +1918,146 @@ show:
          if (paletteRun == null) return defaultOW;
          var ow = ReadonlyPixelViewModel.Create(model, graphicsRun, paletteRun, true);
          if (sprites is null) ow = ReadonlyPixelViewModel.Crop(ow, 0, 0, ow.PixelWidth, ow.PixelHeight / 2);
+         else ow = CropToFrame(ow, data.GetValue("width"), data.GetValue("height"), sprites.Count, requestedFacing);
          if (invisible) ow = BuildInvisibleEventRender(ow);
          if (flip) ow = ow.ReflectX();
          return ow;
+      }
+
+      /// <summary>
+      /// A sprite whose frames are all in one tall image (pokeemerald-expansion 'relative frames': the player characters, the bike, surfing, fishing, ...)
+      /// is a single list entry that is several frames high. Only one frame is shown: the facing it is drawn with (down, up, left) or the first frame (down).
+      /// The size of one frame is the width and height the sprite declares.
+      /// </summary>
+      public static IPixelViewModel CropToFrame(IPixelViewModel image, int frameWidth, int frameHeight, int listCount, int facing) {
+         if (image == null || frameWidth <= 0 || frameHeight <= 0) return image;
+         frameWidth = (frameWidth + 7) / 8 * 8; // the pictures are made of 8x8 tiles
+         frameHeight = (frameHeight + 7) / 8 * 8;
+         if (image.PixelHeight <= frameHeight) return image; // not a sheet
+         var frames = image.PixelHeight / frameHeight;
+         var frame = listCount == 1 && facing > 0 && facing < frames && facing < 3 ? facing : 0;
+         return ReadonlyPixelViewModel.Crop(image, 0, frame * frameHeight, Math.Min(frameWidth, image.PixelWidth), frameHeight);
+      }
+
+      /// <summary>The View menu choice for how graphics-variable events are drawn. Shared by every map (saved with the settings).</summary>
+      public static GraphicsVariableDisplay GraphicsVariableDisplay { get; set; } = GraphicsVariableDisplay.ScriptSprite;
+
+      private static IPixelViewModel RenderDynamicGraphics(IDataModel model, ModelTable owTable, IPixelViewModel defaultOW, int index, Func<int> mapSprite, Func<int> mapAnySprite) {
+         var variable = index - GetDynamicGraphicsStart(model);
+         return ChooseDynamicPicture(
+            GraphicsVariableDisplay,
+            defaultOW,
+            () => GetFirstPokemonIcon(model) is { PixelWidth: > 0 } icon ? icon : null,
+            () => GetDynamicPlaceholder(model, owTable, defaultOW),
+            new Func<IEnumerable<int>>[] {
+               // the first sprite that a script gives to this variable: in the map first, then in any other script, then (the map's) other variables
+               () => new[] { mapSprite?.Invoke() ?? -1 },
+               () => GraphicsVariableSprites.Everywhere(model).For(variable),
+               () => new[] { mapAnySprite?.Invoke() ?? -1 },
+            },
+            sprite => {
+               if (!CanRenderSprite(model, owTable, sprite)) return null;
+               var picture = Render(model, owTable, defaultOW, sprite, 0, () => -1);
+               return ReferenceEquals(picture, defaultOW) ? null : picture;
+            });
+      }
+
+      /// <summary>
+      /// The picture of a graphics-variable event for the chosen display mode. The pieces that cost something are only asked for when the mode needs them.
+      /// </summary>
+      /// <param name="questionMark">The question mark picture of the original HexManiacAdvance.</param>
+      /// <param name="firstPokemon">The first frame of the icon of the first Pokemon of the Pokedex (null if there is none).</param>
+      /// <param name="placeholder">The blacked-out sprite with a question mark.</param>
+      /// <param name="candidates">Where to look for the sprite a script gives to the variable, best place first: each gives the sprites in the order the scripts name them.</param>
+      /// <param name="renderSprite">The first frame of a sprite as a script names it (null if this ROM cannot draw it).</param>
+      public static IPixelViewModel ChooseDynamicPicture(GraphicsVariableDisplay mode, IPixelViewModel questionMark, Func<IPixelViewModel> firstPokemon, Func<IPixelViewModel> placeholder, IEnumerable<Func<IEnumerable<int>>> candidates, Func<int, IPixelViewModel> renderSprite) {
+         switch (mode) {
+            case GraphicsVariableDisplay.QuestionMark:
+               return questionMark ?? placeholder();
+            case GraphicsVariableDisplay.FirstPokemonIcon:
+               return firstPokemon?.Invoke() ?? questionMark ?? placeholder();
+            case GraphicsVariableDisplay.BlackedOutQuestionMark:
+               return placeholder();
+         }
+         foreach (var candidate in candidates) {
+            foreach (var sprite in candidate()) {
+               var picture = renderSprite(sprite);
+               if (picture != null) return picture;
+            }
+         }
+         return placeholder(); // no script gives the variable a sprite that can be drawn
+      }
+
+      /// <summary>True if 'sprite' (as a script writes it: a list index, +10000 for a Pokemon icon, +20000 for the expanded sprites) names a sprite this ROM has.</summary>
+      private static bool CanRenderSprite(IDataModel model, ModelTable owTable, int sprite) {
+         if (sprite < 0 || IsDynamicGraphics(model, sprite)) return false;
+         if (sprite.InRange(10000, 20000)) return model.GetTableModel("graphics.overworld.pokemon") is { } mons && sprite - 10000 < mons.Count;
+         if (sprite.InRange(20000, 30000)) return model.GetTableModel("graphics.overworld.sprites20k") is { } big && sprite - 20000 < big.Count;
+         return owTable != null && sprite < owTable.Count;
+      }
+
+      /// <summary>The first frame of the icon of the first Pokemon of the Pokedex (species 1), drawn like the question mark picture, or null if the ROM has no Pokemon icons.</summary>
+      public static IPixelViewModel GetFirstPokemonIcon(IDataModel model) {
+         return model.CurrentCacheScope.GetOrAdd("first-pokemon-icon", () => BlockMapViewModel.GetPokemonIconAsSprite(model, 1) ?? new ReadonlyPixelViewModel(0, 0));
+      }
+
+      private static readonly string[] QuestionMarkGlyph = { ".###.", "#...#", "....#", "...#.", "..#..", ".....", "..#.." };
+
+      /// <summary>
+      /// What a dynamic-graphics object looks like before the script says which sprite it is: a blacked-out
+      /// regular NPC with a small question mark on it.
+      /// </summary>
+      private static IPixelViewModel GetDynamicPlaceholder(IDataModel model, ModelTable owTable, IPixelViewModel defaultOW) {
+         return model.CurrentCacheScope.GetOrAdd("dynamic-graphics-placeholder", () => BuildDynamicPlaceholder(model, owTable, defaultOW));
+      }
+
+      private static IPixelViewModel BuildDynamicPlaceholder(IDataModel model, ModelTable owTable, IPixelViewModel defaultOW) {
+         IPixelViewModel person = null;
+         // use an ordinary NPC for the silhouette (BOY_1, LITTLE_BOY, ...): the first one that renders at 16x32
+         if (owTable != null) {
+            var preferred = new List<int>();
+            if (model.TryGetList("objecteventgfx", out var names)) {
+               foreach (var name in new[] { "BOY_1", "LITTLE_BOY", "MAN_1", "WOMAN_1" }) {
+                  var i = names.FindIndex(n => n == name);
+                  if (i >= 0) preferred.Add(i);
+               }
+            }
+            preferred.AddRange(new[] { 7, 11, 16, 19 });
+            foreach (var i in preferred) {
+               if (i >= owTable.Count) continue;
+               try {
+                  var candidate = Render(model, owTable, defaultOW, i, 0, () => -1);
+                  if (candidate != null && !ReferenceEquals(candidate, defaultOW) && candidate.PixelWidth == 16 && candidate.PixelHeight >= 24) { person = candidate; break; }
+               } catch (Exception) { /* try the next one */ }
+            }
+         }
+         const short black = 0, white = 0x7FFF;
+         if (person == null) {
+            // no usable NPC sprite in this ROM: draw a plain 16x32 figure
+            var generic = new short[16 * 32];
+            var transparentColor = UncompressedPaletteColor.Pack(31, 0, 31);
+            for (int i = 0; i < generic.Length; i++) generic[i] = transparentColor;
+            for (int y = 4; y < 14; y++) for (int x = 4; x < 12; x++) generic[y * 16 + x] = black;
+            for (int y = 14; y < 29; y++) for (int x = 3; x < 13; x++) generic[y * 16 + x] = black;
+            person = new ReadonlyPixelViewModel(16, 32, generic, transparentColor);
+         }
+         var width = person.PixelWidth; var height = person.PixelHeight;
+         var transparent = person.Transparent;
+         var data = new short[width * height];
+         for (int i = 0; i < data.Length; i++) {
+            var pixel = person.PixelData[i];
+            data[i] = (transparent != -1 && pixel == transparent) ? transparent : black;
+         }
+         // the question mark goes on the chest, about 5x7 pixels
+         int left = (width - 5) / 2, top = Math.Max(0, height - 32) + 11;
+         for (int y = 0; y < QuestionMarkGlyph.Length; y++) {
+            for (int x = 0; x < 5; x++) {
+               if (QuestionMarkGlyph[y][x] != '#') continue;
+               var (px, py) = (left + x, top + y);
+               if (px >= 0 && px < width && py >= 0 && py < height) data[py * width + px] = white;
+            }
+         }
+         return new ReadonlyPixelViewModel(width, height, data, transparent);
       }
 
       public void ClearUnused() {
@@ -1701,6 +2183,7 @@ show:
          if (!model.TryGetList("MapAttributeBehaviors", out var list)) return false;
 
          int primaryBlockCount = model.IsFRLG() ? 640 : 512;
+         if (X < 0 || Y < 0 || X >= layout.Width || Y >= layout.Height) return false; // outside the map there is no block to warp from (and no cell to read)
          var cell = layout.BlockMap[X, Y];
          if (cell == null) return true; // failure to read layout, this warp rendering doesn't matter.
          var tile = cell.Tile;
@@ -1710,9 +2193,13 @@ show:
             blockset = layout.SecondaryBlockset;
          }
 
-         var behavior = blockset.Attribute(tile).Behavior;
-         if (list.Count <= behavior) return false;
-         return new[] { "Warp", "Door", "Stairs", "Ladder", "Escalator" }.Any(list[behavior].Contains);
+         var attribute = blockset?.Attribute(tile);
+         if (attribute == null) return true; // failure to read the attributes, this warp rendering doesn't matter.
+         var behavior = attribute.Behavior;
+         if (behavior < 0 || list.Count <= behavior) return false;
+         var behaviorName = list[behavior];
+         if (behaviorName == null) return false; // a behavior without a name (the list has holes) is not a warp behavior
+         return new[] { "Warp", "Door", "Stairs", "Ladder", "Escalator" }.Any(behaviorName.Contains);
       }
    }
 
@@ -1833,17 +2320,21 @@ show:
          if (ShowPointer) UpdateScriptError(Pointer);
       }
 
-      public void SetDestinationFormat() {
+      public void SetDestinationFormat() => SetDestinationFormat(new ModelDelta()); // don't track this change: showing a signpost is not an edit
+
+      private void SetDestinationFormat(ModelDelta token) {
          if (!ShowPointer) return;
+         if (Pointer < 0 || Pointer >= element.Model.Count) return; // a null (or out of file) pointer has nowhere to format
          var destinationRun = new XSERun(Pointer, SortedSpan<int>.None);
          var existingRun = element.Model.GetNextRun(destinationRun.Start);
          if (existingRun.Start < destinationRun.Start) return; // don't erase existing runs for this
          if (existingRun.Start == destinationRun.Start && existingRun is not NoInfoRun) return;
-         element.Model.ObserveRunWritten(new ModelDelta(), destinationRun); // don't track this change
+         element.Model.ObserveRunWritten(token, destinationRun);
       }
 
       public void ClearDestinationFormat() {
          if (!ShowPointer) return;
+         if (Pointer < 0 || Pointer >= element.Model.Count) return;
          var destination = Pointer;
          var run = element.Model.GetNextRun(Pointer);
          if (run.Start != destination || (run.PointerSources != null && run.PointerSources.Count > 0)) return;
@@ -1857,9 +2348,12 @@ show:
          set {
             ClearDestinationFormat();
             var old = element.GetValue("kind");
-            element.SetValue("kind", value);
             var wasPointer = old < 5;
             var isPointer = value < 5;
+            // a signpost that stops showing a script is no longer a pointer to it: the script must not keep it as a source
+            // (otherwise moving the script later would write its address over the hidden item)
+            if (wasPointer && !isPointer) element.SetAddress("arg", DataFormats.Pointer.NULL, false);
+            element.SetValue("kind", value);
             NotifyPropertiesChanged(nameof(ShowArg), nameof(ShowPointer), nameof(ShowHiddenItemProperties));
             if (ShowHiddenItemProperties) NotifyPropertyChanged(nameof(ItemID));
             SetDestinationFormat();
@@ -1898,7 +2392,11 @@ show:
          // 0F 00 <start+9> 09 03 02 FF
          var textStart = start + 9;
          Token.ChangeData(element.Model, start, new byte[] { 0x0F, 0, (byte)textStart, (byte)(textStart >> 8), (byte)(textStart >> 16), (byte)((textStart >> 24) + 8), 9, 3, 2, 0xFF });
-         Pointer = start;
+         // the script is part of this change, so is its format (the script, the pointer in it, the text it points to):
+         // going to the script formats it too, but that is not tracked, and undo would leave the format behind over the erased bytes
+         element.Model.ObserveRunWritten(Token, new PointerRun(start + 2));
+         element.Model.ObserveRunWritten(Token, new PCSRun(element.Model, textStart, 1, SortedSpan.One(start + 2)));
+         SetPointer(start, Token);
          gotoAddress(start);
       }
 
@@ -1906,15 +2404,17 @@ show:
 
       public int Pointer {
          get => element.GetAddress("arg");
-         set {
-            ClearDestinationFormat();
-            element.SetAddress("arg", value, false);
-            var run = element.Model.GetNextRun(Pointer);
-            if (run.Start == Pointer && run is NoInfoRun && !IsValidScriptFreespace(Pointer)) SetDestinationFormat();
-            UpdateScriptError(element.GetAddress("arg"));
-            pointerText = argText = null;
-            NotifyPropertiesChanged(nameof(PointerText), nameof(ArgText), nameof(CanGotoScript), nameof(CanCreateScript));
-         }
+         set => SetPointer(value, new ModelDelta()); // (the format of a script that is already there is not tracked, like when the signpost is shown)
+      }
+
+      private void SetPointer(int value, ModelDelta formatToken) {
+         ClearDestinationFormat();
+         element.SetAddress("arg", value, false);
+         var run = element.Model.GetNextRun(Pointer);
+         if (run.Start == Pointer && run is NoInfoRun && !IsValidScriptFreespace(Pointer)) SetDestinationFormat(formatToken);
+         UpdateScriptError(element.GetAddress("arg"));
+         pointerText = argText = null;
+         NotifyPropertiesChanged(nameof(PointerText), nameof(ArgText), nameof(CanGotoScript), nameof(CanCreateScript));
       }
 
       private string pointerText;
@@ -1953,17 +2453,18 @@ show:
       public ObservableCollection<string> ItemOptions { get; } = new();
 
       public int ItemID {
-         get => element.Model.ReadMultiByteValue(element.Start + 8, 2);
+         get => HiddenItemEncoding.GetItem(element.Model, element.Start + 8);
          set {
-            element.Model.WriteMultiByteValue(element.Start + 8, 2, element.Token, value);
+            HiddenItemEncoding.SetItem(element.Model, element.Token, element.Start + 8, value);
             NotifyPropertyChanged(nameof(ItemID));
          }
       }
 
-      public byte HiddenItemID {
-         get => element.Model[element.Start + 10];
+      /// <summary>The hidden item's flag is FLAG_HIDDEN_ITEMS_START plus this.</summary>
+      public int HiddenItemID {
+         get => HiddenItemEncoding.GetFlagOffset(element.Model, element.Start + 8);
          set {
-            element.Token.ChangeData(element.Model, element.Start + 10, value);
+            HiddenItemEncoding.SetFlagOffset(element.Model, element.Token, element.Start + 8, value.LimitToRange(0, HiddenItemEncoding.MaxFlagOffset(element.Model)));
             NotifyPropertyChanged(nameof(CanGenerateNewHiddenItemID));
          }
       }
@@ -1993,17 +2494,18 @@ show:
       public bool CanGenerateNewHiddenItemID => ShowHiddenItemProperties && HiddenItemID == 0;
 
       public void GenerateNewHiddenItemID() {
-         var usedIDs = new HashSet<byte>(
-            AllMapsModel.Create(element.Model)
+         var model = element.Model;
+         var usedIDs = new HashSet<int>(
+            AllMapsModel.Create(model)
             .SelectMany(bank => bank)
             .SelectMany(map => map.Events.Signposts)
             .Where(signpost => signpost.IsHiddenItem)
-            .Select(signpost => element.Model[signpost.Element.Start + 10]));
+            .Select(signpost => signpost.HiddenItemFlag));
 
-         byte match = 0;
-         for (int i = 1; i < 256; i++) {
-            if (usedIDs.Contains((byte)i)) continue;
-            match = (byte)i;
+         var match = 0;
+         for (int i = 1; i <= HiddenItemEncoding.MaxFlagOffset(model); i++) {
+            if (usedIDs.Contains(i)) continue;
+            match = i;
             break;
          }
 
@@ -2044,7 +2546,7 @@ show:
       public TrainerTeamViewModel(IDataModel model, int trainerID, Func<ModelDelta> tokenGenerator) {
          (this.model, this.trainerID) = (model, trainerID);
          this.tokenGenerator = tokenGenerator;
-         TrainerContent.PreFormatter = new TrainerTextFormatter(model);
+         TrainerContent.PreFormatter = ExpansionTrainerTeamRun.TeamFormatterFor(model);
          TrainerContent.Content = TrainerTeam;
          TrainerContent.Bind(nameof(TextEditorViewModel.Content), (sender, e) => TrainerTeam = sender.Content);
       }
@@ -2065,7 +2567,7 @@ show:
             var table = model.GetTableModel(HardcodeTablesModel.TrainerTableName);
             if (table == null || !trainerID.InRange(0, table.Count)) return string.Empty;
             var teamAddress = table[trainerID].GetAddress("pokemon");
-            if (model.GetNextRun(teamAddress) is not TrainerPokemonTeamRun team) return string.Empty;
+            if (model.GetNextRun(teamAddress) is not ITrainerTeamRun team) return string.Empty;
 
             if (TeamVisualizations.Count == 0) UpdateTeamVisualizations(team);
             return teamText = team.SerializeRun();
@@ -2076,12 +2578,12 @@ show:
             var table = model.GetTableModel(HardcodeTablesModel.TrainerTableName);
             if (table == null || !trainerID.InRange(0, table.Count)) return;
             var teamAddress = table[trainerID].GetAddress("pokemon");
-            if (model.GetNextRun(teamAddress) is not TrainerPokemonTeamRun team) return;
+            if (model.GetNextRun(teamAddress) is not ITrainerTeamRun team) return;
 
-            var newRun = team.DeserializeRun(value, tokenGenerator(), false, false, out _);
+            var newRun = team.DeserializeRun(value, tokenGenerator(), out _, out _);
             model.ObserveRunWritten(tokenGenerator(), newRun);
             if (newRun.Start != team.Start) DataMoved.Raise(this, new("Trainer Team", newRun.Start));
-            UpdateTeamVisualizations(newRun);
+            UpdateTeamVisualizations(newRun as IStreamRun);
             NotifyPropertyChanged();
          }
       }
@@ -2090,8 +2592,9 @@ show:
 
       public ObservableCollection<IPixelViewModel> TeamVisualizations { get; } = new();
 
-      private void UpdateTeamVisualizations(TrainerPokemonTeamRun team) {
+      private void UpdateTeamVisualizations(IStreamRun team) {
          TeamVisualizations.Clear();
+         if (team == null) return;
          foreach (var vis in team.Visualizations) {
             TeamVisualizations.Add(vis);
          }
@@ -2101,7 +2604,7 @@ show:
          var table = model.GetTableModel(HardcodeTablesModel.TrainerTableName);
          if (table == null || !trainerID.InRange(0, table.Count)) return null;
          var teamAddress = table[trainerID].GetAddress("pokemon");
-         if (model.GetNextRun(teamAddress) is not TrainerPokemonTeamRun team) return null;
+         if (model.GetNextRun(teamAddress) is not ITrainerTeamRun team) return null;
          return team.GetAutoCompleteOptions(line, lineIndex, characterIndex);
       }
 

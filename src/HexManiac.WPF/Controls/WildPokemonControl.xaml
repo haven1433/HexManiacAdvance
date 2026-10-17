@@ -4,11 +4,14 @@
              xmlns:local="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
    <!-- This panel takes you to the table tool, to the appropriate table based on which pokemon you want to edit. -->
    <!-- It takes you to the page where you see the rate and a textbox for all the pokemon, such as 39B738 in Ruby -->
-   <Grid Width="320" Height="180" Background="{DynamicResource Background}">
+   <Grid Width="320" MinHeight="240" Background="{DynamicResource Background}">
       <Grid.RowDefinitions>
          <RowDefinition Height="Auto" />
-         <RowDefinition />
-         <RowDefinition />
+         <RowDefinition Height="Auto" />
+         <RowDefinition MinHeight="40" />
+         <RowDefinition MinHeight="40" />
+         <RowDefinition MinHeight="40" />
+         <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
       <Grid.ColumnDefinitions>
          <ColumnDefinition />
@@ -35,7 +38,33 @@
             </TextBlock>
          </Border>
       </StackPanel>
-      <Decorator Grid.Row="1">
+      <!-- the pokeemerald-expansion has a separate set of tables for each time of day -->
+      <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,2,0,4"
+                  ToolTip="Each time of day has its own wild pokemon. Adding a new time of day starts as a copy of another one.">
+         <StackPanel.Style>
+            <Style TargetType="StackPanel">
+               <Setter Property="Visibility" Value="Visible" />
+               <Style.Triggers>
+                  <DataTrigger Binding="{Binding HasTimesOfDay}" Value="False">
+                     <Setter Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+               </Style.Triggers>
+            </Style>
+         </StackPanel.Style>
+         <StackPanel.Resources>
+            <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+               <Setter Property="Padding" Value="8,3" />
+               <Setter Property="Margin" Value="1,0" />
+               <Setter Property="GroupName" Value="WildTimeOfDay" />
+            </Style>
+         </StackPanel.Resources>
+         <TextBlock Text="Time of day:" VerticalAlignment="Center" Margin="0,0,6,0" />
+         <RadioButton Content="Morning" IsChecked="{Binding IsMorning}" />
+         <RadioButton Content="Day" IsChecked="{Binding IsDay}" />
+         <RadioButton Content="Evening" IsChecked="{Binding IsEvening}" />
+         <RadioButton Content="Night" IsChecked="{Binding IsNight}" />
+      </StackPanel>
+      <Decorator Grid.Row="2">
          <local:AngleButton Command="{Binding GotoGrass}" ToolTip="These pokemon will show up in tall grass.">
             <local:AngleButton.Style>
                <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
@@ -49,7 +78,7 @@
             </local:AngleButton.Style>
          </local:AngleButton>
       </Decorator>
-      <Decorator Grid.Row="1" Grid.Column="1">
+      <Decorator Grid.Row="2" Grid.Column="1">
          <local:AngleButton Command="{Binding GotoTree}" ToolTip="These pokemon will show up when smashing rocks.">
             <local:AngleButton.Style>
                <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
@@ -63,7 +92,7 @@
             </local:AngleButton.Style>
          </local:AngleButton>
       </Decorator>
-      <Decorator Grid.Row="2">
+      <Decorator Grid.Row="3">
          <local:AngleButton Command="{Binding GotoSurf}" ToolTip="These pokemon will show up when surfing.">
             <local:AngleButton.Style>
                <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
@@ -77,7 +106,7 @@
             </local:AngleButton.Style>
          </local:AngleButton>
       </Decorator>
-      <Decorator Grid.Row="2" Grid.Column="1">
+      <Decorator Grid.Row="3" Grid.Column="1">
          <local:AngleButton Command="{Binding GotoFishing}" ToolTip="These pokemon will show up when fishing.">
             <local:AngleButton.Style>
                <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
@@ -91,5 +120,38 @@
             </local:AngleButton.Style>
          </local:AngleButton>
       </Decorator>
+      <Decorator Grid.Row="4" Grid.ColumnSpan="2">
+         <local:AngleButton Command="{Binding GotoHidden}" ToolTip="Hidden encounters (the expansion's special encounter table).">
+            <local:AngleButton.Style>
+               <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
+                  <Setter Property="Content" Value="Show Hidden Pokemon" />
+                  <Setter Property="Visibility" Value="Visible" />
+                  <Style.Triggers>
+                     <DataTrigger Binding="{Binding HiddenExists}" Value="False">
+                        <Setter Property="Content" Value="Add Hidden Pokemon" />
+                     </DataTrigger>
+                     <DataTrigger Binding="{Binding HasHidden}" Value="False">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                     </DataTrigger>
+                  </Style.Triggers>
+               </Style>
+            </local:AngleButton.Style>
+         </local:AngleButton>
+      </Decorator>
+      <!-- CUBE: overworld wild Pokemon on/off for this map (only when the ROM's TOML has data.maps.wild.overworld) -->
+      <CheckBox Grid.Row="5" Grid.ColumnSpan="2" HorizontalAlignment="Center" Margin="0,2,0,6"
+                Content="Overworld wild Pokemon" IsChecked="{Binding OverworldWildPokemon}"
+                ToolTip="Checked: wild Pokemon walk around on this map and only touching one starts a battle (no random battles in the grass). Unchecked: the regular random encounters in grass, caves and water.">
+         <CheckBox.Style>
+            <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+               <Setter Property="Visibility" Value="Visible" />
+               <Style.Triggers>
+                  <DataTrigger Binding="{Binding HasOverworldWildPokemonOption}" Value="False">
+                     <Setter Property="Visibility" Value="Collapsed" />
+                  </DataTrigger>
+               </Style.Triggers>
+            </Style>
+         </CheckBox.Style>
+      </CheckBox>
    </Grid>
 </UserControl>

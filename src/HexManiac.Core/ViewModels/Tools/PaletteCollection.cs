@@ -33,8 +33,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int SourcePalettePointer { get => sourcePalettePointer; set => Set(ref sourcePalettePointer, value); }
       public ObservableCollection<SelectableColor> Elements { get; } = new();
 
-      public int ColorWidth => Elements.Count / ColorHeight;
-      public int ColorHeight => (int)Math.Ceiling(Math.Sqrt(Elements.Count));
+      private int preferredColumns;
+      /// <summary>0 lays the colors out as a square. A number lays them out that many to a row (a palette of three colors that should be a single row).</summary>
+      public int PreferredColumns {
+         get => preferredColumns;
+         set {
+            if (!TryUpdate(ref preferredColumns, Math.Max(0, value))) return;
+            NotifyPropertyChanged(nameof(ColorWidth));
+            NotifyPropertyChanged(nameof(ColorHeight));
+         }
+      }
+
+      public int ColorWidth => preferredColumns > 0 ? Math.Max(1, Math.Min(preferredColumns, Elements.Count)) : Elements.Count / ColorHeight;
+      public int ColorHeight => preferredColumns > 0 ? (int)Math.Ceiling(Elements.Count / (double)ColorWidth) : (int)Math.Ceiling(Math.Sqrt(Elements.Count));
       public bool CanEditColors => SourcePalettePointer >= 0 && page >= 0 && (model == null || SourcePalettePointer <= model.Count - 4);
 
       public int SpriteBitsPerPixel { get; set; }
@@ -196,8 +207,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          NotifyPropertyChanged(nameof(ColorHeight));
       }
 
+      /// <summary>
+      /// Shows another palette. If it has as many colors as the current one, the color boxes stay and only change their color
+      /// (the view repaints the boxes that changed, instead of throwing every box away and making a new one).
+      /// Otherwise this is the same as <see cref="SetContents"/>.
+      /// Unlike SetContents, nobody that watches a color box sees it get replaced: only use this where nobody watches the boxes (the table tool).
+      /// </summary>
+      public void UpdateContents(IReadOnlyList<short> colors) {
+         if (Elements.Count != colors.Count) {
+            SetContents(colors);
+            return;
+         }
+         var (left, right) = (Math.Min(SelectionStart, SelectionEnd), Math.Max(SelectionStart, SelectionEnd));
+         for (int i = 0; i < colors.Count; i++) {
+            var element = Elements[i];
+            element.Color = colors[i];
+            element.Selected = left <= i && i <= right;
+         }
+      }
+
       public void PushColorsToModel() {
-         if (model == null || !CanEditColors) return;
+         if (model == null) {
+            // a collection that holds spare colors has no data to write: whoever uses it decides what the colors mean
+            ColorsChanged?.Invoke(this, EventArgs.Empty);
+            return;
+         }
+         if (!CanEditColors) return;
          int sourcePalette = model.ReadPointer(sourcePalettePointer);
          if (!(model.GetNextRun(sourcePalette) is IPaletteRun source)) return;
          if (page < 0) {

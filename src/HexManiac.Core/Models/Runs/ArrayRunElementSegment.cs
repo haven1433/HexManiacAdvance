@@ -204,21 +204,47 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override string ToText(IDataModel model, int address, int depth) {
          using (ModelCacheScope.CreateScope(model)) {
-            var options = GetOptions(model).ToList();
+            var options = GetOptions(model);
             if (options == null) return base.ToText(model, address, depth);
 
             var resultAsInteger = ToInteger(model, address, Length) - ValueOffset;
             if (resultAsInteger >= options.Count || resultAsInteger < 0) return resultAsInteger.ToString();
-            var value = options[resultAsInteger] ?? resultAsInteger.ToString();
 
-            // use ~2 postfix for a value if an earlier entry in the array has the same string
-            var elementsUpToHereWithThisName = 1;
-            for (int i = resultAsInteger - 1; i >= 0; i--) {
-               var previousValue = options[i];
-               if (previousValue == value) elementsUpToHereWithThisName++;
+            // The grid asks for this text for every cell that holds an enum, every time it scrolls. Working out which of the options before this one
+            // have the same name takes a look at all of them, so that is done once per list of options (for as long as the data stays the same).
+            var cache = model.CurrentCacheScope.GetOrAdd(enumTextsKey ??= "enum-texts:" + EnumName, () => new EnumTexts(options));
+            if (cache.Texts.Length != options.Count) cache = new EnumTexts(options);
+            return cache.Texts[resultAsInteger] ??= cache.CreateText(options, resultAsInteger);
+         }
+      }
+
+      private string enumTextsKey;
+
+      /// <summary>What <see cref="ToText"/> shows for each option of one list of options.</summary>
+      private sealed class EnumTexts {
+         // for each option: 1 + the number of options before it that have the same name
+         private readonly int[] occurrence;
+         public readonly string[] Texts;
+
+         public EnumTexts(IReadOnlyList<string> options) {
+            Texts = new string[options.Count];
+            occurrence = new int[options.Count];
+            var seen = new Dictionary<string, int>();
+            for (int i = 0; i < options.Count; i++) {
+               // Names are compared the way TryMatch compares them, so the text that is shown is always read back as this value
+               // (a list built from another table's values can contain both "Name" and "Name~3", and several of each)
+               var key = OptionKey(options[i], i);
+               seen.TryGetValue(key, out var count);
+               seen[key] = occurrence[i] = count + 1;
             }
+         }
+
+         public string CreateText(IReadOnlyList<string> options, int index) {
+            var value = options[index] ?? index.ToString();
+            // use ~2 postfix for a value if an earlier entry in the array has the same name.
             if (value.StartsWith("\"") && value.EndsWith("\"")) value = value.Substring(1, value.Length - 2);
-            if (elementsUpToHereWithThisName > 1) value += "~" + elementsUpToHereWithThisName;
+            if (value.Contains('~')) value = value.Split('~')[0];
+            if (occurrence[index] > 1) value += "~" + occurrence[index];
 
             // add quotes around it if it contains a space
             if (value.Contains(' ')) value = $"\"{value}\"";
@@ -227,7 +253,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      // TODO do some sort of caching: rendering these images every time probably sucks for performance.
       public IEnumerable<ComboOption> GetComboOptions(IDataModel model) {
          var defaultOptions = GetOptions(model)
             .Select((option, i) => new ComboOption(option, i))
@@ -235,12 +260,40 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             .ToList();
          if (!(model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, EnumName)) is ITableRun tableRun)) return defaultOptions;
          if (!(tableRun.ElementContent[0] is ArrayRunPointerSegment pointerSegment)) return defaultOptions;
-         if (!LzSpriteRun.TryParseSpriteFormat(pointerSegment.InnerFormat, out var _) && !SpriteRun.TryParseSpriteFormat(pointerSegment.InnerFormat, out var _)) return defaultOptions;
+         if (OverworldComboOptions.IsOverworldSpriteTable(pointerSegment.InnerFormat)) return model.CurrentCacheScope.GetOrAdd("combo-options:" + EnumName, () => OverworldComboOptions.Render(model, tableRun, defaultOptions));
+         if (!IsSpriteFormat(pointerSegment.InnerFormat) && !IsStructStartingWithSprite(pointerSegment.InnerFormat)) return defaultOptions;
 
+         // Rendering an image for every option (every trainer sprite, every overworld sprite, ...) is expensive,
+         // and a new combo box is built every time the table tool shows a different element.
+         // The images only depend on the data, so keep them until the data changes.
+         return model.CurrentCacheScope.GetOrAdd("combo-options:" + EnumName, () => RenderComboOptions(model, tableRun, defaultOptions));
+      }
+
+      private static bool IsSpriteFormat(string format) => LzSpriteRun.TryParseSpriteFormat(format, out var _) || SpriteRun.TryParseSpriteFormat(format, out var _);
+
+      /// <summary>
+      /// Example: data.trainers.sprites is [front<[sprite<`lzs4x8x8`> palette<`ucp4`> ...]1> ...]: the element points at a struct whose first field is the sprite.
+      /// </summary>
+      private static bool IsStructStartingWithSprite(string format) {
+         if (string.IsNullOrEmpty(format) || !format.StartsWith("[")) return false;
+         var open = format.IndexOf('<');
+         var close = open < 0 ? -1 : format.IndexOf('>', open);
+         if (open < 0 || close < 0) return false;
+         return IsSpriteFormat(format.Substring(open + 1, close - open - 1));
+      }
+
+      private static IReadOnlyList<ComboOption> RenderComboOptions(IDataModel model, ITableRun tableRun, List<ComboOption> defaultOptions) {
          var imageOptions = new List<ComboOption>();
          for (int i = 0; i < tableRun.ElementCount; i++) {
             var destination = model.ReadPointer(tableRun.Start + tableRun.ElementLength * i);
-            if (!(model.GetNextRun(destination) is ISpriteRun run)) return defaultOptions;
+            if (model.GetNextRun(destination) is ITableRun inner && inner.Start == destination && inner.ElementContent.Count > 0 && inner.ElementContent[0].Type == ElementContentType.Pointer) {
+               destination = model.ReadPointer(inner.Start); // the struct's first field is the sprite
+            }
+            if (!(model.GetNextRun(destination) is ISpriteRun run) || run.Start != destination) {
+               // an unused entry (null pointer, or no graphics yet): keep the text-only option so the rest can still show pictures
+               if (i < defaultOptions.Count) imageOptions.Add(defaultOptions[i]);
+               continue;
+            }
             var sprite = run.GetPixels(model, 0, i);
             var paletteAddress = SpriteTool.FindMatchingPalette(model, run, 0);
             var paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
@@ -286,6 +339,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return TryMatch(text, options, out value);
       }
 
+      private static string UnquotedOption(string option) {
+         if (option.StartsWith("\"")) option = option.Substring(1);
+         if (option.EndsWith("\"")) option = option.Substring(0, option.Length - 1);
+         return option;
+      }
+
+      /// <summary>The name of an option the way TryMatch compares it: no quotes, no case, and nothing after a ~ (which says "the Nth one with this name").</summary>
+      private static string OptionKey(string option, int index) => UnquotedOption(option ?? index.ToString()).ToLower().Split("~")[0];
+
       public static bool TryMatch(string text, IReadOnlyList<string> list, out int value) {
          text = text.Trim();
          if (int.TryParse(text, out value)) return true;
@@ -298,16 +360,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          // if the ~ character is used, expect that it's saying which match we want
          var desiredMatch = 1;
          var splitIndex = text.IndexOf('~');
-         if (splitIndex != -1 && !int.TryParse(text.Substring(splitIndex + 1), out desiredMatch)) return false;
+         if (splitIndex != -1 && !int.TryParse(text.Substring(splitIndex + 1), out desiredMatch)) {
+            // not a "which of the duplicates" number: the ~ may be part of an option's own name (like the battle script comparison "&~")
+            for (int i = 0; i < list.Count; i++) {
+               if (list[i] != null && string.Equals(UnquotedOption(list[i]), text, StringComparison.OrdinalIgnoreCase)) { value = i; return true; }
+            }
+            return false;
+         }
          if (splitIndex != -1) text = text.Substring(0, splitIndex);
 
          // ok, so everything lines up... check the array to see if any values match the string entered
          text = text.ToLower();
          var options = list;
          for (int i = 0; i < options.Count; i++) {
-            var option = (options[i] ?? i.ToString()).ToLower().Split("~")[0];
-            if (option.StartsWith("\"")) option = option.Substring(1);
-            if (option.EndsWith("\"")) option = option.Substring(0, option.Length - 1);
+            var option = OptionKey(options[i], i);
             if (option == text) matches.Add(option);
             if (matches.Count == desiredMatch) { value = i; return true; }
             if (option.MatchesPartial(text, onlyCheckLettersAndDigits: text.Length > 3)) {
@@ -643,7 +709,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public ArrayRunColorSegment(string name) : base(name, ElementContentType.Integer, 2) { }
 
       public override string ToText(IDataModel rawData, int offset, int depth = 0) {
-         var color = (short)rawData.ReadMultiByteValue(offset, Length);
+         // the game stores colors as blue-green-red, the text shows them as red:green:blue
+         var color = PaletteRun.FlipColorChannels((short)rawData.ReadMultiByteValue(offset, Length));
          var colorText = UncompressedPaletteColor.Convert(color);
          return colorText;
       }

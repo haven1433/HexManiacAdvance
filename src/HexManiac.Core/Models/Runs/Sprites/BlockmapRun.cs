@@ -116,13 +116,24 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return result.ToArray();
       }
 
+      /// <summary>
+      /// Every block of a map's two blocksets in the game's own numbering: block 0..PrimaryBlocks-1 come from the primary blockset (padded with
+      /// empty blocks if it is shorter), and block PrimaryBlocks and up are the secondary blockset's blocks 0, 1, 2...
+      /// (Passing the primary block count as the 'highest block in use' instead would read one block too many and shift every secondary block by one.)
+      /// </summary>
+      public static byte[][] ReadAllBlocks(BlocksetModel primary, BlocksetModel secondary) => ReadBlocks(-1, -1, primary, secondary);
+
+      /// <summary>The attributes (behavior and layer data) of every block, numbered the same way as <see cref="ReadAllBlocks"/>.</summary>
+      public static byte[][] ReadAllBlockAttributes(BlocksetModel primary, BlocksetModel secondary) => ReadBlockAttributes(-1, -1, primary, secondary);
+
+      /// <summary>Writes the blocks 0 to maxUsed (inclusive) of each blockset, the same range <see cref="ReadBlocks"/> reads: 'maxUsed' is the highest block number in use, not a count.</summary>
       public static void WriteBlocks(Func<ModelDelta> tokenFactory, int maxUsedPrimary, int maxUsedSecondary, BlocksetModel blockModel1, BlocksetModel blockModel2, byte[][] blocks) {
          var primary = new List<byte[]>();
          var secondary = new List<byte[]>();
          for (int i = 0; i < blockModel1.PrimaryBlocks; i++) primary.Add(blocks[i]);
          for (int i = 0; i < blocks.Length - blockModel1.PrimaryBlocks; i++) secondary.Add(blocks[i + blockModel1.PrimaryBlocks]);
-         blockModel1.WriteBlocks(primary.Take(maxUsedPrimary).ToArray(), tokenFactory);
-         blockModel2.WriteBlocks(secondary.Take(maxUsedSecondary).ToArray(), tokenFactory);
+         blockModel1.WriteBlocks(primary.Take(maxUsedPrimary + 1).ToArray(), tokenFactory);
+         blockModel2.WriteBlocks(secondary.Take(maxUsedSecondary + 1).ToArray(), tokenFactory);
       }
 
       public static byte[][] ReadBlockAttributes(int maxUsedPrimary, int maxUsedSecondary, BlocksetModel blockModel1, BlocksetModel blockModel2) {
@@ -135,13 +146,14 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return result.ToArray();
       }
 
+      /// <summary>Writes the attributes of blocks 0 to maxUsed (inclusive) of each blockset; 'maxUsed' is the highest block number in use, not a count.</summary>
       public static void WriteBlockAttributes(Func<ModelDelta> tokenFactory, int maxUsedPrimary, int maxUsedSecondary, BlocksetModel blockModel1, BlocksetModel blockModel2, byte[][] blockAttributes) {
          var primary = new List<byte[]>();
          var secondary = new List<byte[]>();
          for (int i = 0; i < blockModel1.PrimaryBlocks; i++) primary.Add(blockAttributes[i]);
          for (int i = 0; i < blockAttributes.Length - blockModel1.PrimaryBlocks; i++) secondary.Add(blockAttributes[i + blockModel1.PrimaryBlocks]);
-         blockModel1.WriteBlockAttributes(primary.Take(maxUsedPrimary).ToArray(), tokenFactory);
-         blockModel2.WriteBlockAttributes(secondary.Take(maxUsedSecondary).ToArray(), tokenFactory);
+         blockModel1.WriteBlockAttributes(primary.Take(maxUsedPrimary + 1).ToArray(), tokenFactory);
+         blockModel2.WriteBlockAttributes(secondary.Take(maxUsedSecondary + 1).ToArray(), tokenFactory);
       }
 
       public static IEnumerable<IPixelViewModel> CalculateBlockRenders(byte[][] blocks, byte[][] blockAttributes, int[][,] tiles, IReadOnlyList<short>[] palettes) {
@@ -293,10 +305,14 @@ namespace HexManiac.Core.Models.Runs.Sprites {
             model.WriteMultiByteValue(run.Start + i * 2, 2, token, -1);
          }
 
-         var primarySource = PointerSources[0];
-         var layoutStart = primarySource - 12;
-         model.WriteValue(token, layoutStart, newWidth);
-         model.WriteValue(token, layoutStart + 4, newHeight);
+         // every layout that uses this blockmap has to learn the new size (a layout that was copied still shares its blockmap)
+         for (int i = 0; i < PointerSources.Count; i++) {
+            var layoutStart = PointerSources[i] - 12;
+            if (layoutStart < 0) continue;
+            if (i > 0 && (model.ReadValue(layoutStart) != BlockWidth || model.ReadValue(layoutStart + 4) != BlockHeight)) continue; // not a layout of this size
+            model.WriteValue(token, layoutStart, newWidth);
+            model.WriteValue(token, layoutStart + 4, newHeight);
+         }
          var newRun = new BlockmapRun(model, run.Start, run.PointerSources, newWidth, newHeight) {
             backupContent = backupContent,
             backupX = backupX,
@@ -388,6 +404,13 @@ namespace HexManiac.Core.Models.Runs.Sprites {
                model.ClearFormat(new NoTrackChange(), formatRun.Start, formatRun.Length);
                model.ObserveRunWritten(new NoTrackChange(), formatRun);
             }
+         } else if (existingRun is LzSpriteRun spriteRun && existingRun.Start == start) {
+            // The blockset says this data is a tileset, but it's formatted as a fixed-size sprite
+            // (the sprite tool's auto-detect used to do this, guessing a square size that drops the last tiles).
+            // A sprite run hides the tiles beyond its size and disables the tileset editing features (such as editing at 16 tiles wide),
+            // so quietly replace it with a tileset run. The anchor name, if any, is kept.
+            var formatRun = new LzTilesetRun(new TilesetFormat(4, spriteRun.SpriteFormat.PaletteHint), model, start, spriteRun.PointerSources);
+            if (formatRun.Length > 1) model.ObserveRunWritten(new NoTrackChange(), formatRun);
          }
 
          var run = new LzTilesetRun(new TilesetFormat(4, null), model, start);
@@ -468,8 +491,8 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          var start = ReadPointer(8);
          for (int i = 0; i < 16; i++) {
             for (int j = 0; j < 16; j++) {
-               var bgr = PaletteRun.FlipColorChannels(palettes[i][j]);
-               model.WriteMultiByteValue(start + i * 32 + j * 2, 2, token, bgr);
+               // bit 15 of each stored color is not part of the 15-bit colors we hold: keep what is there
+               PaletteRun.WriteColor(model, token, start + i * 32 + j * 2, palettes[i][j]);
             }
          }
       }
@@ -546,6 +569,22 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return data;
       }
 
+      /// <summary>The metatile behavior of one block of this blockset (numbered inside the blockset, so the first block of a secondary blockset is 0), or -1 if the block has no readable attribute.</summary>
+      public int ReadBlockBehavior(int blockIndex) {
+         int blockCount = primaryBlocks;
+         int start = ReadPointer(12);
+         if (IsSecondary) blockCount = 1024 - blockCount;
+         var attributeStart = ReadPointer(attributeOffset);
+         if (!start.InRange(0, model.Count) || !attributeStart.InRange(0, model.Count)) return -1;
+         EstimateBlockCount(model, ref blockCount, start, attributeStart);
+         if (blockIndex < 0 || blockIndex >= blockCount) return -1;
+         var attribute = new byte[BytesPerAttribute];
+         var attributeAddress = attributeStart + blockIndex * attribute.Length;
+         if (attributeAddress + attribute.Length > model.Count) return -1;
+         for (int i = 0; i < attribute.Length; i++) attribute[i] = model[attributeAddress + i];
+         return TileAttribute.Create(attribute).Behavior;
+      }
+
       public void WriteBlockAttributes(byte[][] attributes, Func<ModelDelta> tokenFactory) {
          int attributeStart = ReadPointer(attributeOffset);
          for (int i = 0; i < attributes.Length; i++) {
@@ -615,12 +654,18 @@ namespace HexManiac.Core.Models.Runs.Sprites {
 
       public static void EstimateBlockCount(IDataModel model, ref int blockCount, int blockStart, int attributeStart) {
          var blockLength = 0x10;
+         var attributeLength = model.IsFRLG() ? 4 : 2;
+         // The blocks end where the attributes begin or where something that is not plain data begins.
+         // Some ROMs (pokeemerald-expansion builds) put the attributes before the blocks: then only the size of a full table limits how far to look.
+         var limit = attributeStart > blockStart ? attributeStart : blockStart + blockCount * blockLength;
          IFormattedRun run;
-         for (run = model.GetNextRun(blockStart + 1); run.Start < attributeStart; run = model.GetNextRun(run.Start + run.Length)) {
-            if (run is NoInfoRun || run is PointerRun) continue;
+         for (run = model.GetNextRun(blockStart + 1); run.Start < limit; run = model.GetNextRun(run.Start + run.Length)) {
+            if (run is NoInfoRun || run is PointerRun) continue; // (block data is full of bytes that look like pointers)
             break;
          }
          blockCount = Math.Min(blockCount, (run.Start - blockStart) / blockLength);
+         // attributes right before the blocks have one entry for each block
+         if (attributeStart >= 0 && attributeStart < blockStart) blockCount = Math.Min(blockCount, (blockStart - attributeStart) / attributeLength);
          if (blockCount < 1) blockCount = 1;
       }
 

@@ -11,6 +11,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int FreeSpaceBuffer { get; set; } = -1;
       public int NextExportID { get; set; } = 0;
       public bool ShowRawIVByteForTrainer { get; set; } = false;
+      public string MetadataLayout { get; set; } = null;
    }
 
    public class StoredMetadata {
@@ -28,7 +29,39 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int FreeSpaceBuffer { get; } = -1;
       public bool ShowRawIVByteForTrainer { get; } = false;
 
+      /// <summary>
+      /// Optional '[General] MetadataLayout' marker (CUBHMA 0.7.3+). "expansion" means the TOML describes a pokeemerald-expansion build (like CUBE).
+      /// Older builds ignore the line (it is neither a known key nor a numbered list entry), and TOMLs without it behave exactly as before.
+      /// Unknown values are kept as they are when the TOML is saved again.
+      /// </summary>
+      public string MetadataLayout { get; }
+      public const string ExpansionLayout = "expansion";
+
       public bool IsEmpty => NamedAnchors.Count == 0 && UnmappedPointers.Count == 0 && Lists.Count == 0 && TableGroups.Count == 0;
+
+      /// <summary>
+      /// True when this metadata describes a pokeemerald-expansion build (like CUBE): its trainer parties are `tpte` runs.
+      /// Such a ROM still has the game code of the game it was built from, but the vanilla reference tables don't describe it:
+      /// the "upgrade to the new HMA version" step must not lay the vanilla tables over it.
+      /// </summary>
+      public bool DescribesExpansionLayout =>
+         string.Equals(MetadataLayout, ExpansionLayout, StringComparison.OrdinalIgnoreCase) ||
+         NamedAnchors.Any(anchor => anchor.Format != null && anchor.Format.Contains("`tpte`"));
+
+      /// <summary>
+      /// When a TOML from an older HMA version is opened, HMA lays the newest vanilla metadata over it ("version upgrade").
+      /// That is only safe for a TOML that describes the vanilla layout. Returns why this TOML must be kept as it is instead,
+      /// or null when the (non-destructive) vanilla upgrade may run.
+      /// </summary>
+      /// <param name="defaultMetadatas">The vanilla default metadata for the ROM's game code (the upgrade's source).</param>
+      public string ReasonToKeepAsIs(IEnumerable<StoredMetadata> defaultMetadatas) {
+         if (DescribesExpansionLayout) return "it describes an expansion (CUBE) layout";
+         if (!string.IsNullOrEmpty(MetadataLayout)) return $"its MetadataLayout is '{MetadataLayout}'";
+         var defaultGroupNames = new HashSet<string>((defaultMetadatas ?? Enumerable.Empty<StoredMetadata>()).SelectMany(md => md.TableGroups).Select(group => group.GroupName));
+         var userGroups = TableGroups.Where(group => !defaultGroupNames.Contains(group.GroupName) || !group.HashMatches).Select(group => group.GroupName).Distinct().ToList();
+         if (userGroups.Count > 0) return "it has user-defined table groups (" + string.Join(", ", userGroups.Take(4)) + (userGroups.Count > 4 ? ", ..." : string.Empty) + ")";
+         return null;
+      }
 
       // for backwards compatibility for tests
       public StoredMetadata(
@@ -86,6 +119,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          FreeSpaceBuffer = fields.FreeSpaceBuffer;
          NextExportID = fields.NextExportID;
          ShowRawIVByteForTrainer = fields.ShowRawIVByteForTrainer;
+         MetadataLayout = fields.MetadataLayout;
       }
 
       public StoredMetadata(string[] lines) {
@@ -115,6 +149,12 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (continueCurrentItemIndex) {
                if (cleanLine.EndsWith(",")) cleanLine = cleanLine.Substring(0, cleanLine.Length - 1);
                currentItemChildren.Add(cleanLine.Replace("'''", string.Empty));
+               // the comment after an element of a multi-line list ('''name''',# comment) belongs to that element, just like for a single-line element
+               var elementEnd = line.Split("'''").Last();
+               if (elementEnd.Contains("#")) {
+                  if (currentItemChildrenComments == null) currentItemChildrenComments = new();
+                  currentItemChildrenComments[currentItemChildren.Count - 1] = elementEnd.Split("#")[1].Trim();
+               }
                continue;
             }
 
@@ -183,6 +223,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (int.TryParse(cleanLine.Split("'''")[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var fsb)) FreeSpaceBuffer = fsb;
             }
 
+            if (cleanLine.StartsWith("MetadataLayout = '''")) {
+               var layout = cleanLine.Split("'''")[1].Trim();
+               MetadataLayout = layout.Length == 0 ? null : layout;
+            }
+
             if (cleanLine.StartsWith("ShowRawIVByteForTrainer =")) {
                if (bool.TryParse(cleanLine.Split("=")[1].Trim(), out var showRawIV)) ShowRawIVByteForTrainer = showRawIV;
             }
@@ -230,7 +275,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       /// <returns>True if the previous verison is less than the current version.</returns>
       public static bool NeedVersionUpdate(string previousVersion, string currentVersion) {
-         if (previousVersion == null && currentVersion != null) return true;
+         if (currentVersion == null) return false;
+         if (previousVersion == null) return true;
 
          if (previousVersion.StartsWith("v")) previousVersion = previousVersion.Substring(1);
          while (currentVersion.Contains("v")) currentVersion = currentVersion.Substring(1);
@@ -260,6 +306,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          lines.Add($"FreeSpaceBuffer = '''{FreeSpaceBuffer:X3}'''");
          lines.Add($"NextExportID = '''{NextExportID}'''");
          lines.Add($"ShowRawIVByteForTrainer = {ShowRawIVByteForTrainer}");
+         if (!string.IsNullOrEmpty(MetadataLayout)) lines.Add($"MetadataLayout = '''{MetadataLayout}'''");
          lines.Add(string.Empty);
          lines.Add("#################################");
 

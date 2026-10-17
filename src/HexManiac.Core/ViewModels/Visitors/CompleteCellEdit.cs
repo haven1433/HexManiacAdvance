@@ -422,7 +422,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             byte.TryParse(channels[1], out var green) &&
             byte.TryParse(channels[2], out var blue)) {
             var newColor = (short)((blue << 10) | (green << 5) | red);
-            Model.WriteMultiByteValue(memoryLocation, 2, CurrentChange, newColor);
+            PaletteRun.WriteStoredColor(Model, CurrentChange, memoryLocation, newColor); // only the red, green and blue change: bit 15 stays as it is
             NewDataIndex = memoryLocation + 2;
             Result = true;
             return;
@@ -522,7 +522,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (result >= Math.Pow(2L, integer.Length * 8)) ErrorText = $"Warning: number was too big to fit in the available space.";
          int runIndex = integer.Source - run.Start;
          if (run is LZRun lzRun) {
-            TryFixupLzRun(ref lzRun, runIndex + integer.Length); // this is before the first header: it cannot fail.
+            if (!TryFixupLzRun(ref lzRun, runIndex + integer.Length)) { // the new length can be refused: the sprite or palette needs a minimum number of bytes
+               Model.WriteMultiByteValue(integer.Source, integer.Length, CurrentChange, previousValue);
+               ErrorText = $"Could not change the decompressed length to {result} without making the compressed data invalid.";
+               return;
+            }
             run = lzRun;
          }
          if (run is ITableRun tableRun) {
@@ -792,9 +796,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             ErrorText = "Cannot write constant with no name.";
             return;
          }
+         // the constant takes these bytes: another format that starts inside them (a pointer next to the cell, for example) is no longer that format.
+         // (a table keeps its format: the cells of a table are not given names this way)
+         var coveredRun = Model.GetNextRun(memoryLocation);
+         if (CurrentChange is not NoDataChangeDeltaModel && !(coveredRun is ITableRun && coveredRun.Start < memoryLocation + byteCount)) Model.ClearFormat(CurrentChange, memoryLocation, byteCount);
          var addresses = Model.GetMatchedWords(constantName);
-         if (CurrentChange is not NoDataChangeDeltaModel && newValue == int.MinValue && addresses.Count > 0) {
-            var valueSource = (WordRun)Model.GetNextRun(addresses[0]);
+         WordRun valueSource = null;
+         foreach (var address in addresses) {
+            if (Model.GetNextRun(address) is WordRun candidate && candidate.Start == address) { valueSource = candidate; break; }
+         }
+         if (CurrentChange is not NoDataChangeDeltaModel && newValue == int.MinValue && valueSource != null) {
             int value = Model.ReadMultiByteValue(valueSource.Start, valueSource.Length);
             value /= valueSource.MultOffset;
             value -= valueSource.ValueOffset;

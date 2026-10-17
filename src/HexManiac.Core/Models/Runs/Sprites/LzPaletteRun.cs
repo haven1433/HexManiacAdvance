@@ -12,7 +12,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public override int Pages {
          get {
             if (Start + 4 > Model.Count) return 1;
-            var length = Model.ReadMultiByteValue(Start + 1, 3);
+            var length = ReadDecompressedLength(Model, Start);
             var paletteLength = (int)Math.Pow(2, PaletteFormat.Bits) * 2;
             return length / paletteLength;
          }
@@ -23,7 +23,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public LzPaletteRun(PaletteFormat paletteFormat, IDataModel data, int start, SortedSpan<int> sources = null)
          : base(data, start, allowLengthErrors: paletteFormat.AllowLengthErrors, sources) {
          PaletteFormat = paletteFormat;
-         if ((int)Math.Pow(2, paletteFormat.Bits) * 2 > DecompressedLength) InvalidateLength();
+         if (!IsValidDecompressedLength(DecompressedLength)) InvalidateLength();
          FormatString = $"`lzp{paletteFormat.Bits}`";
          if (paletteFormat.InitialBlankPages != 0) {
             FormatString = $"`lzp{paletteFormat.Bits}:";
@@ -31,6 +31,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             FormatString += "`";
          }
       }
+
+      protected override bool IsValidDecompressedLength(int decompressedLength) => (int)Math.Pow(2, PaletteFormat.Bits) * 2 <= decompressedLength;
 
       public static bool TryParsePaletteFormat(string pointerFormat, out PaletteFormat paletteFormat) {
          paletteFormat = default;
@@ -79,8 +81,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var data = Decompress(model, Start, allowLengthErrors: true);
          var colorCount = (int)Math.Pow(2, PaletteFormat.Bits);
          var pageLength = colorCount * 2;
-         page %= Pages;
+         // More colors than one page holds are the colors of the whole palette (a 256 color picture shows all 16 pages of 16 colors at once): they start with the first page.
+         page = colors.Count > colorCount ? 0 : page % Pages;
+         var dataBefore = (byte[])data.Clone();
+         var colorsThatFit = (data.Length - page * pageLength) / 2;
+         if (colors.Count > colorsThatFit) colors = colors.Take(colorsThatFit).ToList();
          PaletteRun.SetPalette(data, page * pageLength, colors);
+         if (data.SequenceEqual(dataBefore)) return this; // the same colors: don't recompress (see LzSpriteRun.SetPixels)
 
          var newModelData = Compress(data, 0, data.Length);
          var newRun = (IPaletteRun)model.RelocateForExpansion(token, this, newModelData.Count);

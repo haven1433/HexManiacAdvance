@@ -145,6 +145,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      /// <summary>
+      /// Declares that the data is different from what was last saved, although there is nothing on the undo stack that says so
+      /// (for example a tab that was created from a rebuilt file, like "Apply CUBE" does).
+      /// The history stays 'unsaved' (IsSaved and HasDataChange report it) until TagAsSaved() is called, no matter how much is undone or redone.
+      /// Undo can not go back past this point, because there is nothing to undo.
+      /// </summary>
+      public void TagAsUnsaved() {
+         ChangeCompleted();
+         if (undoStackSizeAtSaveTag == -1) return;
+         var wasSaved = IsSaved;
+         undoStackSizeAtSaveTag = -1;
+         hasDataChangeCache = true;
+         if (wasSaved) NotifyPropertyChanged(nameof(IsSaved));
+         NotifyPropertyChanged(nameof(HasDataChange));
+      }
+
       private bool continueCurrentTransaction;
       public IDisposable ContinueCurrentTransaction() {
          if (customChangeInProgress) ChangeCompleted();

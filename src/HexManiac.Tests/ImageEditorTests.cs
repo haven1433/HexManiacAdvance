@@ -1752,4 +1752,120 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1, watcher.Count);
       }
    }
+
+   /// <summary>
+   /// An 8 bit picture whose palette is stored as 16 pages of 16 colors (how many 256 color pictures are stored): the editor shows all 256 colors at once.
+   /// </summary>
+   public class ImageEditorWholePaletteTests {
+      private const int SpriteStart = 0x00, PaletteStart = 0x100, SpritePointer = 0x700, PalettePointer = 0x708;
+      private readonly IDataModel model = new PokemonModel(new byte[0x800], singletons: BaseViewModelTestClass.Singletons);
+      private readonly ChangeHistory<ModelDelta> history;
+      private readonly ImageEditorViewModel editor;
+
+      public ImageEditorWholePaletteTests() {
+         history = new ChangeHistory<ModelDelta>(change => change.Revert(model));
+         model.WritePointer(history.CurrentChange, SpritePointer, SpriteStart);
+         model.WritePointer(history.CurrentChange, PalettePointer, PaletteStart);
+         var sprite = new SpriteRun(model, SpriteStart, new SpriteFormat(8, 1, 1, "palette"), new SortedSpan<int>(SpritePointer));
+         model.ObserveAnchorWritten(history.CurrentChange, "sprite", sprite);
+         var palette = new PaletteRun(PaletteStart, new PaletteFormat(4, 16), new SortedSpan<int>(PalettePointer));
+         model.ObserveAnchorWritten(history.CurrentChange, "palette", palette);
+         for (int i = 0; i < 512; i++) model[PaletteStart + i] = (byte)(i * 7 + 3);
+         editor = new ImageEditorViewModel(history, model, SpriteStart);
+         history.ChangeCompleted(); // the set up is not part of what an undo reverts
+      }
+
+      [Theory]
+      [InlineData(0)]
+      [InlineData(3)]
+      [InlineData(15)]
+      public void EditingAColor_EightBitPictureOnSixteenPagesOfSixteenColors_ChangesOnlyThatColor(int palettePage) {
+         editor.PalettePage = palettePage; // the page means nothing for a picture that shows every page
+         Assert.Equal(256, editor.Palette.Elements.Count);
+         var before = (byte[])model.RawData.Clone();
+
+         editor.Palette.Elements[200].Color = (short)(31 << 10); // red
+
+         for (int i = 0; i < before.Length; i++) {
+            if (i == PaletteStart + 400 || i == PaletteStart + 401) continue;
+            Assert.Equal(before[i], model.RawData[i]);
+         }
+         Assert.Equal(0x1F, model.ReadMultiByteValue(PaletteStart + 400, 2) & 0x7FFF);
+      }
+
+      [Fact]
+      public void EditingAColor_EightBitPictureOnSixteenPagesOfSixteenColors_CanUndo() {
+         var before = (byte[])model.RawData.Clone();
+
+         editor.Palette.Elements[17].Color = (short)(31 << 5);
+         history.ChangeCompleted();
+         Assert.NotEqual(before, model.RawData);
+         history.Undo.Execute();
+
+         Assert.Equal(before, model.RawData);
+      }
+   }
+
+   /// <summary>A tilemap whose entries are one byte can point at 256 different tiles. A picture that needs more must say so instead of quietly leaving tiles blank.</summary>
+   public class ImageEditorFullTilemapTests {
+      private const int PaletteStart = 0x00, TilesetStart = 0x20, TilemapStart = 0x100, Size = 20;
+
+      private readonly IDataModel model = new PokemonModel(new byte[0x10000], singletons: BaseViewModelTestClass.Singletons);
+      private readonly ChangeHistory<ModelDelta> history;
+      private readonly ImageEditorViewModel editor;
+      private readonly List<string> messages = new();
+
+      private void InsertCompressedData(int start, int length) {
+         var compressedData = LZRun.Compress(new byte[length], 0, length);
+         for (int i = 0; i < compressedData.Count; i++) model[start + i] = compressedData[i];
+      }
+
+      public ImageEditorFullTilemapTests() {
+         history = new ChangeHistory<ModelDelta>(change => change.Revert(model));
+         model.WritePointer(history.CurrentChange, 0x1F0, PaletteStart);
+         model.WritePointer(history.CurrentChange, 0x1F4, TilesetStart);
+         model.WritePointer(history.CurrentChange, 0x1F8, TilemapStart);
+         InsertCompressedData(PaletteStart, 32);
+         InsertCompressedData(TilesetStart, 64);
+         InsertCompressedData(TilemapStart, Size * Size);
+         PokemonModel.ApplyAnchor(model, history.CurrentChange, PaletteStart, "^pal`lzp4:1`");
+         PokemonModel.ApplyAnchor(model, history.CurrentChange, TilesetStart, "^tiles`lzt8|pal`");
+         PokemonModel.ApplyAnchor(model, history.CurrentChange, TilemapStart, $"^map`lzm8x{Size}x{Size}|tiles`");
+         editor = new ImageEditorViewModel(history, model, TilemapStart) { SpriteScale = 1 };
+         editor.OnMessage += (sender, message) => messages.Add(message);
+      }
+
+      /// <summary>A picture where every tile is different: the first nine pixels of tile n show the bits of n.</summary>
+      private static (short[] image, int width) Picture(int tileCount, short background, short mark) {
+         var width = Size * 8;
+         var image = new short[width * Size * 8];
+         for (int i = 0; i < image.Length; i++) image[i] = background;
+         for (int tile = 0; tile < tileCount; tile++) {
+            var (tx, ty) = (tile % Size, tile / Size);
+            for (int bit = 0; bit < 9; bit++) if ((tile & (1 << bit)) != 0) image[(ty * 8 + bit / 8) * width + tx * 8 + bit % 8] = mark;
+         }
+         return (image, width);
+      }
+
+      private void PasteTiles(int tileCount) {
+         var fileSystem = new StubFileSystem();
+         editor.Palette.Elements[1].Color = BaseImageEditorTests.Rgb(31, 0, 0);
+         fileSystem.CopyImage = Picture(tileCount, BaseImageEditorTests.Rgb(0, 0, 0), BaseImageEditorTests.Rgb(31, 0, 0));
+         editor.Paste.Execute(fileSystem);
+      }
+
+      [Fact]
+      public void PictureNeedsMoreTilesThanTheTilemapHolds_SaysSo() {
+         PasteTiles(Size * Size); // 400 different tiles, but only 256 fit
+
+         Assert.Contains(messages, message => message.Contains("256"));
+      }
+
+      [Fact]
+      public void PictureFitsTheTilemap_NoWarning() {
+         PasteTiles(200);
+
+         Assert.DoesNotContain(messages, message => message.Contains("256"));
+      }
+   }
 }

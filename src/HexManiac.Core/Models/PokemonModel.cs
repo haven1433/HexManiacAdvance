@@ -113,6 +113,21 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public bool ShowRawIVByteForTrainer { get; protected set; }
 
+      /// <summary>
+      /// Messages about loading the metadata (anchors from the TOML that could not be placed, an upgrade that was skipped, ...).
+      /// The editor shows them in the Logs tab once the model is initialized.
+      /// </summary>
+      public List<string> LoadingMessages { get; } = new();
+
+      /// <summary>Anchors from the TOML that could not be placed when the file was loaded (each one is also in LoadingMessages).</summary>
+      public List<StoredAnchor> MissingStoredAnchors { get; } = new();
+
+      /// <summary>True when loading ran the vanilla "upgrade the metadata to the new HMA version" step.</summary>
+      public bool RanMetadataUpgrade { get; private set; }
+
+      // the '[General] MetadataLayout' marker to write back when the metadata is saved (see StoredMetadata.MetadataLayout)
+      private string metadataLayout;
+
       #region Pointer destination-to-source caching, for faster pointer search during initial load
 
       private IDictionary<int, SortedSpan<int>> sourcesForDestinations;
@@ -203,6 +218,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             foreach (var list in metadata.Lists) {
                lists[list.Name] = new ValidationList(list.Hash, list, list.Comments);
             }
+            romScriptLines = null; // a script parser may have asked for commands before the ROM's own were loaded
             var anchorHashes = new Dictionary<string, string>();
 
             // load MatchedWords before loading NamedAnchors, since some tables may have length based on constants (like type names)
@@ -257,16 +273,30 @@ namespace HavenSoft.HexManiac.Core.Models {
             FillGotoModels(metadata);
 
             TableGroups.AddRange(metadata.TableGroups);
+            metadataLayout = metadata.DescribesExpansionLayout ? StoredMetadata.ExpansionLayout : metadata.MetadataLayout;
 
-            if (!metadata.IsEmpty && StoredMetadata.NeedVersionUpdate(metadata.Version, singletons?.MetadataInfo.VersionNumber ?? "0")) {
+            // A TOML from an older HMA version gets the newest vanilla metadata laid over it. That step only ever adds or refreshes vanilla
+            // content (see UpdateRuns), and it doesn't run at all for a TOML that describes something else than the vanilla layout:
+            // an expansion ROM such as CUBE keeps the vanilla game code, but its tables, groups and lists are not vanilla Emerald's.
+            var renamedByUpgrade = new Dictionary<string, string>();
+            var ranUpdate = false;
+            if (!metadata.IsEmpty && singletons?.MetadataInfo != null && StoredMetadata.NeedVersionUpdate(metadata.Version, singletons.MetadataInfo.VersionNumber)) {
                var gameCode = this.GetGameCode();
-               if (singletons.GameReferenceTables.TryGetValue(gameCode, out var tables)) {
-                  var metadatas = GetDefaultMetadatas(gameCode.Substring(0, 4), gameCode);
-                  lock (threadlock) {
-                     UpdateRuns(tables, metadatas, anchorHashes);
+               if (singletons.GameReferenceTables != null && gameCode.Length >= 4 && singletons.GameReferenceTables.TryGetValue(gameCode, out var tables)) {
+                  var metadatas = GetDefaultMetadatas(gameCode.Substring(0, 4), gameCode).ToList();
+                  var keepReason = metadata.ReasonToKeepAsIs(metadatas);
+                  if (keepReason == null) {
+                     lock (threadlock) {
+                        UpdateRuns(tables, metadatas, metadata, renamedByUpgrade);
+                     }
+                     ranUpdate = true;
+                     RanMetadataUpgrade = true;
+                  } else {
+                     LoadingMessages.Add($"Metadata: this TOML was saved by HMA {metadata.Version ?? "(no version)"}. It was kept as it is (no vanilla {gameCode} metadata upgrade), because {keepReason}.");
                   }
                }
-            } else {
+            }
+            if (!ranUpdate) {
                // didn't run an update. Now that all the constants are setup correctly, do a quick second pass through the anchors to look for any that failed the first time.
                // for example, if the types were loaded before the number of types was known, then the type chart probably failed to load.
                foreach (var anchor in metadata.NamedAnchors) {
@@ -275,6 +305,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
             }
 
+            ReportStoredAnchorsThatDidNotLoad(metadata, renamedByUpgrade);
+            ReportStaleVoicegroupAnchors(metadata);
          }
          if (GetType() == typeof(PokemonModel)) ResolveConflicts();
       }
@@ -307,28 +339,59 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       /// <summary>
-      /// Delete whatever TableGroups have matching Hashes: those haven't been edited by the user.
+      /// Removes the TableGroups that the vanilla upgrade replaces: a group is only replaced when the user never edited it (its hash matches),
+      /// the new default metadata has a group with the same name, and that new group keeps every table of the old one (it only adds).
+      /// Groups the TOML defines itself (or that the user edited) always stay.
       /// </summary>
-      private void ClearNoEditTableGroups() {
-         var groupsToRemove = new List<TableGroup>(TableGroups.Where(group => group.HashMatches));
+      private void ClearNoEditTableGroups(IEnumerable<StoredMetadata> metadatas) {
+         var defaultGroups = metadatas.SelectMany(md => md.TableGroups).ToList();
+         var groupsToRemove = new List<TableGroup>(TableGroups.Where(group =>
+            group.HashMatches &&
+            defaultGroups.Any(defaultGroup => defaultGroup.GroupName == group.GroupName && group.Tables.All(defaultGroup.Tables.Contains))));
          groupsToRemove.ForEach(group => TableGroups.Remove(group));
       }
 
-      private void UpdateRuns(GameReferenceTables referenceTables, IEnumerable<StoredMetadata> metadatas, IReadOnlyDictionary<string, string> anchorHashes) {
+      /// <summary>
+      /// The vanilla "upgrade to the newest HMA metadata" step. It adds what is missing and refreshes vanilla content the user never changed,
+      /// but it never removes or replaces anything the TOML defines on its own:
+      /// - anchors with a name vanilla doesn't have, vanilla anchors at another address (repointed) or with an edited format keep their name, place and format,
+      /// - a table is never made shorter, a list never loses entries, table groups are only replaced by a default group that keeps all their tables,
+      /// - the TOML's free space settings are kept.
+      /// </summary>
+      private void UpdateRuns(GameReferenceTables referenceTables, IReadOnlyList<StoredMetadata> metadatas, StoredMetadata stored, IDictionary<string, string> renamedByUpgrade) {
          var noChange = new NoDataChangeDeltaModel();
+         var anchorHashes = new Dictionary<string, string>();
+         foreach (var anchor in stored.NamedAnchors) anchorHashes[anchor.Name] = anchor.Hash;
 
-         ClearNoEditTableGroups();
+         // which of the TOML's anchors belong to the user (and must survive the upgrade unchanged)
+         var vanillaAddresses = new Dictionary<string, int>();
+         foreach (var anchor in metadatas.SelectMany(md => md.NamedAnchors)) vanillaAddresses[anchor.Name] = anchor.Address;
+         var referenceNames = new HashSet<string>(referenceTables.Select(reference => reference.Name));
+         var protectedAnchors = new Dictionary<string, StoredAnchor>();
+         foreach (var anchor in stored.NamedAnchors) {
+            if (IsUserAnchor(anchor, vanillaAddresses, referenceNames)) protectedAnchors[anchor.Name] = anchor;
+         }
+         bool IsProtectedAt(int address) => anchorForAddress.TryGetValue(address, out var name) && protectedAnchors.ContainsKey(name);
+
+         ClearNoEditTableGroups(metadatas);
 
          if (singletons.GameReferenceConstants != null && singletons.GameReferenceConstants.TryGetValue(this.GetGameCode(), out var referenceConstants)) {
             var metadata = HardcodeTablesModel.DecodeConstantsFromReference(this, singletons.MetadataInfo, new StoredMetadata(new string[0]), referenceConstants);
-            this.LoadMetadata(metadata);
+            this.LoadMetadata(WithoutSettings(metadata));
          }
 
-         // if there's any differences between the previous metadata and the new metadata, go ahead and use the new metadata.
-         // this allows for default metadata updates when member names change, but may overwrite manual changes made by the user.
-         // We're not currently worried about that, since we don't expect that to be a common use case.
+         // if there's any differences between the previous metadata and the new metadata, go ahead and use the new metadata:
+         // this allows for default metadata updates when member names change. But only for content that is still vanilla.
          foreach (var metadata in metadatas) {
-            this.LoadMetadata(metadata);
+            var anchors = metadata.NamedAnchors.Where(anchor => {
+               if (protectedAnchors.ContainsKey(anchor.Name)) return false;                                     // the user's version of this anchor wins
+               if (IsProtectedAt(anchor.Address)) return false;                                                  // the user put their own anchor here
+               var existing = GetNextRun(anchor.Address);
+               if (existing.Start < anchor.Address && existing.Start + existing.Length > anchor.Address && IsProtectedAt(existing.Start)) return false; // inside a user table
+               return !WouldShortenTable(existing, anchor.Name, anchor.Format, anchor.Address);
+            }).ToList();
+            var lists = metadata.Lists.Where(list => !TryGetList(list.Name, out var existingList) || existingList.Count <= list.Count).ToList(); // a list never loses entries
+            this.LoadMetadata(WithoutSettings(new StoredMetadata(anchors, metadata.UnmappedPointers, metadata.MatchedWords, metadata.OffsetPointers, lists, metadata.UnmappedConstants, metadata.GotoShortcuts, metadata.TableGroups, null, null)));
          }
 
          var changedLocations = new HashSet<int>();
@@ -339,12 +402,16 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (isCFRU && HardcodeTablesModel.CfruIgnoreTables.Contains(reference.Name)) continue;
             var destination = base.ReadPointer(reference.Address) - reference.Offset;
             if (!anchorForAddress.ContainsKey(destination) && !addressForAnchor.ContainsKey(reference.Name)) {
+               if (protectedAnchors.ContainsKey(reference.Name)) continue;
+               var containing = GetNextRun(destination);
+               if (containing.Start < destination && containing.Start + containing.Length > destination && IsProtectedAt(containing.Start)) continue; // inside a user table
                ApplyAnchor(this, noChange, destination, "^" + reference.Name + reference.Format, allowAnchorOverwrite: true);
                changedLocations.Add(destination);
                continue;
             }
 
             if (!anchorForAddress.TryGetValue(destination, out var anchor)) continue;
+            if (protectedAnchors.ContainsKey(anchor)) continue; // the user's anchor (own name, repointed or edited format): don't rename or reformat it
             var existingRun = GetNextRun(destination);
             if (anchor == reference.Name && existingRun.Start == destination && existingRun.FormatString == reference.Format) continue;
 
@@ -357,7 +424,9 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             if (TryParseFormat(this, reference.Name, reference.Format, destination, out var replacementRun).HasError) continue;
             if (DoNotChangeFormatOnUpdate(existingRun.FormatString)) continue;
+            if (existingRun.Start == destination && existingRun is ITableRun oldTable && replacementRun is ITableRun newTable && newTable.ElementCount < oldTable.ElementCount) continue; // never make a table shorter
             // update this anchor
+            if (anchor != reference.Name) renamedByUpgrade[anchor] = reference.Name;
             anchorForAddress[destination] = reference.Name;
             addressForAnchor.Remove(anchor);
             addressForAnchor[reference.Name] = destination;
@@ -454,6 +523,78 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
             }
          }
+
+         // anything of the user's that the vanilla content still pushed aside goes back where the TOML had it
+         foreach (var anchor in protectedAnchors.Values) {
+            if (addressForAnchor.TryGetValue(anchor.Name, out var address) && address == anchor.Address) continue;
+            var error = ApplyAnchor(this, noChange, anchor.Address, AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
+            if (!error.HasError) LoadingMessages.Add($"Metadata upgrade: kept the TOML's '{anchor.Name}' at {anchor.Address:X6} instead of the vanilla version.");
+         }
+      }
+
+      /// <summary>
+      /// A TOML anchor belongs to the user (and the vanilla upgrade must leave it alone) when vanilla doesn't know its name,
+      /// when vanilla has it at another address (the user repointed it), or when its format differs from the vanilla format it was saved with.
+      /// </summary>
+      private static bool IsUserAnchor(StoredAnchor anchor, IReadOnlyDictionary<string, int> vanillaAddresses, ISet<string> referenceNames) {
+         var isDefault = vanillaAddresses.TryGetValue(anchor.Name, out var vanillaAddress);
+         var isReference = referenceNames.Contains(anchor.Name);
+         if (!isDefault && !isReference) return true;
+         if (isDefault && !isReference && vanillaAddress != anchor.Address) return true;
+         if (isReference && !string.IsNullOrEmpty(anchor.Hash) && anchor.Format != null) {
+            var formatHash = StoredList.GenerateHash(new[] { anchor.Format });
+            var formatWithoutLengthHash = StoredList.GenerateHash(new[] { WithoutLength(anchor.Format) });
+            if (anchor.Hash != formatHash && anchor.Hash != formatWithoutLengthHash) return true;
+         }
+         return false;
+      }
+
+      /// <summary>True if writing this format at this address would leave a shorter table than the one that is there now.</summary>
+      private bool WouldShortenTable(IFormattedRun existing, string name, string format, int address) {
+         if (existing.Start != address || existing is not ITableRun oldTable) return false;
+         if (format == null || TryParseFormat(this, name, format, address, out var newRun).HasError) return false;
+         return newRun is ITableRun newTable && newTable.ElementCount < oldTable.ElementCount;
+      }
+
+      /// <summary>The same metadata without free space / export settings, so loading it doesn't change the TOML's settings.</summary>
+      private static StoredMetadata WithoutSettings(StoredMetadata metadata) {
+         return new StoredMetadata(metadata.NamedAnchors, metadata.UnmappedPointers, metadata.MatchedWords, metadata.OffsetPointers, metadata.Lists, metadata.UnmappedConstants, metadata.GotoShortcuts, metadata.TableGroups, null,
+            new StoredMetadataFields { FreeSpaceSearch = -1, FreeSpaceBuffer = -1, NextExportID = 0, ShowRawIVByteForTrainer = metadata.ShowRawIVByteForTrainer, MetadataLayout = metadata.MetadataLayout });
+      }
+
+      /// <summary>
+      /// Guard rail: every named anchor the TOML defines should exist after loading (or have been renamed by the vanilla upgrade).
+      /// The ones that don't are written to the Logs tab instead of disappearing silently.
+      /// </summary>
+      private void ReportStoredAnchorsThatDidNotLoad(StoredMetadata metadata, IReadOnlyDictionary<string, string> renamedByUpgrade) {
+         foreach (var anchor in metadata.NamedAnchors) {
+            if (addressForAnchor.TryGetValue(anchor.Name, out var loadedAddress)) {
+               if (!string.IsNullOrEmpty(anchor.Format) && loadedAddress == anchor.Address && GetNextRun(loadedAddress) is NoInfoRun) {
+                  LoadingMessages.Add($"Metadata: the TOML's anchor '{anchor.Name}' at {anchor.Address:X6} was loaded without its format (the data there doesn't match it). Format: {anchor.Format}");
+               }
+               continue;
+            }
+            if (renamedByUpgrade.TryGetValue(anchor.Name, out var newName) && addressForAnchor.ContainsKey(newName)) continue;
+            MissingStoredAnchors.Add(anchor);
+            var what = anchorForAddress.TryGetValue(anchor.Address, out var other) ? $"the address holds '{other}'" : "the data there doesn't match its format";
+            LoadingMessages.Add($"Metadata: the TOML's anchor '{anchor.Name}' at {anchor.Address:X6} could not be loaded ({what}). It is not available until the TOML is fixed. Format: {anchor.Format}");
+         }
+      }
+
+      /// <summary>
+      /// Guard rail for a toml that is older than the ROM (a CUBE whose All-Instruments bank was removed moves every address behind it): a voicegroup anchor of the TOML whose data
+      /// is not instruments any more is written to the Logs tab. The anchor is kept as it is (nothing is changed or written), but the Sound tab does not use it as a voicegroup.
+      /// </summary>
+      private void ReportStaleVoicegroupAnchors(StoredMetadata metadata) {
+         var stale = new List<string>();
+         foreach (var anchor in metadata.NamedAnchors) {
+            if (!Sound.VoicegroupCatalog.IsVoicegroupAnchor(anchor.Name, out _)) continue;
+            if (!addressForAnchor.TryGetValue(anchor.Name, out var address) || address != anchor.Address) continue;
+            if (!Sound.VoicegroupCatalog.IsDeclaredVoicegroupWithoutInstruments(this, address)) continue;
+            stale.Add(anchor.Name + " at " + address.ToString("X6"));
+         }
+         if (stale.Count == 0) return;
+         LoadingMessages.Add($"Metadata: {stale.Count} voicegroup anchor(s) of the TOML hold data that is not instruments (the TOML is probably older than this ROM, for example {string.Join(", ", stale.Take(3))}). The Sound tab ignores them; nothing was changed.");
       }
 
       private static string WithoutLength(string format) {
@@ -537,7 +678,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                var existingRun = GetNextRun(destination);
                if (!(existingRun is NoInfoRun)) continue;
                var protoRun = new LZRun(this, destination);
-               if (protoRun.Length < 5) continue;
+               if (protoRun.Length < 5 || protoRun.IsSmol) continue; // smol data is only used by a format that says so: its shape is unknown
                if (protoRun.DecompressedLength < 32 || protoRun.DecompressedLength % 32 != 0) continue;
                if (GetNextRun(destination + 1).Start < destination + protoRun.Length) continue;
                if (protoRun.DecompressedLength == 32) {
@@ -1073,6 +1214,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                // if the only thing changed was the anchor, then don't change the format, just merge the anchor
                existingRun = runs[index];
                changeToken.RemoveRun(existingRun);
+               if (existingRun is WordRun oldWord && !(run is WordRun newWord && newWord.SourceArrayName == oldWord.SourceArrayName)) {
+                  // the named constant at this cell is replaced by another format: the name no longer matches this cell
+                  changeToken.RemoveMatchedWord(oldWord.Start, oldWord.SourceArrayName);
+                  if (matchedWords.TryGetValue(oldWord.SourceArrayName, out var oldWords)) oldWords.Remove(oldWord.Start);
+               }
                if (existingRun is PointerRun) {
                   var needClearPointerRun = !(run is NoInfoRun) && !(run is PointerRun);
                   if (((run as OffsetPointerRun)?.Offset ?? 0) != ((existingRun as OffsetPointerRun)?.Offset ?? 0)) needClearPointerRun = true;
@@ -1090,8 +1236,14 @@ namespace HavenSoft.HexManiac.Core.Models {
                      ModifyAnchorsFromPointerArray(changeToken, arrayRun1, null, arrayRun1.ElementCount, ClearPointerFormat);
                   } else {
                      ModifyAnchorsFromPointerArray(changeToken, tableRun1, arrayRun1, arrayRun1.ElementCount, ClearPointerFormat);
+                     // a pointer of the old table that is not a pointer cell of the new table (same element length, different fields) stops pointing
+                     if (!arrayRun1.DataFormatMatches(tableRun1)) ModifyAnchorsFromPointerArray(changeToken, arrayRun1, null, arrayRun1.ElementCount, (segment, segments, parentIndex, token, start) => { if (!IsPointerCell(tableRun1, start)) ClearPointerFormat(segment, segments, parentIndex, token, start); });
                   }
                   index = BinarySearch(run.Start); // have to recalculate index, because ClearPointerFormat can removed runs.
+               } else if (existingRun is ITableRun replacedTable && run is not ITableRun) {
+                  // the table is replaced by something that is not a table: the pointer cells it had are no longer pointers
+                  ModifyAnchorsFromPointerArray(changeToken, replacedTable, null, replacedTable.ElementCount, ClearPointerFormat);
+                  index = BinarySearch(run.Start);
                }
                SetIndex(index, run);
                changeToken.AddRun(run);
@@ -1151,6 +1303,14 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override bool WritePointer(ModelDelta changeToken, int address, int pointerDestination) {
          if (pointerOffsets.TryGetValue(address, out var offset)) pointerDestination += offset;
          return base.WritePointer(changeToken, address, pointerDestination);
+      }
+
+      private static bool IsPointerCell(ITableRun table, int address) {
+         if (address < table.Start || address >= table.Start + table.Length) return false;
+         var offset = table.ConvertByteOffsetToArrayOffset(address);
+         if (offset.SegmentStart != address || offset.SegmentIndex < 0 || offset.SegmentIndex >= table.ElementContent.Count) return false;
+         var segment = table.ElementContent[offset.SegmentIndex];
+         return segment.Type == ElementContentType.Pointer || segment is ArrayRunRecordSegment; // a record segment might be a pointer: leave it alone
       }
 
       /// <summary>
@@ -1649,7 +1809,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override int GetScriptLength(IScriptStartRun run, IDictionary<int, int> destinationLengths) {
          var gameHash = this.GetShortGameCode();
          IReadOnlyList<IScriptLine> lines = null;
-         if (run is XSERun) lines = singletons.ScriptLines;
+         if (run is XSERun) lines = GetScriptLines(singletons.ScriptLines);
          if (run is BSERun) lines = singletons.BattleScriptLines;
          if (run is ASERun) lines = singletons.AnimationScriptLines;
          if (run is TSERun) lines = singletons.BattleAIScriptLines;
@@ -1771,6 +1931,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override void SetList(ModelDelta changeToken, string name, IEnumerable<string> list, IReadOnlyDictionary<int, string> comments, string hash) {
+         if (name == ScriptMacroListName) romScriptLines = null;
          if (!lists.TryGetValue(name, out var oldContent)) oldContent = null;
          if (list == null && lists.ContainsKey(name)) lists.Remove(name);
          else {
@@ -1781,6 +1942,38 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override bool TryGetList(string name, out ValidationList list) {
          return lists.TryGetValueCaseInsensitive(name, out list);
+      }
+
+      /// <summary>
+      /// A ROM whose script engine differs from vanilla (decomp hacks such as pokeemerald-expansion) can describe its
+      /// commands in a list called 'scriptmacros'. Each entry is a line in the same syntax as scriptReference.txt
+      /// (a command line such as "23 49 38 23 0A vsseeker_rematchid rematchId:" or a macro line). Those lines are
+      /// placed in front of the shared reference, so they take precedence over the built-in definitions.
+      /// </summary>
+      public const string ScriptMacroListName = "scriptmacros";
+      private IReadOnlyList<Code.IScriptLine> romScriptLines;
+      private IReadOnlyList<Code.IScriptLine> romScriptLinesSource;
+      public override IReadOnlyList<Code.IScriptLine> GetScriptLines(IReadOnlyList<Code.IScriptLine> sharedLines) {
+         if (romScriptLines != null && romScriptLinesSource == sharedLines) return romScriptLines;
+         romScriptLinesSource = sharedLines;
+         if (!TryGetList(ScriptMacroListName, out var list) || list == null || list.Count == 0) return sharedLines; // not cached: the list may still be loading
+         var extra = new List<Code.IScriptLine>();
+         foreach (var raw in list) {
+            var line = raw?.Trim();
+            if (string.IsNullOrEmpty(line) || line.StartsWith("#")) continue;
+            try {
+               if (Code.MacroScriptLine.IsMacroLine(line)) {
+                  var macro = new Code.MacroScriptLine(line);
+                  if (macro.IsValid) extra.Add(macro);
+               } else {
+                  extra.Add(new Code.XSEScriptLine(line));
+               }
+            } catch (Exception) {
+               // a malformed line in the metadata shouldn't stop the ROM from loading
+            }
+         }
+         if (extra.Count == 0) return romScriptLines = sharedLines;
+         return romScriptLines = extra.Concat(sharedLines).ToList();
       }
 
       // for each of the results, we recognized it as text: see if we need to add a matching string run / pointers
@@ -2410,6 +2603,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                FreeSpaceBuffer = FreeSpaceBuffer,
                NextExportID = NextExportID,
                ShowRawIVByteForTrainer = ShowRawIVByteForTrainer,
+               MetadataLayout = metadataLayout ?? (anchors.Any(anchor => anchor.Format != null && anchor.Format.Contains("`tpte`")) ? StoredMetadata.ExpansionLayout : null),
             });
       }
 
@@ -2702,7 +2896,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          return sourcesDirectlyToThis;
       }
 
-      private T MoveRun<T>(ModelDelta changeToken, T run, int length, int newStart) where T : IFormattedRun {
+      private T MoveRun<T>(ModelDelta changeToken, T run, int length, int newStart) where T : IFormattedRun => MoveRun(changeToken, run, length, newStart, run.Start, length);
+
+      /// <param name="bodyStart">The start of all the data that is moving (a script moves all of its sections at once, and each section is moved as its own run).</param>
+      /// <param name="bodyLength">The length of all the data that is moving.</param>
+      private T MoveRun<T>(ModelDelta changeToken, T run, int length, int newStart, int bodyStart, int bodyLength) where T : IFormattedRun {
          var logName = run.Start.ToAddress();
          if (anchorForAddress.TryGetValue(run.Start, out var existingAnchorName)) logName = existingAnchorName;
          RaiseLogMessage($"Moving {run.GetType().Name} {logName} to {newStart.ToAddress()}");
@@ -2729,13 +2927,19 @@ namespace HavenSoft.HexManiac.Core.Models {
                var nextRun = GetNextRun(run.Start + 1);
                if (nextRun.Start >= run.Start + length) break;
                if (nextRun is IScriptStartRun sRun) {
-                  MoveRun(changeToken, sRun, 1, newStart + sRun.Start - run.Start);
+                  MoveRun(changeToken, sRun, 1, newStart + sRun.Start - run.Start, bodyStart, bodyLength);
                } else {
                   // clear format of any constants/pointers/streams that is considered part of the script
                   ClearFormatAndAnchors(changeToken, nextRun.Start, nextRun.Length);
                }
             }
             while (true);
+
+            // the pointers inside the script (a section that jumps back to the start of the script) were just cleared with the rest of its format:
+            // the script does not move with a record of them, because the old copy is about to be erased and the new copy is formatted again when it is read.
+            foreach (var source in run.PointerSources?.ToList() ?? new()) {
+               if (bodyStart <= source && source < bodyStart + bodyLength) run = (T)run.RemoveSource(source);
+            }
          }
 
          // move data

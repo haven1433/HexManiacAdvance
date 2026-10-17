@@ -13,4 +13,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       Task<ErrorInfo> Run(IViewPort viewPort);
       void TabChanged();
    }
+
+   /// <summary>
+   /// Marks a quick-edit that does not need an open tab: it is available even when nothing is open
+   /// (it asks for the file it works on), and its Run may be called with a null view port.
+   /// </summary>
+   public interface IStandaloneQuickEdit { }
 }

@@ -23,7 +23,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var newRun = new TilemapRun(owner, destination, format);
-         if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, newRun);
+         if (!(token is NoDataChangeDeltaModel)) {
+            owner.ClearFormat(token, newRun.Start + 1, newRun.Length - 1); // formats that start inside the new one would overlap it
+            owner.ObserveRunWritten(token, newRun);
+         }
          return true;
       }
 

@@ -29,7 +29,19 @@ Please read the Wiki for information about how to use the included features.";
 
       public event EventHandler CanRunChanged;
 
-      public bool CanRun(IViewPort viewPort) => viewPort is ViewPort && (uint)Patcher.CalcCRC32(viewPort.Model.RawData) == 0xDD88761C;
+      // The patch is for one exact file: the vanilla FireRed 1.0 ROM. Checking the checksum reads the whole file, and CanRun is asked every time the
+      // user changes tabs (it takes about a tenth of a second on a 32MB ROM), so the cheap facts that every other file fails go first.
+      private const int VanillaFireRedLength = 0x1000000;
+      private const string VanillaFireRedGameCode = "BPRE0";
+      private const uint VanillaFireRedCrc32 = 0xDD88761C;
+
+      public bool CanRun(IViewPort viewPort) {
+         if (viewPort is not ViewPort) return false;
+         var model = viewPort.Model;
+         if (model.RawData.Length != VanillaFireRedLength) return false;
+         if (model.GetGameCode() != VanillaFireRedGameCode) return false;
+         return (uint)Patcher.CalcCRC32(model.RawData) == VanillaFireRedCrc32;
+      }
 
       public async Task<ErrorInfo> Run(IViewPort viewPort1) {
          if (viewPort1 is not ViewPort viewPort) return new ErrorInfo("Selected tab is expected to be a FireRed data tab.");

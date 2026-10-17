@@ -126,7 +126,7 @@
                                 Background="{DynamicResource Background}"
                                 BorderThickness="1"
                                 BorderBrush="{DynamicResource Secondary}"/>
-                           <ScrollViewer Margin="4,6" SnapsToDevicePixels="True">
+                           <ScrollViewer Margin="4,6" SnapsToDevicePixels="True" CanContentScroll="True">
                               <ItemsPresenter x:Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                            </ScrollViewer>
                         </Grid>

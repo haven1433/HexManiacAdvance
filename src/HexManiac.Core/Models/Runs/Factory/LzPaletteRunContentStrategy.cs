@@ -22,7 +22,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          var numColors = (int)Math.Pow(2, paletteFormat.Bits);
          if (lzRun.Length <= 5 || lzRun.DecompressedLength % (numColors * 2) != 0) return false;
 
-         if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, lzRun);
+         if (!(token is NoDataChangeDeltaModel)) {
+            owner.ClearFormat(token, lzRun.Start + 1, lzRun.Length - 1); // formats that start inside the new one would overlap it
+            owner.ObserveRunWritten(token, lzRun);
+         }
 
          return true;
       }

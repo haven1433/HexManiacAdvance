@@ -15,7 +15,10 @@ using System.Linq;
  */
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
-   public record BerrySpot(int Address, int BerryID);
+   /// <param name="Address">Where the setberrytree command is.</param>
+   /// <param name="BerryID">Index into the berry table (data.items.berry.stats).</param>
+   /// <param name="Stage">The growth stage argument of the command (1 = planted ... 5 = berries).</param>
+   public record BerrySpot(int Address, int BerryID, int Stage);
 
    public record FlagContext(int Address, int Bank, int Map);
    public record ObjectFlagContext(int Address, int Bank, int Map, int Object) : FlagContext(Address, Bank, Map);
@@ -54,11 +57,96 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             0x40F0, 0x40F1, 0x40F5, 0x40F6,
          };
 
+      // script commands that reference flags (setflag, clearflag, checkflag), trainer flags (trainerbattle), and variables
+      private static readonly byte[] FlagCommands = { 0x29, 0x2A, 0x2B };
+      private static readonly byte[] TrainerBattleCommands = { 0x5C };
+      private static readonly byte[] VariableCommands = { 0x16, 0x17, 0x18, 0x19, 0x1A, 0x21, 0x22, 0x26 }; // setvar, addvar, subvar, copyvar, setorcopyvar, compare, comparevars, special2
+
+      public record ScriptUsage(HashSet<int> ItemFlags, HashSet<int> TrainerFlags, HashSet<int> Variables);
+
+      /// <summary>
+      /// Finds every used flag, trainer flag, and variable with a single pass over every script in the game.
+      /// This is equivalent to calling GetUsedItemFlags, GetUsedTrainerFlags, and GetUsedVariables,
+      /// but walks the scripts only once instead of three times.
+      /// </summary>
+      public static ScriptUsage GetScriptUsage(IDataModel model, ScriptParser parser) {
+         var flagSpots = new List<ScriptSpot>();
+         var trainerSpots = new List<ScriptSpot>();
+         var variableSpots = new List<ScriptSpot>();
+         var filter = FlagCommands.Concat(TrainerBattleCommands).Concat(VariableCommands).ToArray();
+         foreach (var spot in GetAllScriptSpots(model, parser, GetAllTopLevelScripts(model), filter)) {
+            var command = model[spot.Address];
+            if (FlagCommands.Contains(command)) flagSpots.Add(spot);
+            else if (TrainerBattleCommands.Contains(command)) trainerSpots.Add(spot);
+            else variableSpots.Add(spot);
+         }
+         return new(GetUsedItemFlags(model, flagSpots), GetUsedTrainerFlags(model, trainerSpots), GetUsedVariables(model, variableSpots));
+      }
+
       /// <summary>
       /// IDs of every used flag
       /// </summary>
       public static HashSet<int> GetUsedItemFlags(IDataModel model, ScriptParser parser) {
-         var usedFlags = new HashSet<int>();
+         return GetUsedItemFlags(model, GetAllScriptSpots(model, parser, GetAllTopLevelScripts(model), FlagCommands));
+      }
+
+      public const string FlagListName = "scriptflagaliases", VariableListName = "scriptvariablealiases";
+
+      /// <summary>
+      /// Scripts aren't the only thing that uses flags and variables: the game's own code does too (badges, system flags, story progress...).
+      /// Every flag/variable the ROM's constants give a real name to is treated as spoken for. Names that say UNUSED, and the
+      /// CUSTOM_ pool that CUBE adds for hackers, are the ones that are free to hand out.
+      /// </summary>
+      public static HashSet<int> GetReservedFlags(IDataModel model) => GetReserved(model, FlagListName);
+      public static HashSet<int> GetReservedVariables(IDataModel model) => GetReserved(model, VariableListName);
+
+      private static HashSet<int> GetReserved(IDataModel model, string listName) {
+         var result = new HashSet<int>();
+         if (!model.TryGetList(listName, out var list)) return result;
+         for (int i = 0; i < list.Count; i++) {
+            var name = list[i];
+            if (string.IsNullOrEmpty(name) || name == i.ToString()) continue;
+            if (IsFreeName(name)) continue;
+            result.Add(i);
+         }
+         return result;
+      }
+
+      public static bool IsFreeName(string name) => name.Contains("UNUSED", StringComparison.OrdinalIgnoreCase) || name.Contains("CUSTOM", StringComparison.OrdinalIgnoreCase);
+
+      /// <summary>The first flag of the spare pool (FLAG_CUSTOM_000 in CUBE), or -1 if the ROM doesn't have one.</summary>
+      public static int CustomFlagStart(IDataModel model) => FirstWithName(model, FlagListName, "_CUSTOM_");
+      /// <summary>The first variable of the spare pool (VAR_CUSTOM_000 in CUBE), or -1 if the ROM doesn't have one.</summary>
+      public static int CustomVariableStart(IDataModel model) => FirstWithName(model, VariableListName, "_CUSTOM_");
+
+      /// <summary>
+      /// The first flag that isn't in 'used' (scripts, map events and the game's named flags) and whose name, if it has one, says it's free.
+      /// ROMs with a spare pool (CUBE's FLAG_CUSTOM_000...) hand out pool flags first.
+      /// </summary>
+      public static int NextFreeFlag(IDataModel model, ISet<int> used) => NextFree(model, used, FlagListName, CustomFlagStart(model), 0x21, 0xFFFF);
+      public static int NextFreeVariable(IDataModel model, ISet<int> used) => NextFree(model, used, VariableListName, CustomVariableStart(model), 0x4034, 0x7FFF);
+
+      private static int NextFree(IDataModel model, ISet<int> used, string listName, int poolStart, int classicStart, int limit) {
+         model.TryGetList(listName, out var list);
+         bool IsFree(int value) => !used.Contains(value) && (list == null || value >= list.Count || string.IsNullOrEmpty(list[value]) || list[value] == value.ToString() || IsFreeName(list[value]));
+         var start = poolStart >= 0 ? poolStart : classicStart;
+         for (int value = start; value <= limit; value++) if (IsFree(value)) return value;
+         // nothing free after the start (the pool is full): take the first unused one anywhere, ignoring names
+         for (int value = classicStart; value <= limit; value++) if (!used.Contains(value)) return value;
+         return classicStart;
+      }
+
+      private static int FirstWithName(IDataModel model, string listName, string marker) {
+         if (!model.TryGetList(listName, out var list)) return -1;
+         for (int i = 0; i < list.Count; i++) {
+            if (list[i] != null && list[i].Contains(marker, StringComparison.OrdinalIgnoreCase)) return i;
+         }
+         return -1;
+      }
+
+      /// <param name="flagSpots">Every spot in every script that uses a flag command (setflag, clearflag, checkflag).</param>
+      private static HashSet<int> GetUsedItemFlags(IDataModel model, IEnumerable<ScriptSpot> flagSpots) {
+         var usedFlags = GetReservedFlags(model);
 
          var hiddenItemFlagStart = 600;
          if (model.IsEmerald()) {
@@ -81,7 +169,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             usedFlags.Add(hiddenItemFlagStart + signpost.HiddenItemFlag);
          }
 
-         foreach (var spot in GetAllScriptSpots(model, parser, GetAllTopLevelScripts(model), 0x29, 0x2A, 0x2B)) {
+         foreach (var spot in flagSpots) {
             usedFlags.Add(model.ReadMultiByteValue(spot.Address + 1, 2));
          }
 
@@ -107,7 +195,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public static HashSet<int> GetUsedVariables(IDataModel model, ScriptParser parser) {
-         var usedVariables = new HashSet<int>();
+         return GetUsedVariables(model, GetAllScriptSpots(model, parser, GetAllTopLevelScripts(model), VariableCommands));
+      }
+
+      /// <param name="variableSpots">Every spot in every script that uses a variable command (setvar, addvar, subvar, copyvar, setorcopyvar, compare, comparevars, special2).</param>
+      private static HashSet<int> GetUsedVariables(IDataModel model, IEnumerable<ScriptSpot> variableSpots) {
+         var usedVariables = GetReservedVariables(model);
          if (model.IsFRLG()) {
             usedVariables.AddRange(FRLG_ThumbVars);
          } else if (model.IsEmerald()) {
@@ -121,7 +214,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             usedVariables.Add(element.GetValue("trigger"));
          }
 
-         foreach (var spot in GetAllScriptSpots(model, parser, GetAllTopLevelScripts(model), 0x16, 0x17, 0x18, 0x19, 0x1A, 0x21, 0x22, 0x26)) { // setvar, addvar, subvar, copyvar, setorcopyvar, compare, comparevars, special2
+         foreach (var spot in variableSpots) {
             usedVariables.Add(model.ReadMultiByteValue(spot.Address + 1, 2));
          }
 
@@ -238,21 +331,68 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (start < 0 || start >= model.Count) return new();
 
          var results = new Dictionary<int, BerrySpot>();
+         var offset = BerryIdOffset(model);
          foreach (var spot in GetAllScriptSpots(model, parser, new[] { start }, 0x8A)) {
             var plantID = model[spot.Address + 1];
             var berryID = model[spot.Address + 2];
-            results[plantID] = new(spot.Address, berryID - 1);
+            results[plantID] = new(spot.Address, berryID - offset, model[spot.Address + 3]);
          }
          return results;
       }
 
+      /// <summary>
+      /// setberrytree's berry argument is 1-based. The vanilla berry table starts at Cheri (so subtract 1),
+      /// but decomp hacks such as pokeemerald-expansion keep an empty entry 0 so the table is indexed by the raw id.
+      /// </summary>
+      public static int BerryIdOffset(IDataModel model) {
+         var berries = model.GetTableModel(HardcodeTablesModel.BerryTableName);
+         if (berries == null || berries.Count < 2) return 1;
+         var first = berries[0].GetStringValue("name") ?? string.Empty;
+         var second = berries[1].GetStringValue("name") ?? string.Empty;
+         if (second.Trim().Equals("Cheri", StringComparison.OrdinalIgnoreCase) && !first.Trim().Equals("Cheri", StringComparison.OrdinalIgnoreCase)) return 0;
+         if (string.IsNullOrWhiteSpace(first) || first.Trim().All(c => c == '?')) return 0;
+         return 1;
+      }
+
+      /// <summary>
+      /// True for pokeemerald-expansion ROMs. They differ from the vanilla games in ways the event templates care about:
+      /// trainers have a 52-byte record and a unified trainerbattle, move tutors are given a move id (not a tutor-table index),
+      /// and the in-game trade specials read the trade number from script variable 0x8005.
+      /// </summary>
+      public static bool IsExpansion(IDataModel model) => IsUnifiedTrainerBattle(model);
+
+      /// <summary>True for ROMs (pokeemerald-expansion 1.17+) whose trainerbattle command is the unified 41-byte form.</summary>
+      public static bool IsUnifiedTrainerBattle(IDataModel model) {
+         var trainers = model.GetTableModel(HardcodeTablesModel.TrainerTableName, null);
+         return trainers != null && TrainerLayout.For(trainers.Run) != TrainerLayout.Vanilla;
+      }
+
       public static ISet<int> GetUsedTrainerFlags(IDataModel model, ScriptParser parser) {
+         return GetUsedTrainerFlags(model, GetAllScriptSpots(model, parser, GetAllTopLevelScripts(model), TrainerBattleCommands));
+      }
+
+      /// <param name="trainerBattleSpots">Every spot in every script that uses the trainerbattle command.</param>
+      private static HashSet<int> GetUsedTrainerFlags(IDataModel model, IEnumerable<ScriptSpot> trainerBattleSpots) {
          var trainerFlags = new HashSet<int>();
 
          // check all scripts
-         foreach (var spot in GetAllScriptSpots(model, parser, GetAllTopLevelScripts(model), 0x5C)) {
-            var trainerFlag = model.ReadMultiByteValue(spot.Address + 2, 2);
-            trainerFlags.Add(trainerFlag);
+         var expansionLayout = IsUnifiedTrainerBattle(model);
+         foreach (var spot in trainerBattleSpots) {
+            if (expansionLayout) {
+               // 5C flags localIdA trainerA: ... localIdB trainerB: ... (trainer B only matters for two-trainer battles)
+               foreach (var id in new[] { model.ReadMultiByteValue(spot.Address + 3, 2), model.ReadMultiByteValue(spot.Address + 18, 2) }) if (id > 0) trainerFlags.Add(id);
+            } else {
+               trainerFlags.Add(model.ReadMultiByteValue(spot.Address + 2, 2));
+            }
+         }
+
+         // check the Ruby/Sapphire/Emerald rematch table: base trainer and its rematches (base:data.trainers.stats rematch1:... rematch4:...)
+         var rematchesRSE = model.GetTableModel(HardcodeTablesModel.RematchTableRSE);
+         if (rematchesRSE != null) {
+            foreach (var rematch in rematchesRSE) {
+               if (!rematch.TryGetValue("base", out var baseTrainer) || !trainerFlags.Contains(baseTrainer)) continue;
+               for (int i = 1; i <= 4; i++) if (rematch.TryGetValue("rematch" + i, out var later) && later > 0) trainerFlags.Add(later);
+            }
          }
 
          // check rematch table
@@ -271,6 +411,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public static IReadOnlyDictionary<int, int> GetMinimumLevelForPokemon(IDataModel model) {
          var evolutions = model.GetTableModel(HardcodeTablesModel.EvolutionTableName);
+         if (evolutions == null) return null; // callers treat null as "no data" (some hacks don't have a recognizable evolution table)
          var levelMethods = new[] { 4, 8, 9, 10, 11, 12, 13, 14 };
          var results = new Dictionary<int, int>();
          foreach (var evo in evolutions) {
@@ -291,6 +432,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       /// </summary>
       public static IReadOnlyDictionary<int, int> GetPokemonDevolutions(IDataModel model) {
          var evolutions = model.GetTableModel(HardcodeTablesModel.EvolutionTableName);
+         if (evolutions == null) return null;
          var levelMethods = new[] { 4, 8, 9, 10, 11, 12, 13, 14 };
          var results = new Dictionary<int, int>();
          foreach (var evo in evolutions) {
@@ -383,9 +525,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public static ISet<int> GetTrainerFlagUsages(IDataModel model, ScriptParser parser, int flag) {
          var flagUsages = new HashSet<int>();
+         var trainerOffset = IsUnifiedTrainerBattle(model) ? 3 : 2; // the unified command has a flags byte and an object id before the trainer
          foreach (var spot in GetAllScriptSpots(model, parser, GetAllTopLevelScripts(model), 0x5C)) {
-            var trainerFlag = model.ReadMultiByteValue(spot.Address + 2, 2);
-            if (trainerFlag == flag) flagUsages.Add(spot.Address + 2);
+            var trainerFlag = model.ReadMultiByteValue(spot.Address + trainerOffset, 2);
+            if (trainerFlag == flag) flagUsages.Add(spot.Address + trainerOffset);
          }
          // TODO need to check the rematch table
          return flagUsages;
@@ -393,6 +536,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public static IReadOnlyDictionary<int, TrainerPreference> GetTrainerPreference(IDataModel model, ScriptParser parser) {
          var trainers = model.GetTableModel(HardcodeTablesModel.TrainerTableName);
+         var trainerOffset = IsUnifiedTrainerBattle(model) ? 3 : 2;
 
          var classHistogram = new Dictionary<int, Dictionary<int, int>>();
          var musicHistogram = new Dictionary<int, Dictionary<int, int>>();
@@ -407,8 +551,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (!musicHistogram.TryGetValue(graphics, out var desiredMusic)) musicHistogram[graphics] = desiredMusic = new();
             if (!spriteHistogram.TryGetValue(graphics, out var desiredSprite)) spriteHistogram[graphics] = desiredSprite = new();
             foreach (var spot in GetAllScriptSpots(model, parser, new[] { element.GetAddress("script") }, 0x5C)) {
-               var trainerFlag = model.ReadMultiByteValue(spot.Address + 2, 2);
-               if (trainerFlag >= trainers.Count) continue;
+               var trainerFlag = model.ReadMultiByteValue(spot.Address + trainerOffset, 2);
+               if (trainerFlag <= 0 || trainerFlag >= trainers.Count) continue;
                var trainer = trainers[trainerFlag];
                var pref = new TrainerPreference(trainer.GetValue("class"), trainer.GetValue("introMusicAndGender"), trainer.GetValue("sprite"));
 
@@ -447,6 +591,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          foreach (var scriptStart in initialAddresses) {
             if (scriptStart < 0 || scriptStart >= model.Count) continue;
             var scriptsToCheck = new List<int> { scriptStart };
+            var scriptsSeen = new HashSet<int> { scriptStart }; // same content as scriptsToCheck, but with a fast Contains
             for (int i = 0; i < scriptsToCheck.Count; i++) {
                var address = scriptsToCheck[i];
                int currentScriptLength = 0;
@@ -461,7 +606,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   foreach (var arg in line.Args) {
                      if (arg.PointerType == ExpectedPointerType.Script) {
                         var destination = model.ReadPointer(address + commandOffset);
-                        if (destination >= 0 && destination < model.Count && !scriptsToCheck.Contains(destination) && scriptsToCheck.Count < ScriptCountLimit) scriptsToCheck.Add(destination);
+                        if (destination >= 0 && destination < model.Count && scriptsToCheck.Count < ScriptCountLimit && scriptsSeen.Add(destination)) scriptsToCheck.Add(destination);
                      }
                      commandOffset += arg.Length(model, -1);
                   }
@@ -474,7 +619,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      /// <summary>
+      /// Finds the start address of every script referenced by a map (object, script, and signpost events, plus map header scripts).
+      /// Walking every map is slow, so the result is cached until the model's data changes.
+      /// The returned set is shared: callers must not modify it.
+      /// </summary>
       public static ISet<int> GetAllTopLevelScripts(IDataModel model) {
+         return model.CurrentCacheScope.GetOrAdd("flags.top-level-scripts", () => FindAllTopLevelScripts(model));
+      }
+
+      private static HashSet<int> FindAllTopLevelScripts(IDataModel model) {
          var scriptAddresses = new HashSet<int>();
 
          foreach (var element in GetAllEvents(model, "objects")) scriptAddresses.Add(element.GetAddress("script"));
@@ -510,9 +664,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return scriptAddresses; // takes about <1s
       }
 
+      /// <summary>
+      /// Collects the events of the requested type from every map in the game.
+      /// Walking every map is slow (and this gets called from several different scans), so the result is cached until the model's data changes.
+      /// </summary>
       /// <param name="type">Expects "objects" "scripts" or "signposts"</param>
-      /// <returns></returns>
+      /// <returns>A read-only list of every event of that type.</returns>
       public static IList<ModelArrayElement> GetAllEvents(IDataModel model, string type) {
+         return model.CurrentCacheScope.GetOrAdd("flags.all-events:" + type, () => FindAllEvents(model, type).AsReadOnly());
+      }
+
+      private static List<ModelArrayElement> FindAllEvents(IDataModel model, string type) {
          var elements = new List<ModelArrayElement>();
          var banks = model.GetTableModel(HardcodeTablesModel.MapBankTable);
          if (banks == null) return elements;

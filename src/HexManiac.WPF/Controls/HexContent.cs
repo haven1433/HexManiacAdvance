@@ -195,6 +195,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void MakeSelectionEndOnScreen() {
          if (!(ViewPort is IEditableViewPort viewPort)) return;
          var x = viewPort.SelectionEnd.X;
+         // When a whole table element is selected and the element is wider than the view (decomp-style structs can be
+         // hundreds of bytes), following the selection end would scroll the interesting start of the element off-screen.
+         // In that case keep the start of the selection visible instead.
+         var startX = viewPort.SelectionStart.X;
+         if (startX != x && (Math.Abs(x - startX) + 1) * CellWidth > ActualWidth) x = Math.Min(startX, x);
          var newDesiredValue = HorizontalScrollValue;
          if (lastAnimation != null) newDesiredValue = targetValue;
          if (HorizontalScrollValue > x * CellWidth) {

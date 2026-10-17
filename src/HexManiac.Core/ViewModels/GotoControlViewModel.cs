@@ -7,6 +7,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -14,13 +15,47 @@ using static HavenSoft.HexManiac.Core.ICommandExtensions;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class GotoShortcutViewModel : ViewModelCore {
+      // one shared event argument: an animated button changes its picture several times a second, and that must not allocate
+      private static readonly PropertyChangedEventArgs ImageChangedArgs = new(nameof(Image));
+
       private readonly GotoControlViewModel viewModel;
       private readonly IViewPort viewPort;
       private readonly string anchor;
 
+      private IPixelViewModel image;
+      private Func<IPixelViewModel> imageFactory;       // makes the picture the first time somebody asks for it
+      private Func<IPixelViewModel> fallbackFactory;    // makes the built-in picture, only if the button has no picture of its own (see SetFallbackImage)
+      private Func<ShortcutAnimation> animationSource;  // makes the animation the first time the clock starts
+      private ShortcutAnimation animation;
+      private int frameIndex;
+
       public string DisplayText { get; }
 
-      public IPixelViewModel Image { get; }
+      /// <summary>
+      /// The picture on the button. A button made with a factory draws its picture the first time it is shown, not when the Goto dialog is prepared.
+      /// An animated button replaces this picture with the next frame, and tells the view with PropertyChanged.
+      /// </summary>
+      public IPixelViewModel Image {
+         get {
+            if (image == null) {
+               BuildAnimation(); // an animated button starts on its first frame, so the button looks the same whether or not the clock is running yet
+               if (image == null && imageFactory != null) {
+                  var factory = imageFactory;
+                  imageFactory = null;
+                  try { image = factory(); } catch (Exception) { image = null; } // pictures are decoration: never fail the dialog because of one
+               }
+               if (image == null && fallbackFactory != null) {
+                  var fallback = fallbackFactory;
+                  fallbackFactory = null;
+                  try { image = fallback(); } catch (Exception) { image = null; }
+               }
+            }
+            return image;
+         }
+      }
+
+      /// <summary>True if the button has an animation that the clock plays (a single picture is not an animation).</summary>
+      public bool IsAnimated => animation != null;
 
       private bool smallMode;
       public bool SmallMode {
@@ -34,9 +69,102 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public GotoShortcutViewModel(GotoControlViewModel parent, IViewPort viewPort, IPixelViewModel image, string anchor, string display) {
          viewModel = parent;
          this.viewPort = viewPort;
-         Image = image;
+         this.image = image;
          this.anchor = anchor;
          DisplayText = display;
+      }
+
+      /// <summary>Same, but the picture is only drawn when the button is first shown (null from the factory is a button without a picture).</summary>
+      public GotoShortcutViewModel(GotoControlViewModel parent, IViewPort viewPort, Func<IPixelViewModel> imageFactory, string anchor, string display)
+         : this(parent, viewPort, (IPixelViewModel)null, anchor, display) {
+         this.imageFactory = imageFactory;
+      }
+
+      /// <summary>
+      /// The built-in picture for a button that has no picture of its own: the factory is only asked (once, when the button is first shown) if neither the picture the button was made with,
+      /// nor <see cref="PreferImage"/>, nor an animation gave it one. A picture from the ROM therefore always wins, and a button that has one never pays for the fallback.
+      /// Use it before the dialog shows the button.
+      /// </summary>
+      public void SetFallbackImage(Func<IPixelViewModel> factory) => fallbackFactory = factory;
+
+      /// <summary>
+      /// Use this picture instead of the one the button has, unless the factory has none (then the button keeps its old picture).
+      /// The factory runs when the button is first shown. Use it before the dialog shows the button.
+      /// </summary>
+      public void PreferImage(Func<IPixelViewModel> factory) {
+         if (factory == null) return;
+         var fallbackImage = image;
+         var fallbackFactory = imageFactory;
+         image = null;
+         imageFactory = () => {
+            IPixelViewModel preferred = null;
+            try { preferred = factory(); } catch (Exception) { preferred = null; } // a picture that can't be drawn is not a reason to lose the old one
+            return preferred ?? fallbackImage ?? fallbackFactory?.Invoke();
+         };
+      }
+
+      /// <summary>
+      /// Make the button animated: show 'frames' one after the other, each for the matching number of milliseconds, and start again after the last.
+      /// The shared clock (<see cref="ShortcutAnimationClock"/>) plays it while the Goto dialog is shown. One frame, no frames, or times that don't match the frames leave the button without an animation.
+      /// </summary>
+      public void SetAnimation(IReadOnlyList<IPixelViewModel> frames, IReadOnlyList<int> durationsMilliseconds) => SetAnimation(ShortcutAnimation.Create(frames, durationsMilliseconds));
+
+      public void SetAnimation(ShortcutAnimation newAnimation) {
+         animationSource = null;
+         animation = newAnimation != null && newAnimation.FrameCount > 1 ? newAnimation : null;
+         if (newAnimation != null) ShowFrame(newAnimation, 0);
+         viewModel?.RaiseShortcutAnimationsChanged();
+      }
+
+      /// <summary>
+      /// The animation is built the first time the clock starts (the first time the dialog is shown), not when the dialog is prepared for the tab.
+      /// A source that returns null leaves the button as it is.
+      /// </summary>
+      public void SetAnimationSource(Func<ShortcutAnimation> source) {
+         animationSource = source;
+         viewModel?.RaiseShortcutAnimationsChanged();
+      }
+
+      /// <summary>Builds the animation if it was only promised (see <see cref="SetAnimationSource"/>). Returns true if the button is animated.</summary>
+      public bool PrepareAnimation() {
+         var before = image;
+         BuildAnimation();
+         if (!ReferenceEquals(before, image)) NotifyPropertyChanged(ImageChangedArgs);
+         return animation != null;
+      }
+
+      private void BuildAnimation() {
+         var source = animationSource;
+         if (source == null) return;
+         animationSource = null;
+         ShortcutAnimation built = null;
+         try { built = source(); } catch (Exception) { built = null; } // animations are decoration too
+         if (built == null) return;
+         animation = built.FrameCount > 1 ? built : null;
+         frameIndex = 0;
+         image = built.Frames[0];
+         imageFactory = null;
+      }
+
+      /// <summary>
+      /// Show the frame that belongs 'elapsedMilliseconds' after the animation started, and say how long until the frame changes again (long.MaxValue if the button isn't animated).
+      /// Only changes the picture (and tells the view) when the frame really is a different one.
+      /// </summary>
+      public void ShowFrameAt(long elapsedMilliseconds, out long millisecondsUntilNextFrame) {
+         var current = animation;
+         if (current == null) {
+            millisecondsUntilNextFrame = long.MaxValue;
+            return;
+         }
+         var index = current.FrameIndexAt(elapsedMilliseconds, out millisecondsUntilNextFrame);
+         if (index != frameIndex || image != current.Frames[index]) ShowFrame(current, index);
+      }
+
+      private void ShowFrame(ShortcutAnimation source, int index) {
+         frameIndex = index;
+         image = source.Frames[index];
+         imageFactory = null;
+         NotifyPropertyChanged(ImageChangedArgs);
       }
 
       public void Goto() {
@@ -57,7 +185,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public bool ControlVisible {
          get => controlVisible;
          set {
-            if (TryUpdate(ref controlVisible, value) && value) CompletionIndex = -1;
+            if (TryUpdate(ref controlVisible, value) && value) {
+               CompletionIndex = -1;
+               if (CubeScripts.IsAvailable(viewPort?.Model)) RefreshOptions(); // entries like Scripts > EXP Share depend on a byte of the ROM (it may have changed, or been undone)
+            }
             if (value) MoveFocusToGoto?.Invoke(this, EventArgs.Empty);
          }
       }
@@ -130,6 +261,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       #endregion
 
       public event EventHandler MoveFocusToGoto;
+
+      /// <summary>Raised when one of the shortcut buttons gets (or is promised) an animation, so the clock that plays them can start.</summary>
+      public event EventHandler ShortcutAnimationsChanged;
+      internal void RaiseShortcutAnimationsChanged() => ShortcutAnimationsChanged?.Invoke(this, EventArgs.Empty);
 
       private ObservableCollection<GotoShortcutViewModel> shortcuts = new();
       public ObservableCollection<GotoShortcutViewModel> Shortcuts {
@@ -249,6 +384,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          using (ModelCacheScope.CreateScope(viewPort.Model)) {
             address = viewPort.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, currentSelection);
+            if (address == Pointer.NULL) address = GotoAliases.FindAddress(viewPort.Model, currentSelection); // an original entry that this ROM keeps somewhere else
          }
          if (address != Pointer.NULL && !withinTextChange) {
             viewPort?.Goto?.Execute(address);
@@ -463,6 +599,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             List<string> allOptions = model.GetExtendedAutocompleteOptions(filter)?.ToList() ?? new();
             allOptions.AddRange(model.GetMatchingMaps(filter).Select(map => map.Name));
             allOptions.AddRange(docs.GetMatchingDocumentation(filter).Select(doc => doc.Label));
+            allOptions.AddRange(GotoAliases.Matching(model, filter).Except(allOptions)); // the original entries, for a ROM (CUBE) that merged their tables into others
             var selections = GetSectionSelections(previousSections).ToList();
 
             var newSection = new GotoLabelSection(allOptions, selections);
@@ -512,6 +649,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var matchingMaps = new List<MapInfo>();
          if (fullName.StartsWith("maps.bank") && fullName.Contains("-")) matchingMaps = model.GetMatchingMaps(fullName);
          var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, fullName);
+         if (address == Pointer.NULL) address = GotoAliases.FindAddress(model, fullName);
          var matchingDoc = docs.FirstOrDefault(doc => doc.Label == fullName);
          if (address != Pointer.NULL) {
             IsGoto = true;

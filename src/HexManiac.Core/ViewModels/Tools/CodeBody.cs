@@ -69,7 +69,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var args = (line is MacroScriptLine macro) ? macro.ShortFormArgs : line.Args;
             if (args.Count < tokens.Length) return false;
             var currentArg = args[tokens.Length - 1];
-            return currentArg.Name == "flag" && currentArg.Type == ArgType.Short && currentArg.EnumTableName == "|h";
+            return currentArg.Name == "flag" && currentArg.Type == ArgType.Short && (currentArg.EnumTableName == "|h" || ScriptArg.IsNumberOrNameSpec(currentArg.EnumTableName));
          }
       }
 
@@ -158,12 +158,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             while (left.InRange(1, context.Line.Length) && context.Line[left] != ' ') left--;
             while (right < context.Line.Length && context.Line[right] != ' ') right++;
             var token = context.Line.Substring(left, right - left).Trim();
-            if (!token.TryParseInt(out int value)) return false;
+            var isNumber = token.TryParseInt(out int value);
+            if (!isNumber && !LooksLikeName(token)) return false;
             var line = parser.FirstMatch(context.Line.Trim());
             if (line == null) return false;
+            if (!isNumber && !TryParseFlagName(line, token, out value)) return false;
             if (line.Args.All(arg => arg.Name != "variable" && arg.Name != "flag")) return false;
             return true;
          }
+      }
+
+      private static bool LooksLikeName(string token) => token.Length > 0 && (char.IsLetter(token[0]) || token[0] == '_');
+
+      /// <summary>
+      /// A flag that has a name (the battle options, badges and start menu flags) is written as that name instead of a number.
+      /// </summary>
+      private bool TryParseFlagName(IScriptLine line, string token, out int value) {
+         value = 0;
+         if (!LooksLikeName(token)) return false;
+         foreach (var arg in line.Args) {
+            if (arg is ScriptArg scriptArg && scriptArg.Name == "flag" && scriptArg.IsNumberOrName && scriptArg.TryParseValue(model, token, out value)) return true;
+         }
+         return false;
       }
 
       public void FindUses() {
@@ -173,9 +189,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          while (right < context.Line.Length && context.Line[right] != ' ') right++;
          while (left.InRange(0, context.Line.Length) && context.Line[left] != ' ') left--;
          var token = context.Line.Substring(left, right - left).Trim();
-         if (!token.TryParseInt(out int value)) return;
+         var isNumber = token.TryParseInt(out int value);
+         if (!isNumber && !LooksLikeName(token)) return;
          var line = parser.FirstMatch(context.Line.Trim());
          if (line == null) return;
+         if (!isNumber && !TryParseFlagName(line, token, out value)) return;
          if (value < 0x4000) {
             var flags = Flags.FindFlagUsages(model, parser, value);
             RequestShowSearchResult.Raise(this, flags);
@@ -546,7 +564,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   var token = tokens[tokens.Length - 1];
                   var options = parser.ReadOptions(model, arg.EnumTableName, token);
                   if (options == null) return null;
-                  if (args.Count == tokens.Length - skipCount && options.Any(option => option == token)) return null; // perfect match on last token
+                  if (args.Count == tokens.Length - skipCount && options.Any(option => ScriptParser.OptionName(option) == token)) return null; // perfect match on last token
                   before = before.Substring(0, before.Length - token.Length);
                   if (string.IsNullOrEmpty(after) && tokens.Length - skipCount < args.Count) after = " "; // insert whitespace after
                   results.AddRange(options.Select(op => new AutocompleteItem(op, before + op.Split('#').First().Trim() + after)));

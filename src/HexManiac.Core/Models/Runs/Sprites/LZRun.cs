@@ -19,6 +19,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public override int Length => length;
       protected void InvalidateLength() => length = -1;
 
+      /// <summary>False if a run of this kind cannot be made from data that decompresses to this many bytes (a sprite needs enough bytes for all of its tiles).</summary>
+      protected virtual bool IsValidDecompressedLength(int decompressedLength) => true;
+
       public int DecompressedLength { get; }
 
       public override string FormatString => "`lz`";
@@ -32,7 +35,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          this.AllowLengthErrors = allowLengthErrors;
          length = IsCompressedLzData(data, start, allowLengthErrors, out bool hasLengthErrors);
          HasLengthErrors = hasLengthErrors;
-         if (start.InRange(0, data.Count - 4)) DecompressedLength = data.ReadMultiByteValue(start + 1, 3);
+         IsSmol = SmolDecoder.LooksLikeSmol(data, start);
+         if (start.InRange(0, data.Count - 4)) DecompressedLength = ReadDecompressedLength(data, start);
+      }
+
+      /// <summary>True if the data is the pokeemerald-expansion's 'smol' compression instead of LZ77. HexManiac reads it, and writes plain LZ77 (which the expansion's decompression accepts) when it is edited.</summary>
+      public bool IsSmol { get; }
+
+      /// <summary>The decompressed size from the header of LZ77 or smol data.</summary>
+      public static int ReadDecompressedLength(IReadOnlyList<byte> data, int start) {
+         if (SmolDecoder.LooksLikeSmol(data, start)) return SmolDecoder.GetDecompressedLength(data, start);
+         return data.ReadMultiByteValue(start + 1, 3);
       }
 
       /// <returns>The length of the compressed data</returns>
@@ -46,6 +59,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public static int IsCompressedLzData(IReadOnlyList<byte> data, int start, bool allowLengthErrors, out bool hasLengthErrors) {
          hasLengthErrors = false;
          var initialStart = start;
+         if (SmolDecoder.LooksLikeSmol(data, start)) return SmolDecoder.GetCompressedLength(data, start);
          int length = ReadHeader(data, ref start);
          if (length < 1) return GeneralDecompressionError;
          int index = 0; // the index into the uncompressed data
@@ -77,6 +91,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public static bool TryDecompress(IReadOnlyList<byte> data, int start, bool allowLengthErrors, out byte[] result) => (result = Decompress(data, start, allowLengthErrors)) != null;
 
       public static byte[] Decompress(IReadOnlyList<byte> data, int start, bool allowLengthErrors = false) {
+         if (SmolDecoder.LooksLikeSmol(data, start)) return SmolDecoder.Decompress(data, start);
          int length = ReadHeader(data, ref start);
          if (length < 1) return null;
          var index = 0;
@@ -171,8 +186,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       /// shorten or lengthen the run.
       /// </summary>
       public LZRun FixupEnd(IDataModel model, ModelDelta token, int fixupStart) {
+         if (IsSmol) return null; // smol data cannot be repaired by hand
          var newData = RecommendedFixup(fixupStart);
          if (newData == null) return null;
+         if (!IsValidDecompressedLength(newData.ReadMultiByteValue(1, 3))) return null; // the sprite or palette would no longer fit in the data
+         if (IsCompressedLzData(newData, 0, AllowLengthErrors) < 1) return null; // the tokens before fixupStart were written by hand: if they copy from data that is not there yet, the result is not LZ data at all
          var newRun = model.RelocateForExpansion(token, this, newData.Count);
          var newStart = newRun.Start;
          for (int i = 0; i < newData.Count; i++) token.ChangeData(model, newStart + i, newData[i]);

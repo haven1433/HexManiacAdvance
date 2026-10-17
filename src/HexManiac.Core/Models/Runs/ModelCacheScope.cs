@@ -23,6 +23,39 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return model.CurrentCacheScope;
       }
 
+      private readonly Dictionary<string, object> cachedLookups = new();
+
+      /// <summary>
+      /// Cache an arbitrary computed lookup for as long as the model's data doesn't change.
+      /// (The cache scope is discarded whenever the model data is written.)
+      /// </summary>
+      public T GetOrAdd<T>(string key, Func<T> factory) where T : class {
+         lock (cachedLookups) {
+            if (cachedLookups.TryGetValue(key, out var existing) && existing is T typed) return typed;
+         }
+         var result = factory();
+         lock (cachedLookups) cachedLookups[key] = result;
+         return result;
+      }
+
+      private readonly Dictionary<(int destination, int source, string fieldName, string format), ITableRun> cachedSubTables = new();
+
+      /// <summary>
+      /// ModelArrayElement.GetSubTable has to parse the child table's format every time it's called,
+      /// and it gets called thousands of times when walking the maps (every map lookup goes bank -> maps -> map -> events -> ...).
+      /// Since the parse only depends on the data (and the format), remember the result until the data changes.
+      /// A null result is remembered too, so repeated failures are also cheap.
+      /// </summary>
+      public ITableRun GetOrAddSubTable(int destination, int source, string fieldName, string format, Func<ITableRun> factory) {
+         var key = (destination, source, fieldName, format);
+         lock (cachedSubTables) {
+            if (cachedSubTables.TryGetValue(key, out var existing)) return existing;
+         }
+         var result = factory();
+         lock (cachedSubTables) cachedSubTables[key] = result;
+         return result;
+      }
+
       private readonly Dictionary<string, IReadOnlyList<string>> cachedOptions = new Dictionary<string, IReadOnlyList<string>>();
       private readonly Dictionary<string, IReadOnlyList<string>> cachedBitOptions = new Dictionary<string, IReadOnlyList<string>>();
       private IReadOnlyList<MapInfo> cachedMapInfo;
@@ -48,7 +81,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       private readonly Dictionary<string, IReadOnlyList<ArrayRun>> cachedDependentArrays = new();
       public IEnumerable<ArrayRun> GetDependantArrays(string anchor) {
-         if (cachedDependentArrays.TryGetValue(anchor, out var cache)) return cache;
+         lock (cachedDependentArrays) {
+            if (cachedDependentArrays.TryGetValue(anchor, out var cache)) return cache;
+         }
 
          var results = new List<ArrayRun>();
          foreach (var array in model.Arrays) {
@@ -59,7 +94,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                }
             }
          }
-         cachedDependentArrays[anchor] = results;
+         lock (cachedDependentArrays) cachedDependentArrays[anchor] = results;
          return results;
       }
 
@@ -71,7 +106,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public IReadOnlyList<string> GetBitOptions(string enumName) {
-         if (cachedBitOptions.ContainsKey(enumName)) return cachedBitOptions[enumName];
+         lock (cachedBitOptions) {
+            if (cachedBitOptions.TryGetValue(enumName, out var cached)) return cached;
+         }
 
          // if it's from a list, then it's not from an enum, but instead from just a string list
          if (model.TryGetList(enumName, out var nameArray)) return nameArray.Select(QuoteIfNeeded).ToList();
@@ -97,7 +134,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
          }
 
-         cachedBitOptions[enumName] = results;
+         lock (cachedBitOptions) cachedBitOptions[enumName] = results;
          return results;
       }
 
@@ -126,11 +163,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var bankTable = model.GetTable(HardcodeTablesModel.MapBankTable);
          if (bankTable == null) return results;
          var banks = new ModelTable(model, bankTable.Start, null, bankTable);
+         var names = new MapNameLookup(model); // the same lookup for every map, so the name table and the bank tables are only looked up once
          for (int i = 0; i < banks.Count; i++) {
             var maps = banks[i].GetSubTable("maps");
             if (maps == null) continue;
             for (int j = 0; j < maps.Count; j++) {
-               var name = BlockMapViewModel.MapIDToText(model, i, j);
+               var name = names.Text(i, j);
                var mapText = $"maps.bank{i}.{name}";
                results.Add(new(i, j, mapText));
             }
@@ -152,11 +190,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       // stores only the start and length
       private Dictionary<int, Dictionary<int, int>> scriptDestinations = new();
       public Dictionary<int, int> ScriptDestinations(int start) {
-         if (!scriptDestinations.TryGetValue(start, out var destinations)) {
-            destinations = new();
-            scriptDestinations[start] = destinations;
+         lock (scriptDestinations) {
+            if (!scriptDestinations.TryGetValue(start, out var destinations)) {
+               destinations = new();
+               scriptDestinations[start] = destinations;
+            }
+            return destinations;
          }
-         return destinations;
       }
 
       // stores start, length, and contents

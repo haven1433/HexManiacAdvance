@@ -18,9 +18,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var lzRun = new LzSpriteRun(spriteFormat, owner, destination, new SortedSpan<int>(source));
-         if (lzRun.Length <= 5 || owner.ReadMultiByteValue(destination + 1, 3) % 32 != 0) return false;
+         if (lzRun.Length <= 5 || LZRun.ReadDecompressedLength(owner, destination) % 32 != 0) return false;
 
-         if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, lzRun);
+         if (!(token is NoDataChangeDeltaModel)) {
+            owner.ClearFormat(token, lzRun.Start + 1, lzRun.Length - 1); // formats that start inside the new one would overlap it
+            owner.ObserveRunWritten(token, lzRun);
+         }
 
          return true;
       }

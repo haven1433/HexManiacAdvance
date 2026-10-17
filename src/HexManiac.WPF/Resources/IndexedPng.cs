@@ -43,91 +43,100 @@ namespace HexManiac.WPF.Resources {
          return data;
       }
 
-      public static int[,] ConvertToPixels(byte[] data, uint width, uint height, int bitDepth) {
-         Debug.Assert(bitDepth == 1 || bitDepth == 2 || bitDepth == 4 || bitDepth == 8);
+      private static readonly (int xStart, int yStart, int xStep, int yStep)[] Adam7Passes = {
+         (0, 0, 8, 8), (4, 0, 8, 8), (0, 4, 4, 8), (2, 0, 4, 4), (0, 2, 2, 4), (1, 0, 2, 2), (0, 1, 1, 2),
+      };
+
+      /// <summary>
+      /// Turns the decompressed IDAT data into palette indexes.
+      /// Every row starts with a filter byte and holds ceil(width * bitDepth / 8) bytes, whatever the width is.
+      /// The five PNG filters (None, Sub, Up, Average, Paeth) are undone, and interlaced (Adam7) images are put back in order.
+      /// </summary>
+      public static int[,] ConvertToPixels(byte[] data, uint width, uint height, int bitDepth, bool interlaced = false) {
+         if (bitDepth != 1 && bitDepth != 2 && bitDepth != 4 && bitDepth != 8) {
+            throw new PngArgumentException($"Bit depth ({bitDepth}) is invalid for a palette indexed image.");
+         }
+         if (width == 0 || height == 0 || (long)width * height > 1L << 28) {
+            throw new PngArgumentException($"Image size ({width} x {height}) is not supported.");
+         }
          int[,] pixels = new int[width, height];
-         if (bitDepth == 1) {
-            Debug.Assert((width / 8 + 1) * height == data.Length, "Decompressed data size from IDAT does not match width and height from IDHR.");
-            for (var i = 0; i < data.Length; i++) {
-               if (i % (width / 8 + 1) == 0) {
-                  continue;
-               }
-               var x = ((i - 1) * 8) % (width + 8);
-               var y = i / (width / 8 + 1);
-               pixels[x, y] = (data[i] >> 7) & 1;
-               pixels[x + 1, y] = (data[i] >> 6) & 1;
-               pixels[x + 2, y] = (data[i] >> 5) & 1;
-               pixels[x + 3, y] = (data[i] >> 4) & 1;
-               pixels[x + 4, y] = (data[i] >> 3) & 1;
-               pixels[x + 5, y] = (data[i] >> 2) & 1;
-               pixels[x + 6, y] = (data[i] >> 1) & 1;
-               pixels[x + 7, y] = (data[i] >> 0) & 1;
-            }
-         } else if (bitDepth == 2) {
-            Debug.Assert((width / 4 + 1) * height == data.Length, "Decompressed data size from IDAT does not match width and height from IDHR.");
-            for (var i = 0; i < data.Length; i++) {
-               if (i % (width / 4 + 1) == 0) {
-                  continue;
-               }
-               var x = ((i - 1) * 4) % (width + 4);
-               var y = i / (width / 4 + 1);
-               pixels[x, y] = (data[i] >> 6) & 3;
-               pixels[x + 1, y] = (data[i] >> 4) & 3;
-               pixels[x + 2, y] = (data[i] >> 2) & 3;
-               pixels[x + 3, y] = (data[i] >> 0) & 3;
-            }
-         } else if (bitDepth == 4) {
-            Debug.Assert((width / 2 + 1) * height == data.Length, "Decompressed data size from IDAT does not match width and height from IDHR.");
-            for (var i = 0; i < data.Length; i++) {
-               if (i % (width / 2 + 1) == 0) {
-                  continue;
-               }
-               var x = ((i - 1) * 2) % (width + 2);
-               var y = i / (width / 2 + 1);
-               pixels[x, y] = (data[i] >> 4) & 15;
-               pixels[x + 1, y] = (data[i] >> 0) & 15;
-            }
-         } else if (bitDepth == 8) {
-            Debug.Assert((width + 1) * height == data.Length, "Decompressed data size from IDAT does not match width and height from IDHR.");
-            for (var i = 0; i < data.Length; i++) {
-               if (i % (width + 1) == 0) {
-                  continue;
-               }
-               var x = (i - 1) % (width + 1);
-               var y = i / (width + 1);
-               pixels[x, y] = data[i] & 255;
+         var position = 0;
+         if (!interlaced) {
+            ReadPass(data, ref position, pixels, 0, 0, 1, 1, (int)width, (int)height, bitDepth);
+         } else {
+            foreach (var (xStart, yStart, xStep, yStep) in Adam7Passes) {
+               var passWidth = ((int)width - xStart + xStep - 1) / xStep;
+               var passHeight = ((int)height - yStart + yStep - 1) / yStep;
+               if (passWidth <= 0 || passHeight <= 0) continue; // small images skip some passes entirely
+               ReadPass(data, ref position, pixels, xStart, yStart, xStep, yStep, passWidth, passHeight, bitDepth);
             }
          }
          return pixels;
       }
 
+      private static void ReadPass(byte[] data, ref int position, int[,] pixels, int xStart, int yStart, int xStep, int yStep, int passWidth, int passHeight, int bitDepth) {
+         var rowBytes = (passWidth * bitDepth + 7) / 8;
+         var previous = new byte[rowBytes];
+         var current = new byte[rowBytes];
+         var mask = (1 << bitDepth) - 1;
+         for (var passY = 0; passY < passHeight; passY++) {
+            if (position + 1 + rowBytes > data.Length) {
+               throw new PngArgumentException("Decompressed data size from IDAT does not match width and height from IHDR.");
+            }
+            var filter = data[position];
+            Array.Copy(data, position + 1, current, 0, rowBytes);
+            position += 1 + rowBytes;
+            Unfilter(filter, current, previous);
+            var y = yStart + passY * yStep;
+            for (var passX = 0; passX < passWidth; passX++) {
+               var bit = passX * bitDepth;
+               pixels[xStart + passX * xStep, y] = (current[bit >> 3] >> (8 - bitDepth - (bit & 7))) & mask;
+            }
+            var swap = previous; previous = current; current = swap;
+         }
+      }
+
+      // all indexed images have one byte per pixel or less, so the 'previous pixel' for the filters is always the previous byte
+      private static void Unfilter(byte filter, byte[] row, byte[] previous) {
+         switch (filter) {
+            case 0: break;
+            case 1: // Sub
+               for (var i = 1; i < row.Length; i++) row[i] = (byte)(row[i] + row[i - 1]);
+               break;
+            case 2: // Up
+               for (var i = 0; i < row.Length; i++) row[i] = (byte)(row[i] + previous[i]);
+               break;
+            case 3: // Average
+               for (var i = 0; i < row.Length; i++) row[i] = (byte)(row[i] + (((i > 0 ? row[i - 1] : 0) + previous[i]) >> 1));
+               break;
+            case 4: // Paeth
+               for (var i = 0; i < row.Length; i++) {
+                  int a = i > 0 ? row[i - 1] : 0, b = previous[i], c = i > 0 ? previous[i - 1] : 0;
+                  var p = a + b - c;
+                  var (pa, pb, pc) = (Math.Abs(p - a), Math.Abs(p - b), Math.Abs(p - c));
+                  row[i] = (byte)(row[i] + (pa <= pb && pa <= pc ? a : pb <= pc ? b : c));
+               }
+               break;
+            default:
+               throw new PngArgumentException($"Unknown scanline filter type ({filter}).");
+         }
+      }
+
       public static byte[] ConvertFromPixels(int[,] pixels, int bitDepth) {
          var width = pixels.GetLength(0);
          var height = pixels.GetLength(1);
-         byte[] data;
+         if (bitDepth != 1 && bitDepth != 2 && bitDepth != 4 && bitDepth != 8) throw new ArgumentException($"Bit depth ({bitDepth}) is invalid for a palette indexed image.");
+         var rowBytes = (width * bitDepth + 7) / 8; // when the width doesn't fill the last byte, the unused low bits stay 0
+         var mask = (1 << bitDepth) - 1;
+         var data = new byte[(rowBytes + 1) * height];
          var i = 0;
-
-         if (bitDepth == 4) {
-            Debug.Assert(width % 2 == 0, "Width must be even.");
-            data = new byte[(width / 2 + 1) * height];
-            for (var y = 0; y < height; y++) {
-               data[i++] = 0;
-               for (var x = 0; x < width; x += 2) {
-                  var pixel1 = pixels[x, y] % 16;
-                  var pixel2 = pixels[x + 1, y] % 16;
-                  data[i++] = (byte)((pixel1 << 4) | pixel2);
-               }
+         for (var y = 0; y < height; y++) {
+            data[i++] = 0; // filter type: none
+            for (var x = 0; x < width; x++) {
+               var bit = x * bitDepth;
+               data[i + (bit >> 3)] |= (byte)((pixels[x, y] & mask) << (8 - bitDepth - (bit & 7)));
             }
-         } else if (bitDepth == 8) {
-            data = new byte[(width + 1) * height];
-            for (var y = 0; y < height; y++) {
-               data[i++] = 0;
-               for (var x = 0; x < width; x++) {
-                  data[i++] = (byte)pixels[x, y];
-               }
-            }
-         } else {
-            throw new ArgumentException();
+            i += rowBytes;
          }
          return data;
       }

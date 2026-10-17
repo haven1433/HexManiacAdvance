@@ -1,4 +1,4 @@
-﻿<Window x:Class="HavenSoft.HexManiac.WPF.Windows.MainWindow"
+<Window x:Class="HavenSoft.HexManiac.WPF.Windows.MainWindow"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
@@ -8,7 +8,7 @@
       xmlns:sys="clr-namespace:System;assembly=mscorlib"
       Icon="..\Resources\AppIcon.ico"
       PreviewMouseDown="RunDeferredActions"
-      Title="Hex Maniac Advance" Height="480" MinHeight="300" Width="1105" MinWidth="400" AllowDrop="True" Background="{DynamicResource Backlight}">
+      Title="CUBHMA - Cradi's Unofficial Build of Hex Maniac Advance" Height="480" MinHeight="300" Width="1105" MinWidth="400" AllowDrop="True" Background="{DynamicResource Backlight}">
    <Window.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
    </Window.Resources>
@@ -207,6 +207,72 @@
                            <TextBlock Text="Limit the scrollable area to a single table after a goto."/>
                         </ToolTip>
                      </MenuItem.ToolTip>
+                  </MenuItem>
+                  <MenuItem Header="Movement Permission Grid _Opacity" SubmenuOpened="CollisionGridOpacityMenuOpened">
+                     <MenuItem Header="10%" Tag="10" IsCheckable="True" Click="CollisionGridOpacityClick"/>
+                     <MenuItem Header="25%" Tag="25" IsCheckable="True" Click="CollisionGridOpacityClick"/>
+                     <MenuItem Header="40% (default)" Tag="40" IsCheckable="True" Click="CollisionGridOpacityClick"/>
+                     <MenuItem Header="50%" Tag="50" IsCheckable="True" Click="CollisionGridOpacityClick"/>
+                     <MenuItem Header="75%" Tag="75" IsCheckable="True" Click="CollisionGridOpacityClick"/>
+                     <MenuItem Header="100%" Tag="100" IsCheckable="True" Click="CollisionGridOpacityClick"/>
+                  </MenuItem>
+                  <MenuItem Header="Map Editor _GFX Variable Events" SubmenuOpened="GraphicsVariableDisplayMenuOpened">
+                     <MenuItem Header="Sprite from the scripts (default)" Tag="0" IsCheckable="True" Click="GraphicsVariableDisplayClick"/>
+                     <MenuItem Header="Blacked-out sprite with a question mark" Tag="1" IsCheckable="True" Click="GraphicsVariableDisplayClick"/>
+                     <MenuItem Header="Question mark" Tag="2" IsCheckable="True" Click="GraphicsVariableDisplayClick"/>
+                     <MenuItem Header="First Pokemon icon" Tag="3" IsCheckable="True" Click="GraphicsVariableDisplayClick"/>
+                  </MenuItem>
+                  <MenuItem Header="Script _Flags&amp;Vars" SubmenuOpened="ScriptNameDisplayMenuOpened">
+                     <MenuItem Header="Display numbers (default)" Tag="0" IsCheckable="True" Click="ScriptNameDisplayClick">
+                        <MenuItem.ToolTip>
+                           <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
+                              <TextBlock Text="Flags and variables are numbers. The flags that were named on purpose (level caps, badges, start menu entries, battle options) keep their names."/>
+                           </ToolTip>
+                        </MenuItem.ToolTip>
+                     </MenuItem>
+                     <MenuItem Header="Display defines" Tag="1" IsCheckable="True" Click="ScriptNameDisplayClick">
+                        <MenuItem.ToolTip>
+                           <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
+                              <TextBlock Text="Every flag and variable is shown by the name it has in the game's source (FLAG_... / VAR_...)."/>
+                           </ToolTip>
+                        </MenuItem.ToolTip>
+                     </MenuItem>
+                  </MenuItem>
+                  <MenuItem Header="_Graphics">
+                     <MenuItem Header="Use _dedicated graphics card (restart needed)" IsCheckable="True" IsChecked="{Binding UseDedicatedGraphics}">
+                        <MenuItem.ToolTip>
+                           <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
+                              <TextBlock>
+                                 On a computer with two graphics cards (most gaming laptops), ask Windows to run CUBHMA on the faster, dedicated one.
+                                 <LineBreak/>
+                                 That makes the map editor smoother. Turn it off if you have trouble with it.
+                                 <LineBreak/>
+                                 It is used the next time CUBHMA starts. You can also pick the card yourself in
+                                 <LineBreak/>
+                                 Windows: Settings &gt; System &gt; Display &gt; Graphics.
+                              </TextBlock>
+                           </ToolTip>
+                        </MenuItem.ToolTip>
+                     </MenuItem>
+                     <MenuItem Header="Hardware _accelerated rendering (restart needed)" IsCheckable="True" IsChecked="{Binding UseHardwareAcceleration}">
+                        <MenuItem.ToolTip>
+                           <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
+                              <TextBlock>
+                                 Let the graphics card draw CUBHMA. Turn this off only if the graphics driver causes problems
+                                 <LineBreak/>
+                                 (flickering, black areas, crashes): the processor draws everything then, which is slower.
+                                 <LineBreak/>
+                                 It is used the next time CUBHMA starts.
+                              </TextBlock>
+                           </ToolTip>
+                        </MenuItem.ToolTip>
+                     </MenuItem>
+                     <Separator/>
+                     <MenuItem IsEnabled="False">
+                        <MenuItem.Header>
+                           <TextBlock Text="{Binding GraphicsStatus}" TextWrapping="Wrap" MaxWidth="340"/>
+                        </MenuItem.Header>
+                     </MenuItem>
                   </MenuItem>
                   <Separator/>
                   <MenuItem Header="Reset _Zoom" Command="{Binding ResetZoom}">
@@ -675,6 +741,21 @@
                               <DataTemplate DataType="{x:Type hshmcvm:DexReorderTab}">
                                  <hsg3hv:DexReorderView />
                               </DataTemplate>
+                              <DataTemplate DataType="{x:Type hshmcvm:SpriteGalleryTab}">
+                                 <hsg3hv:SpriteGalleryView />
+                              </DataTemplate>
+                              <DataTemplate DataType="{x:Type hshmcvm:SoundTab}">
+                                 <hsg3hv:SoundView />
+                              </DataTemplate>
+                              <DataTemplate DataType="{x:Type hshmcvm:TilesetAnimationTab}">
+                                 <hsg3hv:TilesetAnimationView />
+                              </DataTemplate>
+                              <DataTemplate DataType="{x:Type hshmcvm:CharacterCustomizationTab}">
+                                 <hsg3hv:CharacterCustomizationView />
+                              </DataTemplate>
+                              <DataTemplate DataType="{x:Type hshmcvm:IntroManagerTab}">
+                                 <hsg3hv:IntroManagerView />
+                              </DataTemplate>
                               <DataTemplate DataType="{x:Type hshmcvm:ImageEditorViewModel}">
                                  <hsg3hv:ImageEditorView />
                               </DataTemplate>
@@ -728,7 +809,8 @@
                         <ItemsControl ItemsSource="{Binding GotoViewModel.Shortcuts}" HorizontalAlignment="Center">
                            <ItemsControl.ItemsPanel>
                               <ItemsPanelTemplate>
-                                 <WrapPanel/>
+                                 <!-- at most 5 buttons per row (ShortcutRows.DefaultMaxPerRow), every row centred; fewer per row when the window is narrower -->
+                                 <hsg3hv:CenteredRowsPanel MaxPerRow="5"/>
                               </ItemsPanelTemplate>
                            </ItemsControl.ItemsPanel>
                            <ItemsControl.ItemTemplate>

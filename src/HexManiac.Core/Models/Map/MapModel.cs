@@ -227,8 +227,8 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       public int Arg => Element.GetValue("arg");
       public bool HasScript => Kind < 5;
       public bool IsHiddenItem => Kind.IsAny(5, 6, 7);
-      public int ItemValue => Element.Model.ReadMultiByteValue(Element.Start + 8, 2);
-      public int HiddenItemFlag => Element.Model[Element.Start + 10];
+      public int ItemValue => HiddenItemEncoding.GetItem(Element.Model, Element.Start + 8);
+      public int HiddenItemFlag => HiddenItemEncoding.GetFlagOffset(Element.Model, Element.Start + 8);
       public int HiddenItemCount => Element.Model[Element.Start + 11];
       public int ScriptAddress => Element.Model.ReadPointer(Element.Start + 8);
    }
@@ -264,16 +264,16 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
 
       public BlocksetCache BlocksetCache => cache;
 
-      public string BlockDataFormat { get; }
-      public string LayoutFormat { get; }
-      public string ObjectsFormat { get; }
-      public string WarpsFormat { get; }
-      public string ScriptsFormat { get; }
-      public string SignpostsFormat { get; }
-      public string EventsFormat { get; }
-      public string ConnectionsFormat { get; }
+      public string BlockDataFormat { get; private set; }
+      public string LayoutFormat { get; private set; }
+      public string ObjectsFormat { get; private set; }
+      public string WarpsFormat { get; private set; }
+      public string ScriptsFormat { get; private set; }
+      public string SignpostsFormat { get; private set; }
+      public string EventsFormat { get; private set; }
+      public string ConnectionsFormat { get; private set; }
       public string HeaderFormat { get; }
-      public string MapFormat { get; }
+      public string MapFormat { get; private set; }
 
       public Format(IDataModel model) {
          this.model = model;
@@ -295,6 +295,58 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
          ConnectionsFormat = "[count:: connections<[direction:: offset:: mapGroup. mapNum. unused:]/count>]1";
          HeaderFormat = $"music:songnames layoutID:data.maps.layouts+1 regionSectionID.{regionSectionIDFormat} cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName::: floorNum. battleType.";
          MapFormat = $"[{Layout}<{LayoutFormat}> events<{EventsFormat}> mapscripts<[type. pointer<>]!00> {Connections}<{ConnectionsFormat}> {HeaderFormat}]";
+
+         // If the ROM's map bank table already describes maps with a different layout (for example a pokeemerald-expansion build,
+         // where the map header and map layout structs are not the vanilla ones), create new maps/layouts with that format
+         // instead of the vanilla one, so that what the map editor writes matches what the game reads.
+         var banks = model.GetTable(HardcodeTablesModel.MapBankTable);
+         var mapFormat = ExtractPointerContent(banks?.FormatString, "map<");
+         if (mapFormat != null && mapFormat.EndsWith("]1") && !IsVanillaMapFormat(mapFormat)) {
+            MapFormat = mapFormat.Substring(0, mapFormat.Length - 1);
+            var layoutFormat = ExtractPointerContent(mapFormat, Layout + "<");
+            if (layoutFormat != null) LayoutFormat = layoutFormat;
+            var eventsFormat = ExtractPointerContent(mapFormat, Events + "<");
+            if (eventsFormat != null) {
+               EventsFormat = eventsFormat;
+               ObjectsFormat = ExtractPointerContent(eventsFormat, Objects + "<") ?? ObjectsFormat;
+               WarpsFormat = ExtractPointerContent(eventsFormat, Warps + "<") ?? WarpsFormat;
+               ScriptsFormat = ExtractPointerContent(eventsFormat, Scripts + "<") ?? ScriptsFormat;
+               SignpostsFormat = ExtractPointerContent(eventsFormat, Signposts + "<") ?? SignpostsFormat;
+            }
+            var connectionsFormat = ExtractPointerContent(mapFormat, Connections + "<");
+            if (connectionsFormat != null) ConnectionsFormat = connectionsFormat;
+            var blockData = ExtractPointerContent(LayoutFormat, PrimaryBlockset + "<");
+            if (blockData != null) BlockDataFormat = blockData;
+         }
+      }
+
+      /// <summary>
+      /// True if the map format uses the vanilla header fields (cave/allowBiking/floorNum), in which case the built-in formats are kept.
+      /// </summary>
+      private static bool IsVanillaMapFormat(string mapFormat) => mapFormat.Contains(" cave. ");
+
+      /// <summary>
+      /// Given a format like "[a<[x. y.]1> b<[z.]1>]4" and a field prefix like "a<", returns the bracketed content "[x. y.]1".
+      /// Returns null if the field isn't found.
+      /// </summary>
+      public static string ExtractPointerContent(string format, string fieldPrefix) {
+         if (format == null) return null;
+         var index = format.IndexOf(fieldPrefix);
+         while (index > 0 && !" [<".Contains(format[index - 1])) index = format.IndexOf(fieldPrefix, index + 1);
+         if (index < 0 || index + fieldPrefix.Length >= format.Length) return null;
+         var start = index + fieldPrefix.Length;
+         if (format[start] != '[') return null;
+         int depth = 0;
+         for (int i = start; i < format.Length; i++) {
+            if (format[i] == '[') depth++;
+            if (format[i] == ']') depth--;
+            if (depth == 0) {
+               var end = i + 1;
+               while (end < format.Length && format[end] != '>') end++;
+               return format.Substring(start, end - start);
+            }
+         }
+         return null;
       }
 
       public void Refresh() {
@@ -303,5 +355,52 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       }
 
       public int RecentBank { get; set; }
+   }
+}
+
+namespace HavenSoft.HexManiac.Core.Models.Map {
+   /// <summary>
+   /// A hidden item is packed into the 4 bytes where other signposts keep a script pointer:
+   ///   item (16 bits), flag offset from FLAG_HIDDEN_ITEMS_START (8 bits), quantity (7 bits), underfoot (1 bit).
+   /// pokeemerald-expansion has many more items and hidden-item flags, so it packs item into 11 bits and the flag offset into 13.
+   /// A ROM's metadata says so with the unmapped constants 'map.hiddenitem.itembits' and 'map.hiddenitem.flagbits'.
+   /// </summary>
+   public static class HiddenItemEncoding {
+      public const string ItemBitsName = "map.hiddenitem.itembits", FlagBitsName = "map.hiddenitem.flagbits";
+
+      public static (int itemBits, int flagBits) GetLayout(IDataModel model) {
+         var itemBits = model.TryGetUnmappedConstant(ItemBitsName, out var i) && i.InRange(1, 24) ? i : 16;
+         var flagBits = model.TryGetUnmappedConstant(FlagBitsName, out var f) && f.InRange(1, 24) ? f : 8;
+         return (itemBits, flagBits);
+      }
+
+      /// <param name="address">the start of the 4-byte union (offset 8 of the signpost)</param>
+      public static int GetItem(IDataModel model, int address) {
+         var (itemBits, _) = GetLayout(model);
+         return (int)((uint)model.ReadMultiByteValue(address, 4) & ((1u << itemBits) - 1));
+      }
+
+      public static int GetFlagOffset(IDataModel model, int address) {
+         var (itemBits, flagBits) = GetLayout(model);
+         return (int)(((uint)model.ReadMultiByteValue(address, 4) >> itemBits) & ((1u << flagBits) - 1));
+      }
+
+      public static void SetItem(IDataModel model, ModelDelta token, int address, int item) {
+         var (itemBits, _) = GetLayout(model);
+         var mask = (1u << itemBits) - 1;
+         var word = (uint)model.ReadMultiByteValue(address, 4);
+         word = (word & ~mask) | ((uint)item & mask);
+         model.WriteMultiByteValue(address, 4, token, (int)word);
+      }
+
+      public static void SetFlagOffset(IDataModel model, ModelDelta token, int address, int flagOffset) {
+         var (itemBits, flagBits) = GetLayout(model);
+         var mask = ((1u << flagBits) - 1) << itemBits;
+         var word = (uint)model.ReadMultiByteValue(address, 4);
+         word = (word & ~mask) | (((uint)flagOffset << itemBits) & mask);
+         model.WriteMultiByteValue(address, 4, token, (int)word);
+      }
+
+      public static int MaxFlagOffset(IDataModel model) => (1 << GetLayout(model).flagBits) - 1;
    }
 }

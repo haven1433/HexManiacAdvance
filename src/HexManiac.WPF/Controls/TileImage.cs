@@ -6,6 +6,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -159,7 +160,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
    public class PixelImage : Image {
       private IPixelViewModel ViewModel => DataContext as IPixelViewModel;
-      private WriteableBitmap maskSource;
 
       private bool showDebugGrid;
       public bool ShowDebugGrid {
@@ -261,29 +261,56 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          return source;
       }
 
+      // Map images are rendered on a background thread. While painting on a map, the view model can ask for a
+      // redraw many times per second; rendering each request (and writing a full-size bitmap for each one on the UI thread)
+      // is what makes the map editor feel sluggish. Instead, only one render is in flight at a time,
+      // and any requests that arrive while it runs are folded into a single follow-up render.
+      private bool updateInProgress, updateRequested;
+
       public async void UpdateSource() {
+         if (!Dispatcher.CheckAccess()) {
+            // property changes can come from background work: the image itself can only be touched on the UI thread
+            Dispatcher.BeginInvoke(new Action(UpdateSource));
+            return;
+         }
          var vm = ViewModel;
          if (vm == null || vm.PixelWidth < 0 || vm.PixelHeight < 0) return;
          short[] pixels;
          if (vm is not BlockMapViewModel) {
             pixels = vm.PixelData;
          } else {
-            pixels = await Task.Run(() => vm.PixelData);
+            if (updateInProgress) { updateRequested = true; return; }
+            updateInProgress = true;
+            try {
+               pixels = await Task.Run(() => vm.PixelData);
+            } catch (Exception ex) {
+               // a failed render shouldn't take down the application: just leave the previous image in place
+               updateInProgress = false;
+               Debug.WriteLine($"Map render failed: {ex}");
+               return;
+            }
+            updateInProgress = false;
+            if (updateRequested || vm != ViewModel) {
+               // something changed while rendering: render again with the latest state
+               updateRequested = false;
+               UpdateSource();
+               return;
+            }
          }
          if (pixels == null || ViewModel == null) return;
-         if (!UseTrueTransparency) {
-            pixels = ConvertTransparentPixels(pixels);
-            if (OpacityMask is VisualBrush) OpacityMask = null;
-         } else if (ViewModel.Transparent != -1) {
-            OpacityMask = new VisualBrush(CreateOpacityMask());
-         } else {
-            if (OpacityMask is VisualBrush) OpacityMask = null;
-         }
+         // true transparency: the see-through pixels get an alpha of 0 in the bitmap itself (see AlphaPixels).
+         // (It used to be an OpacityMask the size of the picture. WPF smooths that mask when the picture is zoomed, which left a halo of the see-through colour around every sprite.)
+         var transparent = ViewModel.Transparent;
+         var useAlpha = UseTrueTransparency && transparent != -1;
+         if (!UseTrueTransparency) pixels = ConvertTransparentPixels(pixels);
+         if (OpacityMask is VisualBrush) OpacityMask = null; // (a mask left by an older version of this control)
          var expectedLength = ViewModel.PixelWidth * ViewModel.PixelHeight;
          if (pixels.Length < expectedLength || pixels.Length == 0) { Source = null; return; }
-         int stride = ViewModel.PixelWidth * 2;
-         var format = PixelFormats.Bgr555;
          if (ShowDebugGrid) { pixels = pixels.ToArray(); DrawDebugGrid(pixels, ViewModel.PixelWidth); }
+         var format = useAlpha ? PixelFormats.Pbgra32 : PixelFormats.Bgr555;
+         int stride = ViewModel.PixelWidth * (useAlpha ? 4 : 2);
+         Array data = pixels;
+         if (useAlpha) data = AlphaPixels.ToPremultipliedBgra(pixels, expectedLength, transparent);
 
          if (!(Source is WriteableBitmap wSource) ||
             wSource.PixelWidth != ViewModel.PixelWidth ||
@@ -294,25 +321,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
          var source = (WriteableBitmap)Source;
          var rect = new Int32Rect(0, 0, ViewModel.PixelWidth, ViewModel.PixelHeight);
-         source.WritePixels(rect, pixels, stride, 0);
-      }
-
-      private Image CreateOpacityMask() {
-         if (ViewModel.Transparent == -1) return null;
-         if (maskSource == null || maskSource.PixelWidth != ViewModel.PixelWidth || maskSource.PixelHeight != ViewModel.PixelHeight) {
-            maskSource = new WriteableBitmap(ViewModel.PixelWidth, ViewModel.PixelHeight, 96, 96, PixelFormats.Bgra32, null);
-         }
-         var pixels = new int[ViewModel.PixelWidth * ViewModel.PixelHeight];
-         for (int y = 0; y < ViewModel.PixelHeight; y++) {
-            for (int x = 0; x < ViewModel.PixelWidth; x++) {
-               var i = y * ViewModel.PixelWidth + x;
-               pixels[i] = ViewModel.PixelData[i] == ViewModel.Transparent ? 0 : -1;
-            }
-         }
-         var rect = new Int32Rect(0, 0, ViewModel.PixelWidth, ViewModel.PixelHeight);
-         int stride = ViewModel.PixelWidth * 4;
-         maskSource.WritePixels(rect, pixels, stride, 0);
-         return new Image { Source = maskSource };
+         source.WritePixels(rect, data, stride, 0);
       }
 
       private short[] ConvertTransparentPixels(short[] pixels) {

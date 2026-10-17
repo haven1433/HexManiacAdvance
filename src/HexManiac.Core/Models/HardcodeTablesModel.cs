@@ -1,4 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -66,11 +69,21 @@ namespace HavenSoft.HexManiac.Core.Models {
          TrainerClassNamesTable = "data.trainers.classes.names",
          ConversionDexTableName = "data.pokedex.hoennToNational",
          DefaultTilemapNamespace = "graphics.new.tilemap",
+         DefaultTilesetNamespace = "graphics.new.tileset",
          DefaultPaletteNamespace = "graphics.new.palette",
          AbilityDescriptionsTable = "data.abilities.descriptions",
          PokeIconPaletteIndexTable = "graphics.pokemon.icons.index",
          BattleParticleSpriteTable = "graphics.moves.particles.sprites",
          BattleParticlePaletteTable = "graphics.moves.particles.palettes";
+
+      /// <summary>
+      /// The table that holds the species names: 'data.pokemon.names' in the vanilla games,
+      /// but the pokeemerald-expansion keeps the name as the first field of its stats table.
+      /// </summary>
+      public static string GetSpeciesNameTable(IDataModel model) => model.GetTable(PokemonNameTable) != null ? PokemonNameTable : PokemonStatsTable;
+
+      /// <summary>The table that holds the move names: 'data.pokemon.moves.names' in the vanilla games, the move stats table in the pokeemerald-expansion.</summary>
+      public static string GetMoveNameTable(IDataModel model) => model.GetTable(MoveNamesTable) != null ? MoveNamesTable : "data.pokemon.moves.stats";
 
       public const string
          MoveInfoListName = "moveinfo",
@@ -113,12 +126,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       public override int EarliestAllowedAnchor => 0x200;
 
-      public List<string> LoadingMessages { get; } = new();
-
       public HardcodeTablesModel(Singletons singletons, byte[] data, StoredMetadata metadata = null, bool devMode = false) : base(data, metadata, singletons, devMode) {
          gameCode = this.GetGameCode();
          if (metadata != null && !metadata.IsEmpty) {
-            InitializationWorkload = (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => Initialize(metadata));
+            InitializationWorkload = (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => { Initialize(metadata); RepairSmolTypeIcons(); RepairCubeScriptTables(); });
             return;
          }
 
@@ -161,9 +172,54 @@ namespace HavenSoft.HexManiac.Core.Models {
                   }
                }
 
+               RepairSmolTypeIcons();
+               RepairCubeScriptTables();
                ResolveConflicts();
             }
          });
+      }
+
+
+      /// <summary>
+      /// A CUBE that was modified and saved with an older metadata file has no anchors for the tables of the CUBE scripts (see CubeScripts.RepairMissingTables).
+      /// They are found by their content, so that the HMA scripts and Goto > Scripts work for that ROM too. Nothing is written to the ROM.
+      /// </summary>
+      private void RepairCubeScriptTables() {
+         using (ModelCacheScope.CreateScope(this)) ViewModels.CubeScripts.RepairMissingTables(this);
+         ResolveConflicts();
+      }
+
+      public const string TypePalettesName = "graphics.pokemon.type.palettes", TypeIconsName = "graphics.pokemon.type.icons";
+
+      /// <summary>
+      /// The pokeemerald-expansion (CUBE) has no 'graphics.pokemon.type.icons' anchor: its icon sheet (gMoveTypes_Gfx) is smol compressed and directly behind the 96 bytes of type palettes.
+      /// If that is what this ROM looks like, give the sheet the same name and a sprite format, so that Goto > Graphics > Pokemon > Type > Icons opens an image that can be edited.
+      /// Nothing is written to the ROM and no metadata format is added: older metadata files load the same, the anchor is only saved to the metadata once it is there.
+      /// </summary>
+      private void RepairSmolTypeIcons() {
+         try {
+            var noChange = new NoDataChangeDeltaModel();
+            if (GetAddressFromAnchor(noChange, -1, TypeIconsName) != Pointer.NULL) return;
+            var palettes = GetAddressFromAnchor(noChange, -1, TypePalettesName);
+            if (palettes == Pointer.NULL) return;
+            var sheet = palettes + 0x60;
+            if (sheet < 0 || sheet + 8 > RawData.Length || sheet % 4 != 0) return;
+            if (!SmolDecoder.TryDecompress(RawData, sheet, out var pixels, out var compressedLength)) return;
+            const int tileWidth = 4, bytesPerTile = 32;
+            if (pixels.Length % (tileWidth * bytesPerTile) != 0) return;
+            var tileHeight = pixels.Length / (tileWidth * bytesPerTile);
+            if (tileHeight < 1 || tileHeight > 1024) return;
+            var existing = GetNextRun(sheet);
+            if (existing.Start != sheet && existing.Start < sheet + compressedLength) return; // something else already covers the sheet
+            if (existing.Start == sheet && !(existing is NoInfoRun || existing is LzSpriteRun)) return;
+            var format = new SpriteFormat(4, tileWidth, tileHeight, TypePalettesName);
+            var run = new LzSpriteRun(format, this, sheet, existing.Start == sheet ? existing.PointerSources : null);
+            if (run.Length != compressedLength) return;
+            if (existing.Start == sheet) ClearFormat(noChange, sheet, existing.Length);
+            ObserveAnchorWritten(noChange, TypeIconsName, run);
+         } catch (Exception) {
+            // an odd ROM must never fail to load because of a convenience
+         }
       }
 
       [Conditional("DEBUG")]
@@ -400,12 +456,13 @@ namespace HavenSoft.HexManiac.Core.Models {
             var match = virtualValues.All(vv => vv == virtualValues[0]);
             if (match) words.AddRange(constant);
          }
-         return new StoredMetadata(metadata.NamedAnchors, metadata.UnmappedPointers, words, metadata.OffsetPointers, metadata.Lists, metadata.UnmappedConstants, metadata.GotoShortcuts, info,
+         return new StoredMetadata(metadata.NamedAnchors, metadata.UnmappedPointers, words, metadata.OffsetPointers, metadata.Lists, metadata.UnmappedConstants, metadata.GotoShortcuts, metadata.TableGroups, info,
             new StoredMetadataFields {
                FreeSpaceSearch = metadata.FreeSpaceSearch,
                FreeSpaceBuffer = metadata.FreeSpaceBuffer,
                NextExportID = metadata.NextExportID,
-               ShowRawIVByteForTrainer = metadata.ShowRawIVByteForTrainer
+               ShowRawIVByteForTrainer = metadata.ShowRawIVByteForTrainer,
+               MetadataLayout = metadata.MetadataLayout,
             });
       }
 

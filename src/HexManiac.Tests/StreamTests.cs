@@ -114,6 +114,52 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x34, Model[1]);
       }
 
+      [Theory]
+      [InlineData("@20 @!00(4) @!put(00FE) ")] // a paste of a stream over a pointer cell: the 00 of the same length does not clear a pointer, then put overwrites it
+      [InlineData("@22 @!put(00FE) ")]
+      public void ViewPort_PutMetacommandOverAPointer_DestinationNoLongerListsThePointerAsItsSource(string edit) {
+         ViewPort.Edit("@20 <040> ");
+         Assert.Contains(0x20, (System.Collections.Generic.IEnumerable<int>)Model.GetNextRun(0x40).PointerSources);
+
+         ViewPort.Edit(edit);
+
+         var destination = Model.GetNextRun(0x40);
+         Assert.DoesNotContain(0x20, (destination.PointerSources ?? SortedSpan<int>.None).ToList());
+      }
+
+      [Fact]
+      public void TypingPlusAtTheEndOfAStreamThatCannotGrow_ReportsAnErrorAndTheNextCharacterDoesNotThrow() {
+         TableStreamRun.TryParseTableStream(Model, 0x20, SortedSpan<int>.None, string.Empty, "[a. b.]1", null, out var stream); // a stream with a fixed length of 1 element (like a sprite template)
+         Model.ObserveRunWritten(ViewPort.CurrentChange, stream);
+         ViewPort.Edit("@22 <040> "); // a pointer starts where the stream ends
+         Assert.False(stream.CanAppend);
+         Errors.Clear();
+
+         ViewPort.Edit("@22 +"); // extends the stream before the cursor, which can't grow
+         ViewPort.Edit("3");     // used to continue the failed '+' edit as the hex edit '+3' and throw a FormatException
+
+         Assert.Single(Errors, error => error.Contains("Cannot extend"));
+         Assert.Equal(2, Model.GetNextRun(0x20).Length);
+      }
+
+      [Theory]
+      [InlineData("", 0x20)]                 // the cell holds FF FF FF FF, which is not a pointer
+      [InlineData("@20 00 00 00 00 ", 0x20)] // a null pointer, but it is not in a table, so no data can be created for it
+      [InlineData("", 0x1FE)]                // there is no room for a pointer at the end of the file
+      public void DeepPasteJumpThatCannotBeFollowed_ReportsAnErrorAndStopsInsteadOfWritingTheRestOfThePasteAtTheWrongPlace(string setup, int cell) {
+         SetFullModel(0xFF);
+         if (setup.Length > 0) ViewPort.Edit(setup);
+         ViewPort.Goto.Execute("80"); // so that '@}' has an earlier place to go back to
+         ViewPort.Goto.Execute(cell.ToString("X2"));
+         var before = Model.RawData.ToArray();
+         Errors.Clear();
+
+         ViewPort.Edit($"@{cell:X2} @{{ AA BB @}} CC DD ");
+
+         Assert.Contains(Errors, error => error.Contains("Could not jump"));
+         Assert.Equal(before, Model.RawData); // used to write AA BB over the cell and CC DD at the place the stale '@}' went back to
+      }
+
       [Fact]
       public void StreamWithCustomEnd_CutPaste_DataUpdates() {
          SetFullModel(0xFF);
@@ -330,6 +376,20 @@ namespace HavenSoft.HexManiac.Tests {
          vm.GetAutoCompleteOptions("xzy", 0, 3);
 
          Assert.Equal(0, vm.ZIndex);
+      }
+
+      [Fact]
+      public void SingleElementStream_DeserializeWithoutAPointerField_ThePointerIsClearedAndTheDestinationForgetsIt() {
+         // fields that the text does not mention are reset to 0; a pointer field reset that way kept its old destination listing the cell as a source
+         ViewPort.Edit("@100 <120> <120> @100 ^pics[front<[sprite<`ucs4x1x1`> palette<`ucp4`>]1>]2 ");
+         ViewPort.Edit("@120 <140> <160> @140 ^pic0img`ucs4x1x1` @160 ^pic0pal`ucp4` ");
+         Assert.Contains(0x124, Model.GetNextRun(0x160).PointerSources);
+         var stream = Assert.IsType<TableStreamRun>(Model.GetNextRun(0x120));
+
+         stream.DeserializeRun("sprite : <140>", Token, out _, out _);
+
+         Assert.Equal(0, Model.ReadMultiByteValue(0x124, 4));
+         Assert.DoesNotContain(0x124, (Model.GetNextRun(0x160).PointerSources ?? SortedSpan<int>.None).ToList());
       }
 
       [Fact]

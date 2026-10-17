@@ -5,8 +5,9 @@
       IsTabStop="True" Focusable="True"
       GotKeyboardFocus="UpdateFieldTextBox"
       LostKeyboardFocus="UpdateFieldTextBox"
-      MouseEnter="UpdateFieldTextBox"
-      MouseLeave="UpdateFieldTextBox"
+      MouseEnter="HandleMouseEnter"
+      MouseLeave="HandleMouseLeave"
+      PreviewMouseLeftButtonDown="HandleMouseDown"
       GotFocus="UpdateFieldTextBox"
       LostFocus="UpdateFieldTextBox">
    <hsg3hv:TextBoxLookAlike BorderThickness="0,1"/>

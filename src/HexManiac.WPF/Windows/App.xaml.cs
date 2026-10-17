@@ -1,4 +1,4 @@
-﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
@@ -17,11 +17,11 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 
-[assembly: AssemblyTitle("HexManiacAdvance")]
+[assembly: AssemblyTitle("CUBHMA")]
 
 namespace HavenSoft.HexManiac.WPF.Windows {
    partial class App {
-      public const string ReleaseUrl = "https://github.com/haven1433/HexManiacAdvance/releases";
+      public const string ReleaseUrl = "https://github.com/poketcgsniper/HexManiacAdvance/releases";
       public const string
          Arg_Skip_Splash_Screen = "--skip-splash",
          Arg_No_Metadata = "--no-metadata",
@@ -32,6 +32,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       [STAThread]
       public static void Main(string[] args) {
+         GraphicsStartup.Prepare(); // before WPF creates anything: no 60 frames per second limit for animations, and the graphics card choice for this program
          if (!Arg_Skip_Splash_Screen.IsAny(args)) {
             new SplashScreen("Resources/Splash.png").Show(true);
          }
@@ -48,7 +49,17 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       protected override void OnStartup(StartupEventArgs e) {
+         GraphicsStartup.ApplyRenderMode(); // before the first window: with hardware acceleration switched off, the processor draws everything
          base.OnStartup(e);
+
+         // Exceptions on the UI thread are reported by MainWindow.HandleException.
+         // Exceptions from background work would otherwise either kill the process with no record of why (background threads)
+         // or surface much later when the finalizer observes a faulted task. Record them so they show up in crash.log.
+         AppDomain.CurrentDomain.UnhandledException += (sender, args) => LogBackgroundException("Unhandled exception on a background thread", args.ExceptionObject as Exception);
+         TaskScheduler.UnobservedTaskException += (sender, args) => {
+            LogBackgroundException("Unobserved exception in a background task", args.Exception);
+            args.SetObserved();
+         };
 
          var (path, address, options) = ParseArgs(e.Args);
 
@@ -57,6 +68,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
          var fileSystem = new WindowsFileSystem(Dispatcher);
          var viewModel = GetViewModel(path, address, fileSystem, options);
+         GraphicsStartup.Connect(viewModel);
          SetupServer(viewModel);
 
          DebugLog(viewModel, e.Args);
@@ -68,7 +80,18 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          MainWindow.Resources.Add("PaletteMixer", new PaletteCollection().Fluent(mixer => mixer.SetContents(new short[16])));
          MainWindow.Resources.Add("IsPaletteMixerExpanded", new EditableValue<bool>());
          MainWindow.Show();
+         GraphicsStartup.UpdateStatus(viewModel); // the window exists now, so WPF knows how it is drawing
+         DebugLog(viewModel, $"Graphics: {viewModel.GraphicsStatus} (UseDedicatedGraphics={viewModel.UseDedicatedGraphics}, UseHardwareAcceleration={viewModel.UseHardwareAcceleration})");
          DebugLog(viewModel, "All Started!");
+      }
+
+      private static void LogBackgroundException(string context, Exception exception) {
+         try {
+            var text = $"{DateTime.Now}: {context}{Environment.NewLine}{exception}{Environment.NewLine}-------------------------------------------{Environment.NewLine}";
+            File.AppendAllText("crash.log", text);
+         } catch {
+            // logging is best-effort: never let the logger itself cause a second failure
+         }
       }
 
       private void SetupServer(EditorViewModel viewModel) {
@@ -221,6 +244,10 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private static void CheckIsNewerVersionAvailable(EditorViewModel viewModel) {
+         // CUBHMA is versioned by its own releases (v0.7, v0.7.1, ...), not by upstream Hex Maniac Advance's version numbers:
+         // the upstream check would nag about versions this build already includes or doesn't want.
+         return;
+#pragma warning disable CS0162
          if (DateTime.Now < viewModel.LastUpdateCheck + TimeSpan.FromDays(1)) return;
          viewModel.LastUpdateCheck = DateTime.Now;
          try {
@@ -237,6 +264,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             // Exceptions are expected on Windows 7.
             // If anything goes wrong, we probably don't care. It just means that the IsNewVersionAvailable will be false.
          }
+#pragma warning restore CS0162
       }
    }
 }

@@ -17,7 +17,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var palRun = new PaletteRun(destination, paletteFormat, new SortedSpan<int>(source));
          // TODO deal with the run being too long?
-         if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, palRun);
+         if (!(token is NoDataChangeDeltaModel)) {
+            // the palette replaces whatever format starts at its first byte, but formats that start further in (pointers, text...) would overlap it.
+            owner.ClearFormat(token, palRun.Start + 1, palRun.Length - 1);
+            owner.ObserveRunWritten(token, palRun);
+         }
          return true;
       }
       public override bool Matches(IFormattedRun run) => run is PaletteRun palRun && palRun.FormatString == Format;

@@ -46,7 +46,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    /// <summary>
    /// Represents the entire map editor tab, with all visible controls, maps, edit boxes, etc
    /// </summary>
-   public class MapEditorViewModel : ViewModelCore, ITabContent {
+   public class MapEditorViewModel : ViewModelCore, ITabContent, IRefreshOnSelect {
       private readonly Format format;
       private readonly IFileSystem fileSystem;
       private readonly IEditableViewPort viewPort;
@@ -167,15 +167,41 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set => Set(ref autoUpdateCollision, value);
       }
 
+      /// <summary>
+      /// 0 to 100: how strongly the movement-permission grid is drawn over matching blocks.
+      /// This is the same value as the View menu's Movement Permission Grid Opacity (see EditorViewModel.CollisionGridOpacity).
+      /// </summary>
+      public int CollisionGridOpacity {
+         get => BlockMapViewModel.CollisionGridOpacity;
+         set {
+            value = value.LimitToRange(0, 100);
+            if (value == BlockMapViewModel.CollisionGridOpacity) return;
+            BlockMapViewModel.CollisionGridOpacity = value;
+            RefreshCollisionGrid();
+         }
+      }
+
+      /// <summary>Redraw the grid after the shared opacity changed from somewhere else (the View menu).</summary>
+      public void RefreshCollisionGrid() {
+         NotifyPropertyChanged(nameof(CollisionGridOpacity));
+         foreach (var map in VisibleMaps) map.ClearPixelCache();
+      }
+
+      /// <summary>Draw the events again after the View menu changed how graphics-variable events look.</summary>
+      public void RefreshEventGraphics() {
+         foreach (var map in VisibleMaps) map.RefreshEventGraphics();
+      }
+
       private int collisionIndex = -1;
       public int CollisionIndex {
          get => collisionIndex;
          set {
+            value = value.LimitToRange(-1, 0x3F); // (-1: none chosen) the collision is six bits of a cell, anything above would be cut off or turn into other collisions
             Set(ref collisionIndex, value);
             foreach (var map in VisibleMaps) {
                map.CollisionHighlight = value;
             }
-            if (tilesToDraw != null) {
+            if (tilesToDraw != null && collisionIndex >= 0) { // (-1 means no collision is chosen: shifting it in would turn on every collision bit)
                for (int x = 0; x < tilesToDraw.GetLength(0); x++) {
                   for (int y = 0; y < tilesToDraw.GetLength(1); y++) {
                      tilesToDraw[x, y] &= 0x3FF;
@@ -315,6 +341,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          primaryMap.ClearCaches(); // needs to reset first, so the width/height is correct when calculating everything else
          UpdatePrimaryMap(primaryMap);
          foreach (var map in VisibleMaps.Except(primaryMap)) map.ClearCaches();
+         refreshedAtEdit = ModelEditStamp.Current;
+      }
+
+      private long refreshedAtEdit = -1; // the edit counter (ModelEditStamp) when Refresh last finished
+
+      /// <summary>
+      /// The tab was selected. The maps are drawn from the model, so they can only be out of date if some model was edited since the last Refresh:
+      /// if not, they are left alone (redrawing every visible map is most of the cost of selecting a map tab).
+      /// </summary>
+      public void RefreshOnSelect() {
+         if (primaryMap == null || refreshedAtEdit != ModelEditStamp.Current || !viewPort.Model.InitializationWorkload.IsCompleted) Refresh();
       }
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) => false;
 
@@ -380,7 +417,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void NavigateTo(int bank, int map, int x, int y) {
-         viewPort.Tools.LogTool.LogMessages.Add($"Navigate to ({x}, {y}) in map {bank}.{map}");
+         FinishZoomAnimation();
+         viewPort.Tools?.LogTool?.LogMessages.Add($"Navigate to ({x}, {y}) in map {bank}.{map}");
          if (primaryMap != null) {
             backStack.Add(primaryMap.MapID);
             if (backStack.Count == 1) backCommand.RaiseCanExecuteChanged();
@@ -476,10 +514,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          viewPort.Goto.Execute(table.Start + index * table.ElementLength);
       }
 
+      /// <summary>The most recent map in the back list that still exists (the list is cut back to it), or null.</summary>
+      private BlockMapViewModel FindExistingMapInBackStack() {
+         for (int i = backStack.Count - 1; i >= 0; i--) {
+            if (backStack[i] < 0) continue; // the other kind of entry: a jump to another tab
+            var candidate = new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, templates, backStack[i] / 1000, backStack[i] % 1000) {
+               IncludeBorders = primaryMap?.IncludeBorders ?? true,
+               SpriteScale = primaryMap?.SpriteScale ?? .5,
+            };
+            if (!candidate.IsValidMap) continue;
+            backStack.RemoveRange(i, backStack.Count - i);
+            if (backStack.Count == 0) backCommand?.RaiseCanExecuteChanged();
+            VisibleMaps.Clear();
+            return candidate;
+         }
+         return null;
+      }
+
       private void UpdatePrimaryMap(BlockMapViewModel map) {
+         FinishZoomAnimation(); // the neighbors are placed relative to the maps, so the maps have to be where they're going
          if (!map.IsValidMap) {
             if (primaryMap != null && primaryMap.IsValidMap) return;
             map = VisibleMaps.FirstOrDefault(vis => vis.IsValidMap);
+            map ??= FindExistingMapInBackStack(); // an undo can remove the map on screen (it was created a moment ago): go back to the one before it
             if (map == null) {
                OnError.Raise(this, "Couldn't find a valid visible map.");
                Close.Execute();
@@ -493,6 +550,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (blockset == Pointer.NULL) return;
          // update the primary map
          map.IsSelected = true;
+         map.ZIndex = 0; // the map being edited is on top: a map that was seen beneath another one (dive/emerge) keeps its negative z index otherwise, and no click would reach it
          if (VisibleMaps.FirstOrDefault(existing => existing.UpdateFrom(map)) is BlockMapViewModel loadedMap) map = loadedMap;
          if (primaryMap != map) {
             if (primaryMap != null) {
@@ -648,7 +706,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public double HighlightCursorHeight { get => highlightCursorHeight; set => Set(ref highlightCursorHeight, value); }
 
       private bool showBeneath;
-      public bool ShowBeneath { get => showBeneath; set => Set(ref showBeneath, value, old => PrimaryMap.ShowBeneath = ShowBeneath); }
+      public bool ShowBeneath {
+         get => showBeneath;
+         set => Set(ref showBeneath, value, old => {
+            PrimaryMap.ShowBeneath = ShowBeneath;
+            // the hover point is only tracked while 'show beneath' is active (see Hover), so catch it up to the current cursor
+            if (showBeneath && hoverMap == PrimaryMap) PrimaryMap.HoverPoint = ToPixelPosition(PrimaryMap, hoverX, hoverY);
+         });
+      }
+
+      // the most recent hover position, so the 'show beneath' effect can start from the cursor
+      private BlockMapViewModel hoverMap;
+      private double hoverX, hoverY;
 
       private bool hideEvents;
       public bool HideEvents {
@@ -663,7 +732,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       // if it returns content: display that as the new hover tip
       private static readonly object[] EmptyTooltip = new object[0];
       public object Hover(double x, double y) {
+         if (ZoomLayer.IsActive) return null; // the maps are in the middle of a zoom: keep showing whatever is there until they have settled
          var map = MapUnderCursor(x, y);
+         (hoverMap, hoverX, hoverY) = (map, x, y);
          if (map == null) return EmptyTooltip;
          if (use9Grid && IsValid9GridSelection) {
             var p = ToBoundedMapTilePosition(map, x, y, 2, 2);
@@ -677,7 +748,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             UpdateHover(map, p.X, p.Y, tilesToDraw.GetLength(0), tilesToDraw.GetLength(1));
          } else {
             var p = ToBoundedMapTilePosition(map, x, y, 1, 1);
-            map.HoverPoint = ToPixelPosition(map, x, y);
+            // The hover point positions the 'show beneath' reveal effect, which is drawn as an opacity mask over the whole map image.
+            // Updating it on every mouse move makes the UI re-render the full map image every time the mouse moves,
+            // so only track it while the effect is actually visible.
+            if (map.ShowBeneath) map.HoverPoint = ToPixelPosition(map, x, y);
             if (UpdateHover(map, p.X, p.Y, 1, 1)) {
                if (!SpartanMode && interactionType == PrimaryInteractionType.None) {
                   var matches = map.EventsUnderCursor(x, y, false).OfType<BaseEventViewModel>().ToList();
@@ -727,6 +801,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void DragDown(double x, double y) {
+         FinishZoomAnimation(); // the click is aimed at the maps where they are going to be
          if (primaryMap.BlockEditor != null) PrimaryMap.BlockEditor.ShowTiles = false;
          PrimaryMap.BorderEditor.ShowBorderPanel = false;
          (cursorX, cursorY) = (x, y);
@@ -734,6 +809,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void DragMove(double x, double y, bool isMiddleClickMap) {
+         FinishZoomAnimation(); // a wheel-zoom during a drag: pick tiles where the maps are going to be
          deltaX += x - cursorX;
          deltaY += y - cursorY;
          var (intX, intY) = ((int)deltaX, (int)deltaY);
@@ -754,6 +830,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private PrimaryInteractionType interactionType;
       public void PrimaryDown(double x, double y, PrimaryInteractionStart click) {
+         FinishZoomAnimation(); // the click is aimed at the maps where they are going to be
          PrimaryMap.BlockEditor.ShowTiles = false;
          PrimaryMap.BorderEditor.ShowBorderPanel = false;
          var map = MapUnderCursor(x, y);
@@ -782,6 +859,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void PrimaryMove(double x, double y) {
+         FinishZoomAnimation(); // a wheel-zoom during a drag: pick tiles where the maps are going to be
          if (interactionType == PrimaryInteractionType.Draw) DrawMove(x, y);
          if (interactionType == PrimaryInteractionType.RectangleDraw) RectangleDrawMove(x, y);
          if (interactionType == PrimaryInteractionType.Draw9Grid) Draw9Grid(x, y);
@@ -806,6 +884,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             primaryMap.PrepareFor9GridDraw(tilesToDraw);
          }
          var map = MapUnderCursor(x, y);
+         map?.StartNewStroke();
          if ((click & PrimaryInteractionStart.DoubleClick) != 0) {
             if (drawBlockIndex < 0 && collisionIndex < 0) {
                // nothing to paint
@@ -941,10 +1020,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void EventMove(double x, double y) {
          var map = MapUnderCursor(x, y);
          if (map == primaryMap) {
-            CreateEventForCreationInteraction(eventCreationType);
-            if (selectedEvent != null) {
-               map.UpdateEventLocation(selectedEvent, x, y);
-               Tutorials.Complete(Tutorial.DragEvent_MoveEvent);
+            // Making an event from a template changes a dozen properties of the event and the map (each announces that the picture of the map is out of date),
+            // and so does moving an event (its x, its y, the picture). The map shows a picture that is drawn when it is asked for, so tell it once, when the move is done:
+            // otherwise it is drawn once per announcement, and the first move after taking a template from the toolbar draws it ten times before the new event shows up.
+            using (map.DeferPropertyNotifications()) {
+               CreateEventForCreationInteraction(eventCreationType);
+               if (selectedEvent != null) {
+                  map.UpdateEventLocation(selectedEvent, x, y);
+                  Tutorials.Complete(Tutorial.DragEvent_MoveEvent);
+               }
             }
          }
          Hover(x, y);
@@ -1021,6 +1105,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var singleSelect = tilesToDraw == null || (tilesToDraw.GetLength(0) == 1 && tilesToDraw.GetLength(1) == 1);
          if (singleSelect && blockBag.Contains(drawBlockIndex)) {
             primaryMap.RepeatBlock(() => history.CurrentChange, blockBag, collisionIndex, left, top, width, height, true);
+         } else if (tilesToDraw == null && drawBlockIndex >= 0 && drawBlockIndex < primaryMap.BlockRenders.Count) {
+            // the brush is a block without tiles (a right-click on the map that was released outside of it): paint that block, like a click does
+            primaryMap.RepeatBlock(() => history.CurrentChange, new[] { drawBlockIndex }, collisionIndex, left, top, width, height, true);
          } else {
             primaryMap.RepeatBlocks(() => history.CurrentChange, tilesToDraw, left, top, width, height, true);
          }
@@ -1056,15 +1143,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (type == EventCreationType.Object) {
             var objectEvent = primaryMap.CreateObjectEvent(0, Pointer.NULL);
             if (objectEvent == null) return;
-            if (templates.SelectedTemplate == TemplateType.Trainer) {
-               var dexName = HardcodeTablesModel.RegionalDexTableName;
-               if (templates.UseNationalDex) dexName = HardcodeTablesModel.NationalDexTableName;
-               if (model.GetTable(dexName) == null) {
-                  ViewPort.RaiseError($"Cannot create trainer without pokedex table {dexName}.");
-                  return;
-               }
+            if (templates.SelectedTemplate == TemplateType.Trainer && !templates.CanCreateTrainer(out var reason)) {
+               ViewPort.RaiseError(reason);
+               return;
             }
-            templates.ApplyTemplate(objectEvent, history.CurrentChange);
+            try {
+               templates.ApplyTemplate(objectEvent, history.CurrentChange);
+            } catch (Exception ex) when (ex is not OutOfMemoryException) {
+               // A template that can't be written (a hack changed a script command, a table is missing, ...) shouldn't crash the editor
+               // or leave a half-made event behind: take the new event back out and say what went wrong.
+               SelectedEvent = objectEvent;
+               Delete();
+               ViewPort.RaiseError($"Could not add the {templates.SelectedTemplate} template: {ex.Message}");
+               return;
+            }
             SelectedEvent = objectEvent;
             if (objectEvent.ScriptAddress != Pointer.NULL) primaryMap.InformCreate(new("Object-Event", objectEvent.ScriptAddress));
             Tutorials.Complete(Tutorial.ToolbarTemplate_CreateObject);
@@ -1126,6 +1218,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public SelectionInteractionResult SelectDown(double x, double y) {
+         FinishZoomAnimation(); // the click is aimed at the maps where they are going to be
          PrimaryMap.BlockEditor.ShowTiles = false;
          PrimaryMap.BorderEditor.ShowBorderPanel = false;
          var map = MapUnderCursor(x, y);
@@ -1150,6 +1243,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void SelectMove(double x, double y) {
+         FinishZoomAnimation(); // a wheel-zoom during a drag: pick tiles where the maps are going to be
          var map = MapUnderCursor(x, y);
          if (map != primaryMap) return;
          if (x < map.LeftEdge || x > map.LeftEdge + map.PixelWidth * map.SpriteScale) return;
@@ -1216,7 +1310,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          DrawMultipleTiles = false;
          BlockEditorVisible = true;
          if (tilesToDraw == null) tilesToDraw = new int[1, 1];
-         tilesToDraw[0, 0] = drawBlockIndex | (collisionIndex << 10);
+         tilesToDraw[0, 0] = drawBlockIndex | (Math.Max(collisionIndex, 0) << 10); // (-1 means no collision is chosen: shifting it in would turn on every collision bit)
          FillMultiTileRender();
          AnimateBlockSelection();
       }
@@ -1227,6 +1321,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var localCopy = tilesToDraw;
          if (IsValid9GridSelection && use9Grid) singletons.WorkDispatcher.DispatchWork(() => PrimaryMap.DiscoverCornersFor9Grid(localCopy));
          var localRenders = primaryMap.BlockRenders;
+         if (localRenders.Count == 0) return; // the map has no pictures to draw with (for example, undo just removed the map it was showing)
          var (width, height) = (localCopy.GetLength(0), localCopy.GetLength(1));
          var scale = (width < 4 && height < 4) ? 2 : 1;
          var canvas = new CanvasPixelViewModel(width * 16, height * 16) { SpriteScale = scale };
@@ -1614,21 +1709,210 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public void Zoom(double x, double y, bool enlarge) {
+      #region Zoom
+
+      /// <summary>Zooming glides from the old scale to the new one. Replace this to change the speed (a duration of 0 zooms instantly) or the clock (in tests).</summary>
+      public ZoomAnimator ZoomAnimator { get; set; } = new ZoomAnimator();
+
+      /// <summary>True while the maps are gliding to a new zoom. The view calls AdvanceZoomAnimation once per frame until this is false again.</summary>
+      public bool IsZoomAnimating => ZoomAnimator.IsAnimating;
+
+      /// <summary>
+      /// The view sets this when it can draw all the maps through one shared transform (ZoomLayer). Then a zoom doesn't move the maps frame by frame:
+      /// they stay where they are, the view applies ZoomLayer to all of them (three numbers per frame, however many maps are on screen),
+      /// and the maps jump to their final scale and position in the last frame. When this is false (headless, or a view that can't do it) every frame moves every map.
+      /// </summary>
+      public bool UseZoomLayer { get; set; }
+
+      /// <summary>The transform the view applies to all the maps while a zoom animates (only while ZoomLayer.IsActive; otherwise it is the identity).</summary>
+      public ZoomLayer ZoomLayer { get; } = new ZoomLayer();
+
+      // Where every map was when the current zoom started and which point stays still, so each frame can be worked out from the start.
+      private class ZoomPlacement {
+         public BlockMapViewModel Map;
+         public double StartLeft, StartTop, StartScale; // where the map was when this zoom (or the last time it was redirected) started
+         public double Left, Top;                       // where it is now. The edges are whole pixels, these aren't.
+      }
+      private readonly List<ZoomPlacement> zoomPlacements = new();
+      private BlockMapViewModel zoomMap; // the map under the cursor: it becomes the primary map when the zoom is done
+      private double zoomAnchorX, zoomAnchorY;
+      private bool zoomHidHighlight; // the square around the block under the cursor is hidden while the maps are drawn through the zoom layer (it would stay behind at the old size)
+
+      /// <summary>
+      /// Zoom one step in or out around the point (x, y) of the map view.
+      /// Every step goes from the scale the zoom is heading for, so a quick series of steps ends up exactly where the same number of instant steps would.
+      /// </summary>
+      public void Zoom(double x, double y, bool enlarge) => Zoom(x, y, enlarge, true);
+
+      private void Zoom(double x, double y, bool enlarge, bool animate) {
          var map = MapUnderCursor(x, y);
          if (map == null) map = primaryMap;
+         var isAnimating = ZoomAnimator.IsAnimating;
+         var current = isAnimating ? ZoomAnimator.Target : map.SpriteScale;
+         var target = BlockMapViewModel.NextScale(current, enlarge);
+         Tutorials.Complete(Tutorial.Wheel_ZoomMap);
+
+         if (animate && isAnimating && target == current) return; // already at the limit, and heading there
+
+         if (animate && target != current) {
+            BeginZoom(map, x, y, target);
+            return;
+         }
+
+         FinishZoomAnimation();
          map.Scale(x, y, enlarge);
          map.IncludeBorders = map.SpriteScale <= 3;
          UpdatePrimaryMap(map);
-         if (map.SpriteScale >= 1) ZoomLevel = $"{(int)map.SpriteScale}x Zoom";
-         else ZoomLevel = $"1/{(int)Math.Round(1 / map.SpriteScale)}x Zoom";
-         Tutorials.Complete(Tutorial.Wheel_ZoomMap);
+         UpdateZoomLevel(map.SpriteScale);
+      }
+
+      private void BeginZoom(BlockMapViewModel map, double x, double y, double target) {
+         // maps with different scales can't share one transform (they all have the same scale unless something is badly wrong)
+         if (ZoomLayer.IsActive || (UseZoomLayer && VisibleMaps.All(visible => visible.SpriteScale == map.SpriteScale))) {
+            BeginLayeredZoom(map, x, y, target);
+            return;
+         }
+
+         // remember where the maps are right now (this includes any zoom that's still going): the frames are worked out from here
+         var previous = zoomPlacements.ToDictionary(placement => placement.Map);
+         zoomPlacements.Clear();
+         var includeBorders = target <= 3; // the borders around the maps are only shown when zoomed out
+         foreach (var visible in VisibleMaps) {
+            var placement = new ZoomPlacement { Map = visible, StartScale = visible.SpriteScale };
+            var (left, top) = previous.TryGetValue(visible, out var old) ? (old.Left, old.Top) : (visible.LeftEdge, visible.TopEdge);
+            if (visible.IncludeBorders != includeBorders) {
+               // the borders appear or disappear as soon as the zoom heads for the other side of that line. The picture grows or shrinks around its center.
+               var (width, height) = (visible.PixelWidth, visible.PixelHeight);
+               visible.IncludeBorders = includeBorders;
+               left -= (visible.PixelWidth - width) / 2.0 * visible.SpriteScale;
+               top -= (visible.PixelHeight - height) / 2.0 * visible.SpriteScale;
+               (visible.LeftEdge, visible.TopEdge) = ((int)Math.Round(left), (int)Math.Round(top));
+            }
+            (placement.StartLeft, placement.StartTop, placement.Left, placement.Top) = (left, top, left, top);
+            zoomPlacements.Add(placement);
+         }
+         (zoomMap, zoomAnchorX, zoomAnchorY) = (map, x, y);
+
+         if (ZoomAnimator.IsAnimating) ZoomAnimator.Retarget(target);
+         else ZoomAnimator.Start(map.SpriteScale, target);
+         UpdateZoomLevel(target);
+
+         if (ZoomAnimator.IsAnimating) {
+            NotifyPropertyChanged(nameof(IsZoomAnimating));
+         } else {
+            FinishZoom(target); // animation is turned off
+         }
+      }
+
+      // Same as BeginZoom, but the maps stay where they are and ZoomLayer says where everything is drawn. Positions are worked out the same way
+      // (the start of the current leg of the zoom, the anchor, the scale), so the maps end up in the same place as when they are moved frame by frame.
+      private void BeginLayeredZoom(BlockMapViewModel map, double x, double y, double target) {
+         var isAnimating = ZoomAnimator.IsAnimating;
+         var includeBorders = target <= 3; // the borders around the maps are only shown when zoomed out
+         if (ShowHighlightCursor) {
+            ShowHighlightCursor = false;
+            zoomHidHighlight = true;
+         }
+         foreach (var visible in VisibleMaps) {
+            if (visible.IncludeBorders == includeBorders) continue;
+            // the borders appear or disappear as soon as the zoom heads for the other side of that line. The picture grows or shrinks around its center.
+            var (width, height) = (visible.PixelWidth, visible.PixelHeight);
+            var (left, top) = ((double)visible.LeftEdge, (double)visible.TopEdge);
+            visible.IncludeBorders = includeBorders;
+            left -= (visible.PixelWidth - width) / 2.0 * visible.SpriteScale;
+            top -= (visible.PixelHeight - height) / 2.0 * visible.SpriteScale;
+            (visible.LeftEdge, visible.TopEdge) = ((int)Math.Round(left), (int)Math.Round(top));
+         }
+
+         // a zoom that is still going continues from the scale on screen right now
+         ZoomLayer.Begin(map.SpriteScale, isAnimating ? ZoomAnimator.Current : map.SpriteScale, x, y);
+         zoomPlacements.Clear();
+         foreach (var visible in VisibleMaps) {
+            var (left, top) = ZoomLayer.LegStartPosition(visible.LeftEdge, visible.TopEdge);
+            zoomPlacements.Add(new ZoomPlacement { Map = visible, StartScale = ZoomLayer.LegStartScale, StartLeft = left, StartTop = top, Left = left, Top = top });
+         }
+         (zoomMap, zoomAnchorX, zoomAnchorY) = (map, x, y);
+
+         if (isAnimating) ZoomAnimator.Retarget(target);
+         else ZoomAnimator.Start(map.SpriteScale, target);
+         UpdateZoomLevel(target);
+
+         if (ZoomAnimator.IsAnimating) {
+            NotifyPropertyChanged(nameof(IsZoomAnimating));
+         } else {
+            FinishZoom(target); // animation is turned off
+         }
+      }
+
+      /// <summary>
+      /// Move the maps one frame along the zoom animation. Returns true while there are more frames to come.
+      /// The view calls this every time the display refreshes while IsZoomAnimating is true, and every call draws a frame: there is no limit on the frame rate (60 per second on a 60 Hz display, 144 on a 144 Hz display).
+      /// With UseZoomLayer a frame is three numbers for the view to apply to all the maps (ZoomLayer); without it every frame moves every map,
+      /// and if the frames can't keep up the zoom skips to its end instead of crawling there.
+      /// </summary>
+      public bool AdvanceZoomAnimation() {
+         if (!ZoomAnimator.IsAnimating) return false;
+         if (!ZoomLayer.IsActive && ZoomAnimator.IsFallingBehind) {
+            FinishZoomAnimation();
+            return false;
+         }
+         if (!ZoomAnimator.IsFrameDue) return true;
+         var scale = ZoomAnimator.Update();
+         if (ZoomAnimator.IsAnimating) {
+            if (ZoomLayer.IsActive) ZoomLayer.Update(scale);
+            else PlaceMapsForZoom(scale);
+            return true;
+         }
+         FinishZoom(scale);
+         return false;
+      }
+
+      /// <summary>Jump to the end of a zoom that's still gliding. Anything that moves or replaces the maps needs them to be where they're going.</summary>
+      public void FinishZoomAnimation() {
+         if (!ZoomAnimator.IsAnimating) return;
+         var target = ZoomAnimator.Target;
+         ZoomAnimator.Snap(target);
+         FinishZoom(target);
+      }
+
+      private void PlaceMapsForZoom(double scale) {
+         foreach (var placement in zoomPlacements) {
+            if (!VisibleMaps.Contains(placement.Map)) continue;
+            (placement.Left, placement.Top) = placement.Map.ZoomFrame(placement.StartLeft, placement.StartTop, placement.StartScale, zoomAnchorX, zoomAnchorY, scale);
+         }
+      }
+
+      private void FinishZoom(double scale) {
+         PlaceMapsForZoom(scale);
+         ZoomLayer.Reset(); // the maps are where they're going: the view stops transforming them
+         var map = zoomMap;
+         zoomPlacements.Clear();
+         zoomMap = null;
+         if (map != null) {
+            map.IncludeBorders = map.SpriteScale <= 3;
+            UpdatePrimaryMap(map);
+            UpdateZoomLevel(map.SpriteScale);
+         }
+         NotifyPropertyChanged(nameof(IsZoomAnimating));
+         if (zoomHidHighlight) {
+            // the zoom is around the cursor, so the cursor is still over the point the zoom was aimed at: show the square around the block that's there now
+            zoomHidHighlight = false;
+            Hover(zoomAnchorX, zoomAnchorY);
+         }
+      }
+
+      private void UpdateZoomLevel(double scale) {
+         if (scale >= 1) ZoomLevel = $"{(int)scale}x Zoom";
+         else ZoomLevel = $"1/{(int)Math.Round(1 / scale)}x Zoom";
       }
 
       public void ResetZoom() {
-         while (primaryMap.SpriteScale > 1) Zoom(0, 0, false);
-         while (primaryMap.SpriteScale < 1) Zoom(0, 0, true);
+         FinishZoomAnimation();
+         while (primaryMap.SpriteScale > 1) Zoom(0, 0, false, false);
+         while (primaryMap.SpriteScale < 1) Zoom(0, 0, true, false);
       }
+
+      #endregion
 
       private StubCommand panCommand, zoomCommand, deleteCommand, cancelCommand;
       public ICommand PanCommand => StubCommand<MapDirection>(ref panCommand, Pan);
@@ -1695,6 +1979,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void Pan(int intX, int intY) {
+         FinishZoomAnimation();
          foreach (var map in VisibleMaps) {
             map.LeftEdge += intX;
             map.TopEdge += intY;
@@ -1706,6 +1991,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private BlockMapViewModel MapUnderCursor(double x, double y) {
+         (x, y) = ZoomLayer.ToCommitted(x, y); // while a zoom animates the maps are drawn through the zoom layer: (x, y) is where the cursor is on screen
          BlockMapViewModel closestMap = null;
          double closestDistance = int.MaxValue;
          foreach (var map in VisibleMaps) {
@@ -1847,6 +2133,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private MapSlider shiftButton;
 
       public void ShiftDown(double x, double y) {
+         FinishZoomAnimation();
          (cursorX, cursorY) = (x, y);
          (deltaX, deltaY) = (0, 0);
          shiftButton = ButtonUnderCursor(x, y);
@@ -2113,6 +2400,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
+      private const int UnusedBlock = -1; // 'preferred collision' of a block that no map uses (kept apart from the collisions 0-3F so the default can follow the block's behavior as it is edited)
       private Dictionary<long, int[]> preferredCollisionsPrimary;
       private Dictionary<long, int[]> preferredCollisionsSecondary;
       private readonly AutoDictionary<long, AutoDictionary<int, int>> blockUsageCount = new(_ => new(_ => 0)); // for a tileset, for a block, the total number of times that block is used
@@ -2181,7 +2469,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                foreach (var (tile, amount) in histogram[i]) {
                   if (amount > useAmount) (mostUsedCollision, useAmount) = (tile, amount);
                }
-               preference[i] = mostUsedCollision.LimitToRange(0, 0x3F);
+               preference[i] = mostUsedCollision < 0 ? UnusedBlock : mostUsedCollision.LimitToRange(0, 0x3F);
             }
             preferredCollisionsPrimary[blockset] = preference;
          }
@@ -2193,7 +2481,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                foreach (var (tile, amount) in histogram[i]) {
                   if (amount > useAmount) (mostUsedCollision, useAmount) = (tile, amount);
                }
-               preference[i] = mostUsedCollision.LimitToRange(0, 0x3F);
+               preference[i] = mostUsedCollision < 0 ? UnusedBlock : mostUsedCollision.LimitToRange(0, 0x3F);
             }
             preferredCollisionsSecondary[blockset] = preference;
          }
@@ -2238,13 +2526,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          foreach (var map in VisibleMaps) map.ClearCaches();
       }
 
+      /// <summary>
+      /// The movement permission to give a block when it is chosen for painting: the one most of its uses in the maps have.
+      /// A block that no map uses gets 0, except the sideways stairs (see <see cref="BlockCollisionDefaults"/>), or -1 if the block's blockset isn't known.
+      /// </summary>
       private int GetPreferredCollision(int tile) {
          if (preferredCollisionsPrimary == null) CountCollisionForBlocks();
          int[] preference;
          if (tile < PrimaryTiles) {
-            if (preferredCollisionsPrimary.TryGetValue(blockset1, out preference)) return preference[tile];
+            if (preferredCollisionsPrimary.TryGetValue(blockset1, out preference)) return preference[tile] != UnusedBlock ? preference[tile] : BlockCollisionDefaults.ForUnusedBlock(model, blockset1, tile);
          } else {
-            if (preferredCollisionsSecondary.TryGetValue(blockset2, out preference)) return preference[tile];
+            if (preferredCollisionsSecondary.TryGetValue(blockset2, out preference)) return preference[tile] != UnusedBlock ? preference[tile] : BlockCollisionDefaults.ForUnusedBlock(model, blockset2, tile - PrimaryTiles);
          }
          return -1;
       }
@@ -2307,7 +2599,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var totalOptions = Probabilities.Sum(cp => cp.Count);
          var selection = rnd.Next(totalOptions);
          var index = 0;
-         while (selection > Probabilities[index].Count) {
+         while (selection >= Probabilities[index].Count) {
             selection -= Probabilities[index].Count;
             index += 1;
          }

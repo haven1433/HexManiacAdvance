@@ -111,6 +111,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (child is MultiFieldArrayElementViewModel multi) childVisible = filterMatchesGroup || multi.Filter(filter);
             if (child is CalculatedElementViewModel cevm) childVisible = filterMatchesGroup || cevm.Name.MatchesPartial(filter);
             if (child is IStreamArrayElementViewModel saevm) childVisible = lastFieldVisible || (saevm is TextStreamElementViewModel tStream && tStream.Content.MatchesPartial(filter));
+            if (child is PokemonAnimationPreviewViewModel) childVisible = lastFieldVisible;
             if (child is BitListArrayElementViewModel blaevm) {
                var filterMatchesBitList = blaevm.Name.MatchesPartial(filter);
                if (!filterMatchesGroup && !filterMatchesBitList) {

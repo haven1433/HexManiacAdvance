@@ -59,8 +59,16 @@
     <None Include="Scripts\AnyGame_CombatItems.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\AnyGame_ItemEffectToChangeSecondaryTypes.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\AnyGame_TutorItems.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\CUBE\*"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\_Using_HMA_Scripts.txt"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     
+  </ItemGroup>
+  <ItemGroup>
+    <!-- CUBE: the BPS patch (vanilla Emerald -> CUBE) and CUBE's HexManiac metadata, used by Utilities > Misc > "Apply CUBE".
+         They end up in the resources folder next to HexManiacAdvance.exe (and so in the release zip). To refresh them, just replace the two files. -->
+    <None Include="..\HexManiac.Core\ViewModels\QuickEditItems\cube_emerald.bps.gz" Link="resources\cube_emerald.bps.gz"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="..\HexManiac.Core\ViewModels\QuickEditItems\cube_emerald.toml" Link="resources\cube_emerald.toml"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="..\HexManiac.Core\ViewModels\QuickEditItems\cube_versions.fp" Link="resources\cube_versions.fp"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Crc32.NET" Version="1.2.0" />

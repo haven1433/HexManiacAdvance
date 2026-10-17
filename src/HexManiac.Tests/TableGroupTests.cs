@@ -197,6 +197,110 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
+      public void TableGroupMember_Parse_WholeTablePartitionAndFieldList() {
+         var whole = TableGroupMember.Parse("table");
+         Assert.Equal("table", whole.TableName);
+         Assert.Equal(0, whole.Partition);
+         Assert.False(whole.HasFieldList);
+
+         var partition = TableGroupMember.Parse("table|2");
+         Assert.Equal("table", partition.TableName);
+         Assert.Equal(2, partition.Partition);
+         Assert.False(partition.HasFieldList);
+
+         var fields = TableGroupMember.Parse("table|name, class ,,item1");
+         Assert.Equal("table", fields.TableName);
+         Assert.Equal(new[] { "name", "class", "item1" }, fields.Fields);
+         Assert.True(fields.HasFieldList);
+         Assert.True(fields.ShowsField("CLASS"));
+         Assert.False(fields.ShowsField("sprite"));
+      }
+
+      [Fact]
+      public void FieldListGroup_LoadTableTool_FieldsFollowTheListUnderOneHeader() {
+         Model.Load(new byte[0x200], new StoredMetadata(
+            anchors: new[] {
+               new StoredAnchor(0, "table1", "[a. b. c. d. e.]4"),
+            },
+            tableGroups: new[] {
+               new TableGroup("first", new[] { "table1|d,b" }),
+               new TableGroup("second", new[] { "table1|a,c,e" }),
+            }
+         ));
+
+         ViewPort.Goto.Execute(5); // the second element: 5 bytes per element
+
+         var groups = ViewPort.Tools.TableTool.Groups;
+         Assert.Equal(2, groups.Count);
+         var first = groups[0].Members.OfType<FieldArrayElementViewModel>().ToList();
+         Assert.Equal(new[] { "d", "b" }, first.Select(field => field.Name));
+         Assert.Equal(new[] { 8, 6 }, first.Select(field => field.Start));
+         Assert.Single(groups[0].Members.OfType<SplitterArrayElementViewModel>());
+         var second = groups[1].Members.OfType<FieldArrayElementViewModel>().ToList();
+         Assert.Equal(new[] { "a", "c", "e" }, second.Select(field => field.Name));
+         Assert.Equal(new[] { 5, 7, 9 }, second.Select(field => field.Start));
+      }
+
+      [Fact]
+      public void FieldListGroup_NamesAreCaseInsensitiveAndUnknownOrRepeatedNamesAreIgnored() {
+         Model.Load(new byte[0x200], new StoredMetadata(
+            anchors: new[] {
+               new StoredAnchor(0, "table1", "[a. b. c.]4"),
+            },
+            tableGroups: new[] {
+               new TableGroup("group", new[] { "table1|C,zzz,a,A" }),
+            }
+         ));
+
+         ViewPort.Goto.Execute(3); // the second element: 3 bytes per element
+
+         var group = ViewPort.Tools.TableTool.Groups[0];
+         Assert.Equal(new[] { "c", "a" }, group.Members.OfType<FieldArrayElementViewModel>().Select(field => field.Name));
+      }
+
+      [Fact]
+      public void FieldListGroup_ListContainsPartitionNumber_WholePartitionIsAdded() {
+         Model.Load(new byte[0x200], new StoredMetadata(
+            anchors: new[] {
+               new StoredAnchor(0, "table1", "[a. b. | c. d.]4"),
+            },
+            tableGroups: new[] {
+               new TableGroup("group", new[] { "table1|1,a" }),
+            }
+         ));
+
+         ViewPort.Goto.Execute(4); // the second element: 4 bytes per element
+
+         var group = ViewPort.Tools.TableTool.Groups[0];
+         Assert.Equal(new[] { "c", "d", "a" }, group.Members.OfType<FieldArrayElementViewModel>().Select(field => field.Name));
+      }
+
+      [Fact]
+      public void StreamTable_AfterNamedGroups_StreamGroupDoesNotKeepOldTitle() {
+         Model.Load(new byte[0x200], new StoredMetadata(
+            anchors: new[] {
+               new StoredAnchor(0, "table1", "[data: | more:]4"),
+            },
+            tableGroups: new[] {
+               new TableGroup("group1", new[] { "table1|0" }),
+               new TableGroup("group2", new[] { "table1|1" }),
+            }
+         ));
+         ViewPort.Goto.Execute(4);
+         Assert.Equal("group2", ViewPort.Tools.TableTool.Groups[1].GroupName);
+
+         Model[0x40] = 0x50; // a pointer to 0x50
+         Model[0x43] = 0x08;
+         ViewPort.Edit("@40 ^table2[ptr<[a. b.]2>]1 ");
+         ViewPort.Goto.Execute(0x50); // the table at the end of the pointer is a stream, not one of the tables of the groups
+
+         var groups = ViewPort.Tools.TableTool.Groups;
+         Assert.Equal(2, groups.Count);
+         Assert.DoesNotContain(groups, group => group.GroupName == "group1" || group.GroupName == "group2");
+         Assert.False(groups[1].DisplayHeader);
+      }
+
+      [Fact]
       public void SingleTableGroup_TableToolRefresh_StreamGroupObjectRemainsTheSame() {
          SetFullModel(0xFF);
          Model.WriteValue(Token, 0, 0);

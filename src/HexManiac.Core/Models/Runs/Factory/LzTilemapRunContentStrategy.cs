@@ -17,7 +17,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          var lzRun = new LZRun(owner, destination);
          if (lzRun.DecompressedLength != TilemapFormat.ExpectedUncompressedLength) return false;
          var newRun = new LzTilemapRun(TilemapFormat, owner, destination);
-         if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, newRun);
+         if (!(token is NoDataChangeDeltaModel)) {
+            owner.ClearFormat(token, newRun.Start + 1, newRun.Length - 1); // formats that start inside the new one would overlap it
+            owner.ObserveRunWritten(token, newRun);
+         }
          return true;
       }
 

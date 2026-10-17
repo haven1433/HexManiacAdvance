@@ -68,7 +68,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public event PropertyChangedEventHandler PropertyChanged;
 
-      private int deferCount = 0;
+      // Deferred notifications are collected and raised when the outermost deferral ends.
+      // Silenced notifications are dropped entirely.
+      // These are tracked separately so that silencing a nested scope doesn't throw away notifications that an outer deferral still needs to raise.
+      private int deferCount = 0, silenceCount = 0;
       private ISet<string> deferredPropertyNotifications;
 
       private readonly Stack<List<IDisposable>> silenceScopes = new();
@@ -83,18 +86,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       protected void ClearSilentChildren() => silentChildren.Clear();
 
       public IDisposable SilencePropertyNotifications() {
-         deferCount += 1;
+         silenceCount += 1;
          silenceScopes.Push(silentChildren.Select(child => child.SilencePropertyNotifications()).ToList());
-         deferredPropertyNotifications ??= new HashSet<string>();
+         var disposed = false;
          return new StubDisposable {
             Dispose = () => {
-               deferCount -= 1;
+               if (disposed) return;
+               disposed = true;
+               silenceCount -= 1;
                silenceScopes.Pop().ForEach(scope => scope.Dispose());
-               if (deferCount != 0) {
-                  deferredPropertyNotifications.Clear();
-               } else {
-                  deferredPropertyNotifications = null;
-               }
             }
          };
       }
@@ -102,8 +102,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public IDisposable DeferPropertyNotifications() {
          deferCount += 1;
          deferredPropertyNotifications ??= new HashSet<string>();
+         var disposed = false;
          return new StubDisposable {
             Dispose = () => {
+               if (disposed) return;
+               disposed = true;
                deferCount -= 1;
                if (deferCount != 0) return;
                var properties = deferredPropertyNotifications.ToArray();
@@ -115,6 +118,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       protected void NotifyPropertyChanged([CallerMemberName] string propertyName = null) {
          Debug.Assert(GetType().GetProperty(propertyName) != null, $"Expected {propertyName} to be a property on type {GetType().Name}!");
+         if (silenceCount > 0) return;
          if (deferredPropertyNotifications != null) {
             deferredPropertyNotifications.Add(propertyName);
          } else {
@@ -127,6 +131,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// </summary>
       protected void NotifyPropertyChanged<T>(T oldValue, [CallerMemberName] string propertyName = null) {
          Debug.Assert(GetType().GetProperty(propertyName) != null, $"Expected {propertyName} to be a property on type {GetType().Name}!");
+         if (silenceCount > 0) return;
          if (deferredPropertyNotifications != null) {
             deferredPropertyNotifications.Add(propertyName);
          } else {

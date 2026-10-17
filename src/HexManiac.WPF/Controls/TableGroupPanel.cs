@@ -814,8 +814,22 @@ public record RenderContext(DrawingContext Api) {
       Api.Pop();
    }
 
-   public static FormattedText FormattedText(string text, double size, string foreground)
-      => new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Consolas, size, Brush(foreground), 96);
+   // Shaping text is the expensive part of drawing a table: every layout pass measures every label and every repaint draws them again.
+   // The same labels come back on every repaint (and across Pokémon, which share their field names), so keep the shaped text.
+   // A cached FormattedText is only ever measured and drawn: nobody changes it.
+   private static readonly Dictionary<(string Text, double Size, Brush Foreground), FormattedText> formattedTextCache = new();
+   private const int FormattedTextCacheLimit = 4000;
+
+   public static FormattedText FormattedText(string text, double size, string foreground) {
+      text ??= string.Empty;
+      var brush = Brush(foreground);
+      var key = (text, size, (Brush)brush);
+      if (formattedTextCache.TryGetValue(key, out var cached)) return cached;
+      if (formattedTextCache.Count >= FormattedTextCacheLimit) formattedTextCache.Clear();
+      var result = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Consolas, size, brush, 96);
+      formattedTextCache[key] = result;
+      return result;
+   }
 
    public static double GetDesiredFontSize(string text, double defaultSize, double maxWidth) {
       var formattedText = FormattedText(text, defaultSize, null);

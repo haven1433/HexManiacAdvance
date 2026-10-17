@@ -392,6 +392,28 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
+      public void FindAllSources_ElementInsideATableWithInnerAnchors_ShowsTheSourcesOfThatElement() {
+         // the context menu offers this for an element nothing points to the table itself: the table has no sources, the element has two
+         var viewPort = ViewPort;
+         var editor = New.EditorViewModel();
+         editor.Add(viewPort);
+         viewPort.Edit("@100 ^table^[a::]4 @20 <104> <104> ");
+         Assert.Equal(2, ((ArrayRun)Model.GetNextRun(0x100)).PointerSourcesForInnerElements[1].Count);
+
+         viewPort.FindAllSources(0x104);
+
+         Assert.Equal(1, editor.SelectedIndex);
+         Assert.Equal(2, ((SearchResultsViewPort)editor.SelectedTab).ResultCount);
+      }
+
+      [Fact]
+      public void ViewPortNotInAnEditor_FindAllSources_DoesNotThrow() {
+         ViewPort.Edit("@100 ^table^[a::]4 @20 <104> <104> ");
+
+         ViewPort.FindAllSources(0x104);
+      }
+
+      [Fact]
       public void NewAnchorWithSameNameDoesNotMovePointersToNewAnchor() {
          var viewPort = ViewPort;
 
