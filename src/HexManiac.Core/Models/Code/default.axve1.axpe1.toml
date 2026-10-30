@@ -1,0 +1,20 @@
+
+[[OffsetPointer]]
+Address = 0x0408B8
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x12184C
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x107174
+Offset = 0x000010
+
+[[OffsetPointer]]
+Address = 0x0FA8E0
+Offset = -8
+
+[[OffsetPointer]]
+Address = 0x0FA900
+Offset = -8

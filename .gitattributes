@@ -1,0 +1,2 @@
+# patch data must never go through line-ending or text conversion
+*.bps.gz binary

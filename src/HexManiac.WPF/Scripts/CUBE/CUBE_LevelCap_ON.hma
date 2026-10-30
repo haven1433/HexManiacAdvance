@@ -1,0 +1,101 @@
+# CUBE script: Level cap (ON)
+#
+# ON means the level caps are active (a set cap flag limits the level); OFF means there is no level limit at all.
+#
+# What it does
+#   Turns the level cap on and sets the 10 caps (below). A cap has a flag and a level.
+#   While the flag of a cap is set (in the game: setflag FLAG_CUBE_LEVEL_CAP_3 in an event script)
+#   that level is the highest level your Pokemon can reach: a Pokemon at the cap gets no EXP.
+#   If several cap flags are set, the highest level of them wins. With no cap flag set nothing is capped.
+#   CUBE already has the defaults that are below, so this script is for changing them.
+#
+# How to undo
+#   Run CUBE_LevelCap_OFF.hma (the caps stay in the ROM), or press Ctrl+Z before you save.
+#
+# How to use
+#   1. Open your CUBE ROM in HexManiacAdvance.
+#   2. Drag this file onto HexManiacAdvance.
+#   3. Look at the result, then save the ROM.
+#   It works on every CUBE ROM from round 14 on, also on one that you changed and saved with an older .toml.
+#   On any other ROM the script stops with a message and changes nothing.
+#
+# What it writes
+#   The flags and levels of the table cube.scripts.levelcaps (the padding stays as it is) and byte 5 of cube.scripts.config (1 for on).
+#   You can also edit the table later with Goto > Scripts > Level Cap.
+#
+.python
+tab = editor.SelectedTab
+if tab.Model.GetAddressFromAnchor(tab.CurrentChange, -1, 'cube.scripts.levelcaps') < 0:
+  tab.RaiseError('No CUBE script table (cube.scripts.levelcaps): this is not a CUBE ROM, or it is a CUBE older than round 14 (older Apply CUBE). Nothing was changed.')
+  tab.AbortScript()
+.end
+.python
+tab = editor.SelectedTab
+if tab.Model.GetAddressFromAnchor(tab.CurrentChange, -1, 'cube.scripts.config') < 0:
+  tab.RaiseError('No CUBE script table (cube.scripts.config): this is not a CUBE ROM, or it is a CUBE older than round 14 (older Apply CUBE). Nothing was changed.')
+  tab.AbortScript()
+.end
+
+# ------------------------------------------------------------------------------------
+# EDIT THE CAPS BELOW. Each cap has two lines: its flag, then its level (1 to 100).
+#   Change only the last part of a line (the flag name, or the level).
+#   The flag is a name (FLAG_CUBE_LEVEL_CAP_1 to FLAG_CUBE_LEVEL_CAP_10, also written
+#   CUBELEVELCAP1 and so on) or a number in decimal (2304 is the first cap flag, 2313 the last).
+#   A line that HexManiacAdvance does not understand is reported and skipped: the cap keeps
+#   the value it had.
+#   In the script editor of HexManiacAdvance type CUBELEVEL and pick the flag from the list:
+#   setflag turns a cap on, clearflag turns it off, checkflag asks if it is on.
+# Default levels of CUBE: 15 20 25 30 38 45 52 60 75 100
+# ------------------------------------------------------------------------------------
+
+# cap 1
+@cube.scripts.levelcaps+0 FLAG_CUBE_LEVEL_CAP_1
+@cube.scripts.levelcaps+2 15
+
+# cap 2
+@cube.scripts.levelcaps+4 FLAG_CUBE_LEVEL_CAP_2
+@cube.scripts.levelcaps+6 20
+
+# cap 3
+@cube.scripts.levelcaps+8 FLAG_CUBE_LEVEL_CAP_3
+@cube.scripts.levelcaps+A 25
+
+# cap 4
+@cube.scripts.levelcaps+C FLAG_CUBE_LEVEL_CAP_4
+@cube.scripts.levelcaps+E 30
+
+# cap 5
+@cube.scripts.levelcaps+10 FLAG_CUBE_LEVEL_CAP_5
+@cube.scripts.levelcaps+12 38
+
+# cap 6
+@cube.scripts.levelcaps+14 FLAG_CUBE_LEVEL_CAP_6
+@cube.scripts.levelcaps+16 45
+
+# cap 7
+@cube.scripts.levelcaps+18 FLAG_CUBE_LEVEL_CAP_7
+@cube.scripts.levelcaps+1A 52
+
+# cap 8
+@cube.scripts.levelcaps+1C FLAG_CUBE_LEVEL_CAP_8
+@cube.scripts.levelcaps+1E 60
+
+# cap 9
+@cube.scripts.levelcaps+20 FLAG_CUBE_LEVEL_CAP_9
+@cube.scripts.levelcaps+22 75
+
+# cap 10
+@cube.scripts.levelcaps+24 FLAG_CUBE_LEVEL_CAP_10
+@cube.scripts.levelcaps+26 100
+
+@cube.scripts.config+5 1
+
+.python
+tab = editor.SelectedTab
+caps = tab.Model.GetAddressFromAnchor(tab.CurrentChange, -1, 'cube.scripts.levelcaps')
+bad = [str(i + 1) for i in range(10) if tab.Model[caps + i * 4 + 2] < 1 or tab.Model[caps + i * 4 + 2] > 100]
+if len(bad) > 0:
+  tab.RaiseError('Level cap ' + ', '.join(bad) + ': the level has to be 1 to 100. Fix the script and run it again.')
+else:
+  tab.RaiseMessage('CUBE: level caps are on, with the caps of this script. Goto > Scripts > Level Cap shows the table.')
+.end

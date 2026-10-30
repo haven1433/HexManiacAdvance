@@ -1,0 +1,32 @@
+# CUBE script: Reusable TMs (ON)
+#
+# ON means a TM is not used up when it teaches a move (it stays in the bag, like an HM); OFF means a TM is used up as in the normal game. OFF is how CUBE comes.
+#
+# What it does
+#   Every TM stays in the bag after it teaches a move to a Pokemon, in the bag menu and in the move relearner's TM list. Like the HMs, TMs that are reusable can not be sold or tossed.
+#
+# How to undo
+#   Run CUBE_ReusableTMs_OFF.hma, or press Ctrl+Z before you save.
+#
+# How to use
+#   1. Open your CUBE ROM in HexManiacAdvance.
+#   2. Drag this file onto HexManiacAdvance.
+#   3. Look at the result, then save the ROM.
+#   It works on a CUBE ROM that has this option (CUBE round 14f and later; Update CUBE brings an older one up to date).
+#   On any other ROM the script stops with a message and changes nothing.
+#
+# What it writes
+#   One byte of the table cube.scripts.config (byte 6 = 1 for on, 0 for off). Nothing else in the ROM changes; the items table is not touched.
+#
+.python
+tab = editor.SelectedTab
+if tab.Model.GetAddressFromAnchor(tab.CurrentChange, -1, 'cube.scripts.config') < 0:
+  tab.RaiseError('No CUBE script table (cube.scripts.config): this is not a CUBE ROM, or it is a CUBE older than round 14 (older Apply CUBE). Nothing was changed.')
+  tab.AbortScript()
+.end
+
+@cube.scripts.config+6 1
+
+.python
+editor.SelectedTab.RaiseMessage('CUBE: TMs are reusable now.')
+.end

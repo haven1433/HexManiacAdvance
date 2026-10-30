@@ -1,0 +1,52 @@
+[[NamedAnchors]]
+Name = '''scripts.battle.badge.obey.flags'''
+Address = 0x01D508
+Format = '''[word::|h]4'''
+
+[[NamedAnchors]]
+Name = '''scripts.battle.badge.obey.0badges'''
+Address = 0x01D492
+Format = '''[level.]1'''
+
+[[NamedAnchors]]
+Name = '''scripts.battle.badge.obey.2badges'''
+Address = 0x01D4A0
+Format = '''[level.]scripts.battle.badge.obey.0badges'''
+
+[[NamedAnchors]]
+Name = '''scripts.battle.badge.obey.4badges'''
+Address = 0x01D4AE
+Format = '''[level.]scripts.battle.badge.obey.0badges'''
+
+[[NamedAnchors]]
+Name = '''scripts.battle.badge.obey.6badges'''
+Address = 0x01D4BC
+Format = '''[level.]scripts.battle.badge.obey.0badges'''
+
+[[OffsetPointer]]
+Address = 0x011510
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x0116C0
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x03E8F8
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x03E9A0
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x040EE0
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x046204
+Offset = 0x000011
+
+[[OffsetPointer]]
+Address = 0x0462A8
+Offset = 0x000011

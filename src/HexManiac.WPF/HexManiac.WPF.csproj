@@ -1,0 +1,112 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>HexManiacAdvance</AssemblyName>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <UseWPF>true</UseWPF>
+    <XamlGenerateAssemblyInfo>false</XamlGenerateAssemblyInfo>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>false</ImplicitUsings>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <TargetLatestRuntimePatch>false</TargetLatestRuntimePatch>
+    <UseWindowsDesktopSdk>true</UseWindowsDesktopSdk>
+    <GenerateTemporaryTargetAssemblyAttribute>false</GenerateTemporaryTargetAssemblyAttribute>
+    <GenerateManifests>false</GenerateManifests>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <Nullable>annotations</Nullable>
+    <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
+    <Platforms>AnyCPU;x86;x64</Platforms>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Resources\HMA_Splash.xcf" />
+    <None Remove="Resources\Splash.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(SolutionDir)src\SharedAssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\MoveRelearnerTesting.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
+    <None Include="Scripts\Add Mechanics From Later Generations\AnyGame_FairyType.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Add Mechanics From Later Generations\AnyGame_PhysicalSpecialSplit.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Add Mechanics From Later Generations\AnyGame_PixilateStyleAbilities.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Add Mechanics From Later Generations\FairyIcon_Emerald.png"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Add Mechanics From Later Generations\FairyIcon_FR_LG.png"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Patches\AnyGame_SkipGameIntroScene.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Patches\Emerald_ExpandEVs.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Patches\Emerald_StevenTeamNaturesFix.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Patches\FRLG_AllowEvolutionWithoutNationalDex.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Patches\RSE_RemoveContestMovesTab.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Update Existing Mechanics\AnyGame_callasmBattleScriptCommand.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Update Existing Mechanics\AnyGame_CustomizeBattleOdds.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Update Existing Mechanics\AnyGame_CustomizeNatureStats.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Update Existing Mechanics\AnyGame_ExpandedOWs.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Update Existing Mechanics\AnyGame_ExpandItems.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Update Existing Mechanics\AnyGame_TripleLayerMapBlocks.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Update Existing Mechanics\Emerald_ExpandStarters.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Update Existing Mechanics\RS_AddProfessorPokemonConstants.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\AnyGame_CombatItems.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\AnyGame_ItemEffectToChangeSecondaryTypes.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\AnyGame_TutorItems.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\CUBE\*"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\_Using_HMA_Scripts.txt"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    
+  </ItemGroup>
+  <ItemGroup>
+    <!-- CUBE: the BPS patch (vanilla Emerald -> CUBE) and CUBE's HexManiac metadata, used by Utilities > Misc > "Apply CUBE".
+         They end up in the resources folder next to HexManiacAdvance.exe (and so in the release zip). To refresh them, just replace the two files. -->
+    <None Include="..\HexManiac.Core\ViewModels\QuickEditItems\cube_emerald.bps.gz" Link="resources\cube_emerald.bps.gz"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="..\HexManiac.Core\ViewModels\QuickEditItems\cube_emerald.toml" Link="resources\cube_emerald.toml"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="..\HexManiac.Core\ViewModels\QuickEditItems\cube_versions.fp" Link="resources\cube_versions.fp"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Crc32.NET" Version="1.2.0" />
+    <PackageReference Include="IronPython" Version="3.4.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)src\HexManiac.Core\HexManiac.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\AppIcon.ico" />
+    <Resource Include="Resources\AppImage.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <SplashScreen Include="Resources\Splash.png" />
+  </ItemGroup>
+  <PropertyGroup>
+    <PostBuildEvent>
+      if not exist "$(TargetDir)resources" mkdir "$(TargetDir)resources"
+      if not exist "$(TargetDir)resources\Scripts" mkdir "$(TargetDir)resources\Scripts"
+      copy "$(TargetDir)Models\Code\*.txt" "$(TargetDir)resources"
+      del "$(TargetDir)Models\Code\*.txt"
+      copy "$(TargetDir)Models\Code\*.hma" "$(TargetDir)resources"
+      del "$(TargetDir)Models\Code\*.hma"
+      copy "$(TargetDir)Models\Code\*.toml" "$(TargetDir)resources"
+      del "$(TargetDir)Models\Code\*.toml"
+      copy "$(TargetDir)Models\Code\*.py" "$(TargetDir)resources"
+      del "$(TargetDir)Models\Code\*.py"
+      xcopy "$(TargetDir)Scripts" "$(TargetDir)resources/Scripts" /i /c /k /e /r /y
+      copy "$(SolutionDir)src\HexManiac.WPF\Resources\Yogia16.graphics.titlescreen.copyright.tilemap.png" "$(TargetDir)resources"
+      copy "$(SolutionDir)src\HexManiac.WPF\Resources\Yogia16-dark.graphics.titlescreen.copyright.tilemap.png" "$(TargetDir)resources"
+      copy "$(SolutionDir)src\HexManiac.Core\ViewModels\QuickEditItems\hubol_dpe_cfru.ups" "$(TargetDir)resources"
+      del /f /s /q "$(TargetDir)Scripts" 1&gt;nul
+      rmdir /s /q "$(TargetDir)Scripts"
+      rmdir "$(TargetDir)Models\Code"
+      rmdir "$(TargetDir)Models"
+      del "$(TargetDir)IronPython.SQLite.dll"
+      del "$(TargetDir)Mono.Unix.dll"
+      rmdir "$(TargetDir)runtimes" /s /q
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>

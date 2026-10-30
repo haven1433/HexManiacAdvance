@@ -1,0 +1,887 @@
+[General]
+ApplicationVersion = '''0.3.5'''
+
+#################################
+[[NamedAnchors]]
+Name = '''GameTitle'''
+Address = 0x0000A0
+Format = '''`asc`12'''
+
+[[NamedAnchors]]
+Name = '''GameCode'''
+Address = 0x0000AC
+Format = '''`asc`4'''
+
+[[NamedAnchors]]
+Name = '''MakerCode'''
+Address = 0x0000B0
+Format = '''`asc`2'''
+
+[[NamedAnchors]]
+Name = '''RomName'''
+Address = 0x000108
+Format = '''`asc`32'''
+
+[[NamedAnchors]]
+Name = '''pokenames'''
+Address = 0x3185C8
+Format = '''[name""11]412'''
+
+[[NamedAnchors]]
+Name = '''movenames'''
+Address = 0x31977C
+Format = '''[name""13]355'''
+
+[[NamedAnchors]]
+Name = '''abilitynames'''
+Address = 0x31B6DB
+Format = '''[name""13]78'''
+
+[[NamedAnchors]]
+Name = '''trainerclassnames'''
+Address = 0x30FCD4
+Format = '''[name""13]66'''
+
+[[NamedAnchors]]
+Name = '''types'''
+Address = 0x31AE38
+Format = '''^[name""7]18'''
+
+[[NamedAnchors]]
+Name = '''abilitydescriptions'''
+Address = 0x31BAD4
+Format = '''[description<"">]abilitynames'''
+
+[[NamedAnchors]]
+Name = '''movedescriptions'''
+Address = 0x61C524
+Format = '''[description<"">]movenames-1'''
+
+[[NamedAnchors]]
+Name = '''multichoice'''
+Address = 0x58B760
+Format = '''[options<[text<""> unused::]/count> count::]114'''
+
+[[NamedAnchors]]
+Name = '''natures'''
+Address = 0x61CB50
+Format = '''[name<"">]25'''
+
+[[NamedAnchors]]
+Name = '''frontsprites'''
+Address = 0x30A18C
+Format = '''[sprite<`lzs4x8x8`> uncompressedLength: index:]pokenames+28'''
+
+[[NamedAnchors]]
+Name = '''backsprites'''
+Address = 0x3028B8
+Format = '''[sprite<`lzs4x8x8`> uncompressedLength: index:]pokenames+28'''
+
+[[NamedAnchors]]
+Name = '''pokepalettes'''
+Address = 0x303678
+Format = '''[palette<`lzp4`> index: unused:]pokenames+28'''
+
+[[NamedAnchors]]
+Name = '''shinypalettes'''
+Address = 0x304438
+Format = '''[palette<`lzp4`> index: unused:]pokenames+28'''
+
+[[NamedAnchors]]
+Name = '''pokeicons'''
+Address = 0x57BCA8
+Format = '''[icon<`ucs4x4x8|pokeiconpalindex`>]pokenames+28'''
+
+[[NamedAnchors]]
+Name = '''pokeiconpalindex'''
+Address = 0x57C388
+Format = '''[index.pokeiconpalettes]pokenames+28'''
+
+[[NamedAnchors]]
+Name = '''pokeiconpalettes'''
+Address = 0x57C540
+Format = '''[palette<`ucp4`> id::]3'''
+
+[[NamedAnchors]]
+Name = '''ballsprites'''
+Address = 0x32C400
+Format = '''[sprite<`lzs4x2x6|ballpalettes`> uncompressedLength: a b]12'''
+
+[[NamedAnchors]]
+Name = '''ballpalettes'''
+Address = 0x32C460
+Format = '''[palette<`lzp4`> a b unused:]ballsprites'''
+
+[[NamedAnchors]]
+Name = '''trainersprites'''
+Address = 0x305654
+Format = '''[sprite<`lzs4x8x8|trainerpalettes`> uncompressedLength: index:]93'''
+
+[[NamedAnchors]]
+Name = '''traineranimations'''
+Address = 0x30536C
+Format = '''[animationPointer<[animation<>]1>]trainersprites'''
+
+[[NamedAnchors]]
+Name = '''traineranimations2'''
+Address = 0x3054E0
+Format = '''[value::]trainersprites'''
+
+[[NamedAnchors]]
+Name = '''trainerpalettes'''
+Address = 0x30593C
+Format = '''[palette<`lzp4`> index: unused:]trainersprites'''
+
+[[NamedAnchors]]
+Name = '''trainerbacksprites'''
+Address = 0x305D4C
+Format = '''[sprite<`ucs4x8x8|trainerbackpals`> a b c:]8'''
+
+[[NamedAnchors]]
+Name = '''trainerbackpals'''
+Address = 0x305D8C
+Format = '''[pal<`lzp4`> sprite::]trainerbacksprites'''
+
+[[NamedAnchors]]
+Name = '''pokestats'''
+Address = 0x3203CC
+Format = '''[hp. attack. def. speed. spatk. spdef. type1.types type2.types catchRate. baseExp. evs|b[]evbits item1:items item2:items genderratio. steps2hatch. basehappiness. growthrate. egg1. egg2. ability1.abilitynames ability2.abilitynames runrate. unknown. padding:]pokenames'''
+
+[[NamedAnchors]]
+Name = '''evolutions'''
+Address = 0x32531C
+Format = '''[[method:evolutionmethods arg: species:pokenames unused:]5]pokenames'''
+
+[[NamedAnchors]]
+Name = '''items'''
+Address = 0x5839A0
+Format = '''[name""14 index: price: holdeffect. param. description<""> keyitemvalue. bagkeyitem. pocket. type. fieldeffect<> battleusage:: battleeffect<> battleextra::]377'''
+
+[[NamedAnchors]]
+Name = '''movedata'''
+Address = 0x31C898
+Format = '''[effect.moveeffects power. type.types accuracy. pp. effectAccuracy. target|b[]movetarget priority. info|b[]moveinfo unused. unused:]movenames'''
+
+[[NamedAnchors]]
+Name = '''moveanimations'''
+Address = 0x2C8D6C
+Format = '''[animation<>]movenames'''
+
+[[NamedAnchors]]
+Name = '''moveeffects'''
+Address = 0x2D86A8
+Format = '''[effect<`bse`>]213'''
+
+[[NamedAnchors]]
+Name = '''lvlmoves'''
+Address = 0x32937C
+Format = '''[movesFromLevel<`plm`>]pokenames'''
+
+[[NamedAnchors]]
+Name = '''tutormoves'''
+Address = 0x61500C
+Format = '''[move:movenames]30'''
+
+[[NamedAnchors]]
+Name = '''tutorcompatibility'''
+Address = 0x615048
+Format = '''[moves|b[]tutormoves]pokenames'''
+
+[[NamedAnchors]]
+Name = '''tmmoves'''
+Address = 0x616040
+Format = '''[move:movenames]58'''
+
+[[NamedAnchors]]
+Name = '''tmcompatibility'''
+Address = 0x31E898
+Format = '''[moves|b[]tmmoves]pokenames'''
+
+[[NamedAnchors]]
+Name = '''hmmoves'''
+Address = 0x329EEA
+Format = '''[move:movenames]8'''
+
+[[NamedAnchors]]
+Name = '''itemimages'''
+Address = 0x614410
+Format = '''[image<`lzs4x3x3`> palette<`lzp4`>]items'''
+
+[[NamedAnchors]]
+Name = '''trainerdata'''
+Address = 0x310030
+Format = '''[structType.trainerStructType class.trainerclassnames introMusic. sprite.trainersprites name""12 item1:items item2:items item3:items item4:items doubleBattle:: ai|b[]traineraibits pokemonCount:: pokemon<`tpt`>]855'''
+
+[[NamedAnchors]]
+Name = '''trainermoney'''
+Address = 0x31AEB8
+Format = '''[class.trainerclassnames moneyrate. unused:]!FF050000'''
+
+[[NamedAnchors]]
+Name = '''decorations'''
+Address = 0x5A5C08
+Format = '''[id. name""16 permission.decorpermissions shape.decorshape category.decorcategory price:: description<""> graphics<>]121'''
+
+[[NamedAnchors]]
+Name = '''wild'''
+Address = 0x552D48
+Format = '''[bank. map. unused: grass<[rate:: list<[low. high. species:pokenames]12>]1> surf<[rate:: list<[low. high. species:pokenames]5>]1> tree<[rate:: list<[low. high. species:pokenames]5>]1> fish<[rate:: list<[low. high. species:pokenames]10>]1>]125'''
+
+[[NamedAnchors]]
+Name = '''specials'''
+Address = 0x1DBA64
+Format = '''[code<>]538'''
+
+[[NamedAnchors]]
+Name = '''tradedata'''
+Address = 0x338ED0
+Format = '''[nickname""12 receive:pokenames hp attack defense speed spatk spdef abilitynum:: trainerid:: cool. tough. beauty. smart. cute. unused. unused: personality:: helditem:items mailnum. trainername""11 trainergender. sheen. give::pokenames]4'''
+
+[[NamedAnchors]]
+Name = '''pickupitems'''
+Address = 0x31C440
+Format = '''[item:items]18'''
+
+[[NamedAnchors]]
+Name = '''pickupitemsrare'''
+Address = 0x31C464
+Format = '''[item:items]11'''
+
+[[NamedAnchors]]
+Name = '''battlescriptsource'''
+Address = 0x31BD10
+Format = '''[code<>]249'''
+
+[[NamedAnchors]]
+Name = '''regionaldex'''
+Address = 0x31D94C
+Format = '''[index:]pokenames-1'''
+
+[[NamedAnchors]]
+Name = '''nationaldex'''
+Address = 0x31DC82
+Format = '''[index:]pokenames-1'''
+
+[[NamedAnchors]]
+Name = '''hoennToNational'''
+Address = 0x31DFB8
+Format = '''[index:]pokenames-1'''
+
+[[NamedAnchors]]
+Name = '''dexinfo'''
+Address = 0x56B5B0
+Format = '''[species""12 height: weight: description<""> unused: pokemonScale: pokemonOffset: trainerScale: trainerOffset: unused:]387'''
+
+[[NamedAnchors]]
+Name = '''searchalpha'''
+Address = 0x55C6A4
+Format = '''[species:nationaldex]nationaldex'''
+
+[[NamedAnchors]]
+Name = '''searchweight'''
+Address = 0x55C9DA
+Format = '''[species:nationaldex]386'''
+
+[[NamedAnchors]]
+Name = '''searchsize'''
+Address = 0x55CCDE
+Format = '''[species:nationaldex]386'''
+
+[[NamedAnchors]]
+Name = '''eggmoves'''
+Address = 0x32ADD8
+Format = '''`egg`'''
+
+[[NamedAnchors]]
+Name = '''typeChart'''
+Address = 0x31ACE8
+Format = '''[attack.types defend.types strength.]!FFFF00'''
+
+[[NamedAnchors]]
+Name = '''typeicons'''
+Address = 0xD971B0
+Format = '''`lzs4x4x46|typeiconpalette`'''
+
+[[NamedAnchors]]
+Name = '''typeiconindex'''
+Address = 0x61CFDC
+Format = '''[index.]23'''
+
+[[NamedAnchors]]
+Name = '''typeiconpalette'''
+Address = 0xD97B84
+Format = '''`lzp4`'''
+
+[[NamedAnchors]]
+Name = '''bagtypeicon'''
+Address = 0xDC4378
+Format = '''`ucs4x16x16`'''
+
+[[NamedAnchors]]
+Name = '''bagtypepalette'''
+Address = 0xDC4338
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''bagtypeiconmap'''
+Address = 0x60F0D4
+Format = '''[width. height. xy:]24'''
+
+[[NamedAnchors]]
+Name = '''titlescreenLogoSprite'''
+Address = 0xDDE690
+Format = '''`lzs8x32x8|titlescreenLogoPalette`'''
+
+[[NamedAnchors]]
+Name = '''titlescreenLogoPalette'''
+Address = 0xDDE258
+Format = '''`ucp4:0123456789ABCDE`'''
+
+[[NamedAnchors]]
+Name = '''titlescreenVersionPalette'''
+Address = 0xDDE438
+Format = '''`ucp4`'''
+
+[[NamedAnchors]]
+Name = '''titlescreenVersionSprite'''
+Address = 0xDDFD94
+Format = '''`lzs8x8x8|titlescreenVersionPalette`'''
+
+[[NamedAnchors]]
+Name = '''titlescreenPokemonTileSet'''
+Address = 0x53F058
+Format = '''`lzt4|titlescreenLogoPalette`'''
+
+[[NamedAnchors]]
+Name = '''titlescreenPokemonTileMap'''
+Address = 0x53F83C
+Format = '''`lzm4x32x32|titlescreenPokemonTileSet`'''
+
+[[NamedAnchors]]
+Name = '''bag.male.sprite'''
+Address = 0xD98E84
+Format = '''`lzs4x8x8|bag.palette`'''
+
+[[NamedAnchors]]
+Name = '''bag.female.sprite'''
+Address = 0xD99A00
+Format = '''`lzs4x8x8|bag.palette`'''
+
+[[NamedAnchors]]
+Name = '''bag.palette'''
+Address = 0xD9A560
+Format = '''`lzp4`'''
+
+[[NamedAnchors]]
+Name = '''bag.berry'''
+Address = 0x57FC94
+Format = '''[sprite<`lzs4x6x6`> pal<`lzp4`>]43'''
+
+[[NamedAnchors]]
+Name = '''battlebackgrounds'''
+Address = 0x31ABA8
+Format = '''[battletiles<`lzt4|battlebackgrounds`> battlemap<`lzm4x32x64|battlebackgrounds|battletiles`> introtiles<`lzt4`> intromap<`lzm4x32x14|battlebackgrounds|introtiles`> pal<`lzp4:234`>]1'''
+
+#################################
+#################################
+#################################
+[[List]]
+Name = '''moveeffects'''
+0 = [
+   '''None''',
+   '''SleepPrimary''',
+   '''Poison''',
+   '''HealHalf''',
+   '''Burn''',
+   '''Freeze''',
+   '''Paralyze''',
+   '''Suicide''',
+   '''HealHalfIfOpponentSleeping''',
+   '''RepeatFoeMove''',
+   '''RaiseAttackPrimary''',
+   '''RaiseDefensePrimary''',
+   '''???RaiseSpeedPrimary???''',
+   '''RaiseAttackSpAttackPrimary''',
+   '''unknown1''',
+   '''???RaiseAccuracyPrimary???''',
+   '''RaiseEvasivenessPrimary''',
+   '''NeverMiss''',
+   '''LowerAttackPrimary''',
+   '''LowerDefensePrimary''',
+   '''LowerSpeedPrimary''',
+   '''???LowerAttackSpAttackPrimary???''',
+   '''unknown2''',
+   '''LowerAccuracyPrimary''',
+   '''LowerEvasionPrimary''',
+   '''RemoveStateChanges''',
+   '''Bide''',
+   '''2to3turnsThenConfused''',
+   '''OpponentSwitch''',
+   '''2to5hits''',
+   '''ChangeTypeToFriendlyMove''',
+   '''Flinch''',
+   '''Recover''',
+   '''BadPoisonPrimary''',
+   '''Money''',
+   '''RaiseSpDef2Wall''',
+   '''ParalyzeBurnFreeze''',
+   '''Rest''',
+   '''OHKO''',
+   '''2turnHighCrit''',
+   '''HalfDamage''',
+   '''20Damage''',
+   '''2to5turnTrap''',
+   '''HighCrit''',
+   '''2hits''',
+   '''MissHurtSelf''',
+   '''PreventStatReduction''',
+   '''RaiseCriticalRate''',
+   '''25Recoil''',
+   '''ConfusionPrimary''',
+   '''RaiseAttack2Primary''',
+   '''RaiseDefense2Primary''',
+   '''RaiseSpeed2Primary''',
+   '''RaiseSpAtk2Primary''',
+   '''RaiseSpDef2Primary''',
+   '''???RaiseAccuracy2Primary???''',
+   '''???RaiseEvasiveness2Primary???''',
+   '''Transform''',
+   '''LowerAttack2Primary''',
+   '''LowerDefense2Primary''',
+   '''LowerSpeed2Primary''',
+   '''???LowerSpAtk2Primary???''',
+   '''LowerSpDef2Primary''',
+   '''???''',
+   '''????''',
+   '''RaiseDefense2Wall''',
+   '''PoisonPrimary''',
+   '''ParalyzePrimary''',
+   '''LowerAttack''',
+   '''LowerDefense''',
+   '''LowerSpeed''',
+   '''LowerSpAtk''',
+   '''LowerSpDef''',
+   '''LowerAccuracy''',
+   '''?????''',
+   '''2turnHighCritFlinch''',
+   '''Confusion''',
+   '''2hitsPoison''',
+   '''NeverMiss(VitalThrow)''',
+   '''Substitute''',
+   '''SkipNextTurn''',
+   '''StrongerForLessHealth''',
+   '''Mimic''',
+   '''RandomMove''',
+   '''SeedOpponent''',
+   '''Splash''',
+   '''Disable''',
+   '''DamageBasedOnLevel''',
+   '''DamageRandom''',
+   '''DoublePhysicalDamage''',
+   '''OpponentRepeatMoveFor2to6turns''',
+   '''PainSplit''',
+   '''WhileSleepingFlinch''',
+   '''ChangeTypeToResistPreviousHit''',
+   '''NextAttackHits''',
+   '''Sketch''',
+   '''??????''',
+   '''SleepTalk''',
+   '''DestinyBond''',
+   '''StrengthDependsOnHealth''',
+   '''ReducePP''',
+   '''FalseSwipe''',
+   '''HealPartyStatus''',
+   '''NormalPlusPriority''',
+   '''3turnTripleHit''',
+   '''StealItem''',
+   '''NoSwitch''',
+   '''Nightmare''',
+   '''RaiseEvasivenessAndBecomeSmaller''',
+   '''Curse''',
+   '''??''',
+   '''EvadeNextAttack''',
+   '''Spikes''',
+   '''FoeCannnotRaiseEvasion''',
+   '''PerishSong''',
+   '''Sandstorm''',
+   '''Endure''',
+   '''5turnsUntilMiss''',
+   '''ConfuseAndRaiseAttack2''',
+   '''GetStrongerEachHit''',
+   '''Attract''',
+   '''StrongerWithFriendship''',
+   '''Present''',
+   '''WeakerWithFriendship''',
+   '''PreventStatus5Turns''',
+   '''BurnRaiseSpeed''',
+   '''Magnitude''',
+   '''BatonPass''',
+   '''DoublePowerIfOpponentSwitching''',
+   '''RemoveBindSeedSpikes''',
+   '''20Damage''',
+   '''???????''',
+   '''MorningSun''',
+   '''Synthesis''',
+   '''Moonlight''',
+   '''HiddenPower''',
+   '''Rain5turns''',
+   '''Sun5turns''',
+   '''RaiseDefense''',
+   '''RaiseAttack''',
+   '''RaiseAllStats''',
+   '''????????''',
+   '''HalfHealthToRaiseAttack6''',
+   '''CopyFoeStatChangesPrimary''',
+   '''DoubleSpecialDamage''',
+   '''RaiseDefenseThenAttackTurn2''',
+   '''FlinchAndDoubleDamageToFly''',
+   '''DoubleDamageToDig''',
+   '''DamageIn2Turns''',
+   '''DoubleDamageToFly''',
+   '''FlinchAndDoubleDamageToMinimize''',
+   '''ChargeFirstTurn''',
+   '''ParalyzeAndIncreaseAccuracyInRain''',
+   '''Escape''',
+   '''DamageBasedOnPartySize''',
+   '''2turn''',
+   '''RaiseDefenseAndImproveRollingMoves''',
+   '''RecoverOrFriend''',
+   '''OnlyWorksOnce''',
+   '''2to5turnsNoSleep''',
+   '''Stockpile''',
+   '''Spit Up''',
+   '''Swallow''',
+   '''?????????''',
+   '''Hail5turns''',
+   '''Torment''',
+   '''ConfuseAndRaiseSpAtk2''',
+   '''BurnPrimary''',
+   '''SuicideLowerAtkSpAtk2''',
+   '''DoubleDamageIfStatus''',
+   '''SelfFlinchIfHit''',
+   '''DoubleDamageToParalyzeAndHealParalyze''',
+   '''ForceFoesAttackMe''',
+   '''NaturePower''',
+   '''BoostNextElectricMove''',
+   '''Taunt''',
+   '''BoostAllyPower''',
+   '''TradeHeldItems''',
+   '''CopyAbility''',
+   '''HealHalfNextTurn''',
+   '''UseAllyMove''',
+   '''Ingrain''',
+   '''LowerSelfAtkDef''',
+   '''ReflectStatusMoves''',
+   '''Recycle''',
+   '''DoubleDamageIfHitThisTurn''',
+   '''BreakWall''',
+   '''Yawn''',
+   '''KnockOff''',
+   '''Endeavor''',
+   '''DamageBasedOnHighRemainingHealth''',
+   '''SkillSwap''',
+   '''Imprison''',
+   '''HealSelfStatus''',
+   '''Grudge''',
+   '''Snatch''',
+   '''DamageBasedOnWeight''',
+   '''SecondEffectBasedOnTerrain''',
+   '''33Recoil''',
+   '''ConfuseAllPokemon''',
+   '''HighCritBurn''',
+   '''MudSport''',
+   '''BadPoison''',
+   '''WeatherBall''',
+   '''LowerSpAtk2Self''',
+   '''LowerAttackDefensePrimary''',
+   '''RaiseDefenseSpDef''',
+   '''CanDamageFly''',
+   '''RaiseAttackDefensePrimary''',
+   '''HighCritPoison''',
+   '''WaterSport''',
+   '''RaiseSpAtkSpDefPrimary''',
+   '''RaiseAttackSpeedPrimary''',
+   '''ChangetypeFromTerrain''',
+]
+
+[[List]]
+Name = '''moveinfo'''
+0 = [
+   '''Makes Contact''',
+   '''Affected by Protect''',
+   '''Affected by Magic Coat''',
+   '''Affected by Snatch''',
+   '''Affected by Mirror Move''',
+   '''Affected by King's Rock''',
+]
+
+[[List]]
+Name = '''movetarget'''
+0 = [
+   '''RecentAttacker''',
+   '''Unused''',
+   '''Random''',
+   '''Both''',
+   '''Self''',
+   '''Everyone''',
+   '''Hazard''',
+]
+
+[[List]]
+Name = '''trainerStructType'''
+0 = [
+   '''Normal''',
+   '''Moves''',
+   '''Items''',
+   '''Both''',
+]
+
+[[List]]
+Name = '''decorpermissions'''
+0 = [
+   '''Normal''',
+   '''Put On Floor''',
+   '''Object''',
+   '''Place On Wall''',
+   '''Doll or Cushion''',
+]
+
+[[List]]
+Name = '''decorcategory'''
+0 = [
+   '''Desk''',
+   '''Chair''',
+   '''Plant''',
+   '''Unique''',
+   '''Mat''',
+   '''Poster''',
+   '''Doll''',
+   '''Cushion''',
+]
+
+[[List]]
+Name = '''decorshape'''
+0 = [
+   '''1x1''',
+   '''unused''',
+   '''unused''',
+   '''1x1t''',
+   '''2x2p''',
+   '''1x1p''',
+   '''unused''',
+   '''3x1''',
+   '''2x2''',
+   '''2x1''',
+]
+
+[[List]]
+Name = '''evolutionmethods'''
+0 = [
+   '''None''',
+   '''Happiness''',
+   '''Happy Day''',
+   '''Happy Night''',
+   '''Level''',
+   '''Trade''',
+   '''Trade Item''',
+   '''Stone''',
+   '''Level High Attack''',
+   '''Level Attack matches Defense''',
+   '''Level High Defense''',
+   '''Level Odd Personality''',
+   '''Level Even Personality''',
+   '''Level And New Pokemon''',
+   '''Level But New Pokemon''',
+   '''Beauty''',
+]
+
+[[List]]
+Name = '''evbits'''
+0 = [
+   '''+1 HP''',
+   '''+2 HP''',
+   '''+1 Attack''',
+   '''+2 Attack''',
+   '''+1 Defense''',
+   '''+2 Defense''',
+   '''+1 Speed''',
+   '''+2 Speed''',
+   '''+1 Sp Attack''',
+   '''+2 Sp Attack''',
+   '''+1 Sp Defense''',
+   '''+2 Sp Defense''',
+]
+
+[[List]]
+Name = '''traineraibits'''
+0 = [
+   '''CheckBadMove''',
+   '''TryToFaint''',
+   '''CheckViability''',
+   '''SetupFirstTurn''',
+   '''Risky''',
+   '''PreferStrongestMove''',
+   '''PreferBatonPass''',
+   '''DoubleBattle''',
+   '''HPAware''',
+   '''Unknown''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Roaming''',
+   '''Safari''',
+   '''FirstBattle''',
+]
+
+[[List]]
+Name = '''script_compare'''
+0 = [
+   '''<''',
+   '''=''',
+   '''>''',
+   '''<=''',
+   '''>=''',
+   '''!=''',
+]
+
+[[List]]
+Name = '''movementtypes'''
+0 = [
+   '''face_down''',
+   '''face_up''',
+   '''face_left''',
+   '''face_right''',
+   '''walk_slow_down''',
+   '''walk_slow_up''',
+   '''walk_slow_left''',
+   '''walk_slow_right''',
+   '''walk_down''',
+   '''walk_up''',
+   '''walk_left''',
+   '''walk_right''',
+   '''jump_2_down''',
+   '''jump_2_up''',
+   '''jump_2_left''',
+   '''jump_2_right''',
+   '''delay_1''',
+   '''delay_2''',
+   '''delay_4''',
+   '''delay_8''',
+   '''delay_16''',
+   '''walk_fast_down''',
+   '''walk_fast_up''',
+   '''walk_fast_left''',
+   '''walk_fast_right''',
+   '''walk_in_place_slow_down''',
+   '''walk_in_place_slow_up''',
+   '''walk_in_place_slow_left''',
+   '''walk_in_place_slow_right''',
+   '''walk_in_place_down''',
+   '''walk_in_place_up''',
+   '''walk_in_place_left''',
+   '''walk_in_place_right''',
+   '''walk_in_place_fast_down''',
+   '''walk_in_place_fast_up''',
+   '''walk_in_place_fast_left''',
+   '''walk_in_place_fast_right''',
+   '''walk_in_place_fastest_down''',
+   '''walk_in_place_fastest_up''',
+   '''walk_in_place_fastest_left''',
+   '''walk_in_place_fastest_right''',
+   '''ride_water_current_down''',
+   '''ride_water_current_up''',
+   '''ride_water_current_left''',
+   '''ride_water_current_right''',
+   '''walk_fastest_down''',
+   '''walk_fastest_up''',
+   '''walk_fastest_left''',
+   '''walk_fastest_right''',
+   '''slide_down''',
+   '''slide_up''',
+   '''slide_left''',
+   '''slide_right''',
+   '''player_run_down''',
+   '''player_run_up''',
+   '''player_run_left''',
+   '''player_run_right''',
+   '''start_anim_in_direction''',
+   '''jump_special_down''',
+   '''jump_special_up''',
+   '''jump_special_left''',
+   '''jump_special_right''',
+   '''face_player''',
+   '''face_away_player''',
+   '''lock_facing_direction''',
+   '''unlock_facing_direction''',
+   '''jump_down''',
+   '''jump_up''',
+   '''jump_left''',
+   '''jump_right''',
+   '''jump_in_place_down''',
+   '''jump_in_place_up''',
+   '''jump_in_place_left''',
+   '''jump_in_place_right''',
+   '''jump_in_place_down_up''',
+   '''jump_in_place_up_down''',
+   '''jump_in_place_left_right''',
+   '''jump_in_place_right_left''',
+   '''face_original_direction''',
+   '''nurse_joy_bow''',
+   '''enable_jump_landing_ground_effect''',
+   '''disable_jump_landing_ground_effect''',
+   '''disable_anim''',
+   '''restore_anim''',
+   '''set_invisible''',
+   '''set_visible''',
+   '''emote_exclamation_mark''',
+   '''emote_question_mark''',
+   '''emote_heart''',
+   '''reveal_trainer''',
+   '''rock_smash_break''',
+   '''cut_tree''',
+   '''set_fixed_priority''',
+   '''clear_fixed_priority''',
+   '''init_affine_anim''',
+   '''clear_affine_anim''',
+   '''hide_reflection''',
+   '''show_reflection''',
+   '''walk_down_start_affine''',
+   '''walk_down_affine''',
+]
+140 = [
+   '''walk_diag_northwest''',
+   '''walk_diag_northeast''',
+   '''walk_diag_southwest''',
+   '''walk_diag_southeast''',
+   '''walk_slow_diag_northwest''',
+   '''walk_slow_diag_northeast''',
+   '''walk_slow_diag_southwest''',
+   '''walk_slow_diag_southeast''',
+   '''store_lock_anim''',
+   '''free_unlock_anim''',
+   '''walk_left_affine''',
+   '''walk_right_affine''',
+   '''levitate''',
+   '''stop_levitate''',
+   '''destroy_extra_task''',
+   '''figure_8''',
+   '''fly_up''',
+   '''fly_down''',
+]
+

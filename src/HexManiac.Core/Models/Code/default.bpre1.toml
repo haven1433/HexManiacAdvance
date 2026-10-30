@@ -1,0 +1,40 @@
+﻿# BPRE1
+
+[[NamedAnchors]]
+Name = '''scripts.newgame.starters.left'''
+Address = 0x169C2D
+Format = '''[species1:data.pokemon.names]scripts.newgame.starters.middle'''
+
+[[NamedAnchors]]
+Name = '''scripts.newgame.starters.middle'''
+Address = 0x169DFA
+Format = '''[species2:data.pokemon.names]1'''
+
+[[NamedAnchors]]
+Name = '''scripts.newgame.starters.right'''
+Address = 0x169E30
+Format = '''[species3:data.pokemon.names]scripts.newgame.starters.middle'''
+
+[[OffsetPointer]]
+Address = 0x114E50
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x1150E0
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x12DFD4
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x0C6DB0
+Offset = 0x000010
+
+[[OffsetPointer]]
+Address = 0x0BFCB8
+Offset = -8
+
+[[OffsetPointer]]
+Address = 0x0BFCD8
+Offset = -8

@@ -1,0 +1,98 @@
+﻿# Add table for level-up moves from hold items.
+# After running this script:
+#   Let your pokemon hold the item.
+#   Level up.
+#   They try to learn the move.
+
+# Adds this code, approximately, to MonTryLearningNewMove:
+#        if retValue == 0:
+#          item = GetMonData(mon, MON_DATA_HELD_ITEM, NULL)
+#          move = data.items.levelupmoves[item]
+#          if gMoveToLearn == move:
+#            gMoveToLearn = 0
+#            return 0
+#          gMoveToLearn = move
+#          return GiveMoveToMon(mon, move)
+
+# Hold-Item Level-Up Moves and Move Expansion both touch thumb.MonTryLearningNewMove
+# But they don't touch the same parts of the function, so it should be fine.
+
+
+# ---------------- Dependencies ----------------
+
+@!game(AXVE0_AXPE0_AXVE1_AXPE1) @03CB60
+@!game(BPRE0_BPGE0)             @03FBE8
+@!game(BPRE1_BPGE1)             @03FBFC
+@!game(BPEE0)                   @06A518
+@!game(All) ^thumb.GetMonData
+
+@!game(AXVE0_AXPE0_AXVE1_AXPE1) @03B7C8
+@!game(BPRE0_BPGE0)             @03EA88
+@!game(BPRE1_BPGE1)             @03EA9C
+@!game(BPEE0)                   @069318
+@!game(All) ^thumb.MonTryLearningNewMove
+
+@!game(AXVE0_AXPE0_AXVE1_AXPE1) @03B5DC
+@!game(BPRE0_BPGE0)             @03E89C
+@!game(BPRE1_BPGE1)             @03E8B0
+@!game(BPEE0)                   @06912C
+@!game(All) ^thumb.GiveMoveToMon
+
+
+# ---------------- The New Table ----------------
+
+@data.items.levelupmoves(2000) ^data.items.levelupmoves[move::data.pokemon.moves.names]data.items.stats
+
+
+# ---------------- The new code ----------------
+
+@thumb.levelup.MonTryLearningItemMove(60)
+# r8 has the mon
+# r0 has the current move to learn (or 0)
+.thumb
+   cmp   r0, #0
+   bne   return
+   mov   r0, r8
+   mov   r1, #12
+   mov   r2, #0
+   bl    <thumb.GetMonData>  @ item = GetMonData(mon, MON_DATA_HELD_ITEM, NULL)
+   ldr   r1, =<data.items.levelupmoves>
+   lsl   r0, #2
+   ldr   r1, [r1, r0]
+   cmp   r1, #0
+   ble   fail
+   ldr   r0, [pc, <gMoveToLearn>]
+   ldrh  r2, [r0]
+   cmp   r1, r2
+   beq   clear
+   strh  r1, [r0]
+   mov   r0, r8
+   bl    <thumb.GiveMoveToMon> @ GiveMoveToMon(mon, data.items.levelupmoves[item])
+   b     return
+clear:
+   mov   r1, #0
+   strh  r1, [r0]
+fail:
+   mov   r0, #0
+return:
+   add   sp, #4
+   pop   {r3-r5}
+   mov   r8, r3
+   mov   r9, r4
+   ldr   r1, =<thumb.MonTryLearningNewMove>+245
+   bx    r1
+gMoveToLearn: .word 0x02024022   @ FR/LG
+.end
+
+@thumb.levelup.MonTryLearningItemMove+48
+@!game(AXVE0_AXPE0_AXVE1_AXPE1)  82 4E  # R/S     -> 02024E82
+@!game(BPEE0)                    E2 44  # Emerald -> 020244E2
+@!game(All)
+
+
+# ---------------- The hook ----------------
+
+@thumb.MonTryLearningNewMove+EC 00 49 08 47 <thumb.levelup.MonTryLearningItemMove+1>
+
+@data.items.levelupmoves
+

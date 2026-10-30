@@ -1,0 +1,121 @@
+# Replace evolution table
+# Additional/replacement evolution methods
+# FireRed Only
+
+# TODO Handle Add-On evolution (Ninjask/Shedinja)
+
+# Replaces the evolution table with a table of pointers.
+# Each pokemon has their own separate list of evolutions, which can be 0 or more elements long.
+# Each evolution is 8 bytes long.
+#   2 bytes: target pokemon
+#   1 byte:  'method'
+#   1 byte:  small-arg (always a number, like a level)
+#   4 bytes: additional args (different depending on the evolution method)
+# The table is terminated with 0000
+
+
+
+# TODO replace existing data.pokemon.evolutions table
+@data.pokemon.evolutions @!00(670) ^data.pokemon.evolutions[ptr<[target:data.pokemon.names method. arg. args::]!0000>]
+# requires python
+.python
+   viewport.Edit('00 00')
+   model.ClearFormat(TOKEN, 0x720000, 54)
+.end
+
+# TODO replace List of evolution methods
+# requires python
+
+
+
+@thumb.pokemon.evolutions.methods(20) ^thumb.pokemon.evolutions.methods[ptr<>]10
+<null> # TODO Level-Up:        arg1=Level, arg2=exclude genders/weathers (flags)
+<null> # TODO Nature:          arg1=Level, arg2=which natures (flags)
+<null> # TODO Friendship:      arg1=Friendship arg2=RequireLow (if set true, then the friendship must be _below_ this number)
+<null> # TODO Stat-Level:      arg1=Level, arg2=Stats to consider (flags), Stats that must be highest (flags)
+<null> # TODO Personality:     arg1=Level, arg2=number of groups, arg3=which group
+<null> # TODO Hold Item:       arg1=Level, arg2=Item
+<null> # TODO Move:            arg1=Level, arg2=Move
+<null> # slot 7 is use-item evolution and is null in this table
+<null> # TODO Pokemon:         arg1=Level, arg2=Pokemon
+<null> # TODO Variable:        arg1=operation, arg2=variable (2 bytes) and value (2 bytes)
+
+
+
+# main routine
+# u16 GetEvolutionTargetSpecies(struct Pokemon *mon, u8 type, u16 evolutionItem)
+@thumb.pokemon.evolutions(20) .thumb
+    push  {lr, r4-r7}
+    mov   r4, r0     @ r4 = mon
+    mov   r5, r2     @ r5 = evolutionItem
+    mov   r6, r1     @ r6 = type
+    mov   r1, #11
+    mov   r2, #0
+    ldr   r3, =<GetMonData>
+    bl    <long_branch> @ GetMonData(mon, MON_DATA_SPECIES, NULL)
+    mov   r7, r0
+    mov   r0, #0
+    ldr   r1, =<data.pokemon.evolutions>
+    lsl   r7, #2
+    ldr   r7, [r1, r7] @ r7 = data.pokemon.evolutions[mon.species]
+    cmp   r7, #0
+    beq   <end>  @ pokemon with null pointers don't evolve
+get_reason_for_evolving:
+    cmp   r6, #0
+    beq   <get_lvlup_evolution>
+    cmp   r6, #2
+    beq   <get_stone_evolution>
+    cmp   r6, #3
+    beq   <get_stone_evolution>
+    b     <end>
+get_stone_evolution:
+    sub   r7, #8
+    item_loop:
+        add   r7, #8
+        ldrh  r0, [r7, #0]
+        cmp   r0, #0
+        beq   <end>
+        ldrb  r1, [r7, #2]
+        cmp   r1, #7   @ method = evolution item
+        bne   <item_loop>
+        ldr   r1, [r7, #4]
+        cmp   r1, r5       @ check param2 == evolutionItem
+        bne   <item_loop>
+    b     <end>
+get_lvlup_evolution:
+    sub   r7, #8
+    lvlup_loop:
+        add   r7, #8
+        ldrh  r0, [r7, #0]
+        cmp   r0, #0
+        beq   <end>
+        ldrb  r1, [r7, #2]
+        lsl   r1, #4
+        ldr   r3, =<method_table>
+        ldr   r3, [r3, r1]
+        cmp   r3, #0  @ null check
+        beq   <lvlup_loop>
+        ldrb  r0, [r7, #3] @ small param
+        ldr   r1, [r7, #4] @ large param
+        bl    <long_branch>
+        cmp   r0, #0
+        beq   <lvlup_loop>
+        ldrh  r0, [r7, #0]
+end:
+    pop   {pc, r4-r7}
+long_branch:
+    bx    r3
+.end
+
+
+
+# hook
+@042EC4 # GetEvolutionTargetSpecies # .thumb
+    ldr r3, =<thumb.pokemon.evolutions>
+    bx  r3
+.end
+
+
+
+# goto the table so the user can edit it
+@data.pokemon.evolutions

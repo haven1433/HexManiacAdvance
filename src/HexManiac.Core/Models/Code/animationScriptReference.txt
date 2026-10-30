@@ -1,0 +1,50 @@
+﻿
+
+00 loadspritegfx tag:|h
+01 unloadspritegfx tag:|h
+02 createsprite template<`oam`> subpriority_offset. [argv:]
+03 createvisualtask address<> priority. [argv:]
+04 delay time.
+05 waitforvisualfinish
+06 hang1
+07 hang2
+08 end
+09 playse se:songnames
+0A monbg battler.animationbanks
+0B clearmonbg battler.animationbanks
+0C setalpha eva. evb.
+0D blendoff
+0E call pointer<`ase`>
+0F return
+10 setarg param0. param1:
+11 choosetwoturnanim option1<`ase`> option2<`ase`>
+12 jumpifmoveturn param0. ptr<`ase`>
+13 goto ptr<`ase`>
+14 fadetobg bg.animationbg
+15 restorebg
+16 waitbgfadeout
+17 waitbgfadein
+18 changebg bg.animationbg
+19 playsewithpan se:songnames pan.animationpan
+1A setpan pan.animationpan
+1B panse se:songnames param1.animationpan param2.animationpan param3. param4.
+1C loopsewithpan se:songnames pan.animationpan wait. times.
+1D waitplaysewithpan se:songnames pan.animationpan wait.
+1E setbldcnt param0:
+1F createsoundtask address<> [argv:]
+20 waitsound
+21 jumpargeq param0. param1: ptr<`ase`>
+22 monbg_static battler.animationbanks
+23 clearmonbg_static battler.animationbanks
+24 jumpifcontest ptr<`ase`>
+25 fadetobgfromset bgOpponent.animationbg bgPlayer.animationbg bgContest.animationbg
+26 panse_adjustnone se:songnames param1.animationpan param2.animationpan param3. param4.
+27 panse_adjustall se:songnames param1.animationpan param2.animationpan param3. param4.
+28 splitbgprio battler.animationbanks
+29 splitbgprio_all
+2A splitbgprio_foes battler.animationbanks
+2B invisible battler.animationbanks
+2C visible battler.animationbanks
+2D teamattack_moveback battler.
+2E teamattack_movefwd battler.
+2F stopsound

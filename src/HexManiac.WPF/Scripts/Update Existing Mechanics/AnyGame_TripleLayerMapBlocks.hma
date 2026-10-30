@@ -1,0 +1,157 @@
+# Add Triple-Layer Blocks for Maps
+# Uses the Bottom-layer tiles from the next block
+# As a third layer in the current block
+
+@!game(BPRE0) @0F67A4
+@!game(BPGE0) @0F677C
+@!game(BPRE1) @0F681C
+@!game(BPGE1) @0F67F4
+@!game(BPEE0) @1999BC
+@!game(BPRE0_BPGE0_BPRE1_BPGE1_BPEE0)   ^thumb.new_menu_helpers.ScheduleBgCopyTilemapToVram
+
+@!game(AXVE0)       @057E88
+@!game(AXPE0)       @057E8C
+@!game(AXVE1)       @057EA8
+@!game(AXPE1)       0057EAC
+@!game(BPRE0_BPGE0) @05A9B4
+@!game(BPRE1_BPGE1) @05A9C8
+@!game(BPEE0)       @089F78
+@!game(All)   ^thumb.field_camera.DrawMetatile
+
+
+@!game(BPRE0_BPGE0_BPRE1_BPGE1_BPEE0)
+
+@thumb.field_camera.DrawMetatile @!FF(0x134) .thumb
+    @ DrawMetatile(metatileLayerType, *metatiles, offset)
+    push {r4-r5, lr}
+    lsl  r2, #1           @ going to use r2 to index into gBGTilemapBuffers, which is 2-bytes per element
+    ldr   r5, [pc, <gBGTilemapBuffers>]
+bottom:
+    ldr   r3, [r5, #8]    @ gBGTilemapBuffers3[offset]
+    cmp   r0, #0
+    beq   <middle>
+    bl    <copy>
+
+middle:
+    ldr   r3, [r5, #0]    @ gBGTilemapBuffers1[offset]
+    cmp   r0, #2
+    bne   middle_match
+    bl    <zero>
+    b     top
+middle_match:
+    bl    <copy>
+
+top:
+    ldr   r3, [r5, #4]    @ gBGTilemapBuffers2[offset]
+    cmp   r0, #1
+    bne   top_match
+    bl    <zero>
+    b     done
+top_match:
+    bl    <copy>
+done:
+    mov r0, #1
+    bl <thumb.new_menu_helpers.ScheduleBgCopyTilemapToVram>
+    mov r0, #2
+    bl <thumb.new_menu_helpers.ScheduleBgCopyTilemapToVram>
+    mov r0, #3
+    bl <thumb.new_menu_helpers.ScheduleBgCopyTilemapToVram>
+    pop {r4-r5, pc}
+copy:
+    add   r3, r2
+    ldrh  r4, [r1, #0]
+    strh  r4, [r3, #0]
+    ldrh  r4, [r1, #2]
+    strh  r4, [r3, #2]
+    add   r3, #64
+    ldrh  r4, [r1, #4]
+    strh  r4, [r3, #0]
+    ldrh  r4, [r1, #6]
+    strh  r4, [r3, #2]
+    add   r1, #8
+    bx    lr
+zero:
+    add   r3, r2
+    mov   r4, #0
+    strh  r4, [r3, #0]
+    strh  r4, [r3, #2]
+    add   r3, #64
+    strh  r4, [r3, #0]
+    strh  r4, [r3, #2]
+    bx    lr
+gBGTilemapBuffers:
+    .word 0x03005014
+.end
+
+@!game(BPEE0) @thumb.field_camera.DrawMetatile+74 9C 5D
+
+
+@!game(AXVE0_AXPE0_AXVE1_AXPE1)
+
+@thumb.field_camera.DrawMetatile @!FF(0x19C) .thumb
+    @ DrawMetatile(metatileLayerType, *metatiles, offset)
+    push {r4-r5, lr}
+    lsl  r2, #1
+bottom:
+    ldr   r3, [pc, <gBGTilemapBuffers>]
+    mov   r5, #3
+    cmp   r0, #0
+    beq   <middle>
+    bl    <copy>
+
+middle:
+    ldr   r3, [pc, <gBGTilemapBuffers>]
+    mov   r5, #2
+    cmp   r0, #2
+    bne   middle_match
+    bl    <zero>
+    b     top
+middle_match:
+    bl    <copy>
+
+top:
+    ldr   r3, [pc, <gBGTilemapBuffers>]
+    mov   r5, #1
+    cmp   r0, #1
+    bne   top_match
+    bl    <zero>
+    b     done
+top_match:
+    bl    <copy>
+done:
+    pop {r4-r5, pc}
+copy:
+    lsl   r5, #11
+    add   r3, r5
+    add   r3, r2
+    ldrh  r4, [r1, #0]
+    strh  r4, [r3, #0]
+    ldrh  r4, [r1, #2]
+    strh  r4, [r3, #2]
+    add   r3, #64
+    ldrh  r4, [r1, #4]
+    strh  r4, [r3, #0]
+    ldrh  r4, [r1, #6]
+    strh  r4, [r3, #2]
+    add   r1, #8
+    bx    lr
+zero:
+    lsl   r5, #11
+    add   r3, r5
+    add   r3, r2
+    mov   r4, #0
+    strh  r4, [r3, #0]
+    strh  r4, [r3, #2]
+    add   r3, #64
+    strh  r4, [r3, #0]
+    strh  r4, [r3, #2]
+    bx    lr
+gBGTilemapBuffers:
+    .word 0x020211CC
+.end
+
+@!game(All) .python
+tab = editor.SelectedTab
+tab.Model.SetList(tab.CurrentChange, "MapLayerOptions", ['Normal', 'Covered', 'Split', 'Triple'], None, None)
+.end
+

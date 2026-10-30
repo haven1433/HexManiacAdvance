@@ -1,0 +1,110 @@
+﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.Images;
+using System.Collections.Generic;
+
+namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
+   public class TextStreamElementViewModel : StreamElementViewModel {
+      string content;
+      public string Content {
+         get => content;
+         set {
+            if (TryUpdate(ref content, value)) {
+               using (ModelCacheScope.CreateScope(Model)) {
+                  var destination = Model.ReadPointer(Start);
+                  var rawRun = Model.GetNextRun(destination);
+                  if (rawRun is IStreamRun streamRun) {
+                     var newRun = streamRun.DeserializeRun(content, ViewPort.CurrentChange, out var changedOffsets, out var changedRuns);
+                     HandleNewDataStream(streamRun, newRun, changedOffsets, changedRuns);
+                  } else if (rawRun is ITableRun tRun) {
+                     var proxy = new TableStreamRun(Model, tRun.Start, tRun.PointerSources, tRun.FormatString,
+                        tRun.ElementContent, new FixedLengthStreamStrategy(tRun.ElementCount));
+                     var newRun = proxy.DeserializeRun(Content, ViewPort.CurrentChange, out var changedOffsets, out var changedRuns);
+                     HandleNewDataStream(proxy, newRun, changedOffsets, changedRuns);
+                  }
+               }
+            }
+         }
+      }
+
+      public TextEditorViewModel ElementContent { get; } = new();
+
+      protected void HandleNewDataStream(IStreamRun oldRun, IStreamRun newRun, IReadOnlyList<int> changedOffsets, IReadOnlyList<int> changedRuns) {
+         Model.ObserveRunWritten(ViewPort.CurrentChange, newRun);
+         if (oldRun.Start != newRun.Start) {
+            RaiseDataMoved(oldRun.Start, newRun.Start);
+         }
+
+         if (Model.GetNextRun(newRun.Start) is ITableRun table) {
+            foreach (var change in changedOffsets) {
+               var offsets = table.ConvertByteOffsetToArrayOffset(change);
+               var info = table.NotifyChildren(Model, ViewPort.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
+               ViewPort.HandleErrorInfo(info);
+            }
+         }
+
+         using (PreventSelfCopy()) {
+            RaiseDataChanged();
+         }
+
+         if (changedRuns != null && changedRuns.Count > 0) {
+            RaiseDataMoved(-1, changedRuns[0]);
+         }
+
+         NotifyPropertyChanged(nameof(Visualizations));
+      }
+
+      /// <summary>
+      /// For editors that change the data without going through Content: read the text again, so Content (and the filter, which searches it) stay up to date.
+      /// </summary>
+      protected void RefreshContentFromData() {
+         var text = string.Empty;
+         var destination = Model.ReadPointer(Start);
+         var run = Model.GetNextRun(destination);
+         if (run is IStreamRun streamRun) {
+            text = streamRun.SerializeRun() ?? string.Empty;
+         } else if (run is ITableRun tRun) {
+            var proxy = new TableStreamRun(Model, tRun.Start, tRun.PointerSources, tRun.FormatString,
+               tRun.ElementContent, new FixedLengthStreamStrategy(tRun.ElementCount));
+            text = proxy.SerializeRun() ?? string.Empty;
+         }
+         if (TryUpdate(ref content, text, nameof(Content))) ElementContent.Content = content;
+      }
+
+      public IReadOnlyList<IPixelViewModel> Visualizations {
+         get {
+            var destination = Model.ReadPointer(Start);
+            if (Model.GetNextRun(destination) is IStreamRun run) {
+               return run.Visualizations;
+            }
+            return new List<IPixelViewModel>();
+         }
+      }
+
+      public TextStreamElementViewModel(ViewPort viewPort, string parentName, int start, string format) : base(viewPort, parentName, format ?? PCSRun.SharedFormatString, start) {
+         var destination = viewPort.Model.ReadPointer(Start);
+         if (viewPort.Model.GetNextRun(destination) is IStreamRun run) {
+            content = run.SerializeRun() ?? string.Empty;
+            ElementContent.PreFormatter = run.PreFormatter;
+         } else if (viewPort.Model.GetNextRun(destination) is ITableRun tRun) {
+            var proxy = new TableStreamRun(Model, tRun.Start, tRun.PointerSources, tRun.FormatString,
+               tRun.ElementContent, new FixedLengthStreamStrategy(tRun.ElementCount));
+            content = proxy.SerializeRun() ?? string.Empty;
+         } else {
+            content = string.Empty;
+         }
+
+         ElementContent.Content = content;
+         ElementContent.Bind(nameof(ElementContent.Content), (sender, e) => Content = ElementContent.Content);
+      }
+
+      protected override bool TryCopy(StreamElementViewModel other) {
+         if (GetType() != other.GetType()) return false;
+         if (!(other is TextStreamElementViewModel stream)) return false;
+         Start = other.Start;
+         TryUpdate(ref content, stream.content, nameof(Content));
+         ElementContent.Content = Content;
+         NotifyPropertyChanged(nameof(Visualizations));
+         return true;
+      }
+   }
+}

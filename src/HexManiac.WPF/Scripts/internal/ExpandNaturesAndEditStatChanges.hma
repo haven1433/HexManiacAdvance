@@ -1,0 +1,36 @@
+# Make nature stat modifications more flexible
+# Instead of the number being +1 or -1, you can pick anything from -50 to +50
+# Instead of the nature always being +10%/-10%, you can change the multiplier to give finer grain control.
+# For example, if the multiplier is 3 and the nature gives +5 to a stat, then that stat will get +5*3, or +15%.
+
+
+# R/S/E: Expand stack space in wild_encounter.PickWildMonNature to allow for up to 60 natures
+#        Without this, having more than 28 natures breaks the safari zone
+@!game(AXVE0_AXPE0) @084DC6 8F @084E70 0F
+@!game(AXVE1_AXPE1) @084DE6 8F @084E90 0F
+@!game(BPEE0)       @0B4D7A 8F @0B4E5E 0F
+
+@!game(AXVE0_AXPE0) @03FC74
+@!game(AXVE1_AXPE1) @03FC94
+@!game(BPRE0_BPGE0) @043698 
+@!game(BPRE1_BPGE1) @0436AC
+@!game(BPEE0)       @06D8D4
+@!game(all) ^thumb.pokemon.ModifyStatByNature
+
+@thumb.pokemon.ModifyStatByNature+34 0000 0000 0000 0000
+@thumb.pokemon.ModifyStatByNature+46 .thumb
+    mov   r0, #10
+    mul   r0, r1
+    mov   r1, #100
+    add   r0, r0, r1
+.end
+@thumb.pokemon.ModifyStatByNature+46 .data.pokemon.natures.percentage.multiplier 
+
+# TODO emerald has additional battle_dome code that needs to update?
+#      gNatureStatTable is used with the 110% and 90% specific modifiers.
+# TODO look at other R/S/E uses of NUM_NATURES, such as
+#   gBattlePalaceNatureToMoveGroupLikelihood 
+#   gPokeblockFlavorCompatibilityTable (Emerald only)
+#   sNatureGirlMessages (Emerald only)
+
+# TODO uncomment nature in constantReference.txt

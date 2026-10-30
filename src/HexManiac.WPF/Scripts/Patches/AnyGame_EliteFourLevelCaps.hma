@@ -1,0 +1,600 @@
+# The script was compiled by Axcellerator.
+# Level up caps based on flags for VANILLA RSE, RS v1.1, FrLg, FrLg 1.1. Credits for original routine go to blackuser. I edited the routine to add flag checks and the hard caps.
+# The caps are disabled by default. The flag used to enable the normal caps
+# is 0x150. The flag for harder caps is 0x149. You can change these are the bottom.
+# The way this works is that it checks for flag 0x150 to enable the caps. If flag
+# 0x150 is not set, hard caps won't work either. Meaning for Hard Caps you have to
+# set both flag 0x150 and flag 0x149. If you plan to allow the player to change these
+# while playing, then for the changes between No Caps, Normal Caps and Hard Caps to
+# work correctly you should script it like this : 
+# For No Caps : 	clearflag 0x150
+#             		clearflag 0x149
+# For Normal Caps:  setflag   0x150
+#             		clearflag 0x149
+# For Hard Caps:	setflag   0x150
+#             		setflag   0x149
+#The script also creates 2 tables to input your desired levels for each gym.
+#The tables are data.normalcaps and data.hardcaps.
+
+@!game(BPEE0) @data.normalcaps(8)
+@!00(8)
+@data.normalcaps ^data.normalcaps[Roxanne. Brawly. Wattson. Flannery. Norman. Winona. TateLiza. Juan.]1
+
+@!game(BPEE0) @data.hardcaps(8)
+@!00(8)
+@data.hardcaps ^data.hardcaps[Roxanne. Brawly. Wattson. Flannery. Norman. Winona. TateLiza. Juan.]1
+
+@!game(AXVE0_AXPE0_AXVE1_AXPE1) @data.normalcaps(8)
+@!00(8)
+@data.normalcaps ^data.normalcaps[Roxanne. Brawly. Wattson. Flannery. Norman. Winona. TateLiza. Wallace.]1
+
+@!game(AXVE0_AXPE0_AXVE1_AXPE1) @data.hardcaps(8)
+@!00(8)
+@data.hardcaps ^data.hardcaps[Roxanne. Brawly. Wattson. Flannery. Norman. Winona. TateLiza. Wallace.]1
+
+@!game(BPEE0_AXVE0_AXPE0_AXVE1_AXPE1) @data.e4normalcaps(4)
+@!00(4)
+@data.e4normalcaps ^data.e4normalcaps[Sidney. Phoebe. Glacia. Drake.]1
+
+@!game(BPEE0_AXVE0_AXPE0_AXVE1_AXPE1) @data.e4hardcaps(4)
+@!00(4)
+@data.e4hardcaps ^data.e4hardcaps[Sidney. Phoebe. Glacia. Drake.]1
+
+@!game(BPRE0_BPGE0_BPRE1_BPGE1) @data.e4normalcaps(5)
+@!00(5)
+@data.e4normalcaps ^data.e4normalcaps[Lorelei. Bruno. Agatha. Lance. Champion.]1
+
+@!game(BPRE0_BPGE0_BPRE1_BPGE1) @data.e4hardcaps(5)
+@!00(5)
+@data.e4hardcaps ^data.e4hardcaps[Lorelei. Bruno. Agatha. Lance. Champion.]1
+
+@!game(BPRE0_BPGE0_BPRE1_BPGE1) @data.normalcaps(8)
+@!00(8)
+@data.normalcaps ^data.normalcaps[Brock. Misty. LtSurge. Erika. Koga. Sabrina. Blaine. LGiovanni.]1
+
+@!game(BPRE0_BPGE0_BPRE1_BPGE1) @data.hardcaps(8)
+@!00(8)
+@data.hardcaps ^data.hardcaps[Brock. Misty. LtSurge. Erika. Koga. Sabrina. Blaine. LGiovanni.]1
+
+# TODO: support other games
+@!game(BPRE0_BPGE0) @06E6D0
+@!game(BPRE1_BPGE1) @06E6E4
+@!game(AXVE0) @069340
+@!game(AXPE0) @069344
+@!game(AXVE1) @069360
+@!game(AXPE1) @069364
+@!game(BPEE0) @09D790
+@!game(All) ^thumb.FlagGet
+
+@!game(BPRE0_BPGE0) @021CFA
+@!game(BPRE1_BPGE1) @021D0E
+@!game(AXVE0_AXPE0_AXVE1_AXPE1) @0202B4
+@!game(BPEE0) @04A5BE
+@!game(All) ^thumb.levelup.capshook
+
+@!game(BPEE0) @thumb.levelup.caps(C0)
+.thumb
+
+    push  {r0-r4}
+	ldr   r0, _FlagEnableLevelCaps
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+	cmp   r0, #0x0
+    beq   Exit
+HardCheck:
+	ldr   r0, _FlagEnableHardCaps
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+	cmp   r0, #0x1
+    beq   HardCaps
+NormalCaps:
+    mov   r4, #134
+    lsl   r4, r4, #4
+    add   r4, r4, #7
+    mov   r3, #0
+Gymcheck:
+    push  {r3}
+    mov   r0, r4
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+    cmp   r0, #0
+    beq   Levelcheck
+    pop   {r3}
+    add   r4, r4, #1
+    add   r3, r3, #1
+    cmp   r3, #8
+    beq   E4Check
+    b     Gymcheck
+Levelcheck:
+    pop   {r3}
+    ldr   r0, _NormalCapTable
+    ldrb  r6, [r0, r3]
+    pop   {r0-r4}
+    cmp   r0, r6
+    bhs   Dunno
+    b     Levels
+E4Check:
+	ldr   r0, _FlagCheckGameClear
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+	cmp   r0, #0x1
+    beq   Exit
+E4Caps:
+    mov   r4, #79
+    lsl   r4, r4, #4
+    add   r4, r4, #11
+    mov   r3, #0
+E4BeatCheck:
+    push  {r3}
+    mov   r0, r4
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+    cmp   r0, #0
+    beq   Levelcheck3
+    pop   {r3}
+    add   r4, r4, #1
+    add   r3, r3, #1
+    cmp   r3, #4
+    beq   Exit
+    b     E4BeatCheck
+Levelcheck3:
+    pop   {r3}
+    ldr   r0, _E4CapTable
+    ldrb  r6, [r0, r3]
+    pop   {r0-r4}
+    cmp   r0, r6
+    bhs   Dunno
+    b     Levels
+Exit:
+    pop   {r0-r4}
+Levels:
+    cmp   r0, #100
+    beq   Dunno
+    ldr   r0, _Something
+    bx    r0
+Dunno:
+    ldr   r1, [r5, #0]
+    add   r1, r1, #83
+    ldrb  r0, [r1, #0]
+    ldr   r2, _return_addr
+.OuttaHere:
+    bx    r2
+HardCaps:
+    mov   r4, #134
+    lsl   r4, r4, #4
+    add   r4, r4, #7
+    mov   r3, #0
+Gymcheck2:
+    push  {r3}
+    mov   r0, r4
+    ldr   r2, _FlagGet
+    bl    .OuttaHere2
+    cmp   r0, #0
+    beq   Levelcheck2
+    pop   {r3}
+    add   r4, r4, #1
+    add   r3, r3, #1
+    cmp   r3, #8
+    beq   E4Check2
+    b     Gymcheck2
+Levelcheck2:
+    pop   {r3}
+    ldr   r0, _HardCapTable
+    ldrb  r6, [r0, r3]
+    pop   {r0-r4}
+    cmp   r0, r6
+    bhs   Dunno2
+    b     Levels2
+E4Check2:
+	ldr   r0, _FlagCheckGameClear
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+	cmp   r0, #0x1
+    beq   Exit
+E4Caps2:
+    mov   r4, #79
+    lsl   r4, r4, #4
+    add   r4, r4, #11
+    mov   r3, #0
+E4BeatCheck2:
+    push  {r3}
+    mov   r0, r4
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+    cmp   r0, #0
+    beq   Levelcheck4
+    pop   {r3}
+    add   r4, r4, #1
+    add   r3, r3, #1
+    cmp   r3, #4
+    beq   Exit
+    b     E4BeatCheck2
+Levelcheck4:
+    pop   {r3}
+    ldr   r0, _E4HardCapTable
+    ldrb  r6, [r0, r3]
+    pop   {r0-r4}
+    cmp   r0, r6
+    bhs   Dunno
+    b     Levels2
+Exit2:
+    pop   {r0-r4}
+Levels2:
+    cmp   r0, #100
+    beq   Dunno2
+    ldr   r0, _Something
+    bx    r0
+Dunno2:
+    ldr   r1, [r5, #0]
+    add   r1, r1, #83
+    ldrb  r0, [r1, #0]
+    ldr   r2, _return_addr
+.OuttaHere2:
+    bx    r2
+.align 2
+_FlagEnableLevelCaps:   .word 0x150 @ replace this with whatever flag number you
+                                  @ want, to enable level caps
+_FlagEnableHardCaps:    .word 0x149 @ replace this with whatever flag number you
+                                  @ want, to enable harder level caps
+_FlagCheckGameClear:			.word 0x864			  
+_FlagGet:               .word <thumb.FlagGet+1>
+_NormalCapTable:        .word <data.normalcaps>
+_HardCapTable:          .word <data.hardcaps>
+_E4CapTable:			.word <data.e4normalcaps>
+_E4HardCapTable:		.word <data.e4hardcaps>
+_return_addr:           .word <thumb.levelup.capshook+B>
+_Something:     		.word <thumb.levelup.capshook+2B>
+.end
+
+@!game(AXVE0_AXPE0_AXVE1_AXPE1) @thumb.levelup.caps(C0)
+.thumb
+
+    push  {r0-r4}
+	ldr   r0, _FlagEnableLevelCaps
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+	cmp   r0, #0x0
+    beq   Exit
+HardCheck:
+	ldr   r0, _FlagEnableHardCaps
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+	cmp   r0, #0x1
+    beq   HardCaps
+NormalCaps:
+    mov   r4, #128
+    lsl   r4, r4, #4
+    add   r4, r4, #7
+    mov   r3, #0
+Gymcheck:
+    push  {r3}
+    mov   r0, r4
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+    cmp   r0, #0
+    beq   Levelcheck
+    pop   {r3}
+    add   r4, r4, #1
+    add   r3, r3, #1
+    cmp   r3, #8
+    beq   E4Check
+    b     Gymcheck
+Levelcheck:
+    pop   {r3}
+    ldr   r0, _NormalCapTable
+    ldrb  r6, [r0, r3]
+    pop   {r0-r4}
+    cmp   r0, r6
+    bhs   Dunno
+    b     Levels
+E4Check:
+	ldr   r0, _FlagCheckGameClear
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+	cmp   r0, #0x1
+    beq   Exit
+E4Caps:
+    mov   r4, #77
+    lsl   r4, r4, #4
+    add   r4, r4, #13
+    mov   r3, #0
+E4BeatCheck:
+    push  {r3}
+    mov   r0, r4
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+    cmp   r0, #0
+    beq   Levelcheck3
+    pop   {r3}
+    add   r4, r4, #1
+    add   r3, r3, #1
+    cmp   r3, #4
+    beq   Exit
+    b     E4BeatCheck
+Levelcheck3:
+    pop   {r3}
+    ldr   r0, _E4CapTable
+    ldrb  r6, [r0, r3]
+    pop   {r0-r4}
+    cmp   r0, r6
+    bhs   Dunno
+    b     Levels
+Exit:
+    pop   {r0-r4}
+Levels:
+    cmp   r0, #100
+    beq   Dunno
+    ldr   r0, _Something
+    bx    r0
+Dunno:
+    ldr   r1, [r5, #0]
+    add   r1, r1, #83
+    ldrb  r0, [r1, #0]
+    ldr   r2, _return_addr
+.OuttaHere:
+    bx    r2
+HardCaps:
+    mov   r4, #128
+    lsl   r4, r4, #4
+    add   r4, r4, #7
+    mov   r3, #0
+Gymcheck2:
+    push  {r3}
+    mov   r0, r4
+    ldr   r2, _FlagGet
+    bl    .OuttaHere2
+    cmp   r0, #0
+    beq   Levelcheck2
+    pop   {r3}
+    add   r4, r4, #1
+    add   r3, r3, #1
+    cmp   r3, #8
+    beq   E4Check2
+    b     Gymcheck2
+Levelcheck2:
+    pop   {r3}
+    ldr   r0, _HardCapTable
+    ldrb  r6, [r0, r3]
+    pop   {r0-r4}
+    cmp   r0, r6
+    bhs   Dunno2
+    b     Levels2
+E4Check2:
+	ldr   r0, _FlagCheckGameClear
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+	cmp   r0, #0x1
+    beq   Exit
+E4Caps2:
+    mov   r4, #77
+    lsl   r4, r4, #4
+    add   r4, r4, #13
+    mov   r3, #0
+E4BeatCheck2:
+    push  {r3}
+    mov   r0, r4
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+    cmp   r0, #0
+    beq   Levelcheck4
+    pop   {r3}
+    add   r4, r4, #1
+    add   r3, r3, #1
+    cmp   r3, #4
+    beq   Exit
+    b     E4BeatCheck2
+Levelcheck4:
+    pop   {r3}
+    ldr   r0, _E4HardCapTable
+    ldrb  r6, [r0, r3]
+    pop   {r0-r4}
+    cmp   r0, r6
+    bhs   Dunno
+    b     Levels2
+Exit2:
+    pop   {r0-r4}
+Levels2:
+    cmp   r0, #100
+    beq   Dunno2
+    ldr   r0, _Something
+    bx    r0
+Dunno2:
+    ldr   r1, [r5, #0]
+    add   r1, r1, #83
+    ldrb  r0, [r1, #0]
+    ldr   r2, _return_addr
+.OuttaHere2:
+    bx    r2
+.align 2
+_FlagEnableLevelCaps:   .word 0x150 @ replace this with whatever flag number you
+                                  @ want, to enable level caps
+_FlagEnableHardCaps:    .word 0x149 @ replace this with whatever flag number you
+                                  @ want, to enable harder level caps
+_FlagCheckGameClear:	.word 0x804				  
+_FlagGet:               .word <thumb.FlagGet+1>
+_NormalCapTable:        .word <data.normalcaps>
+_HardCapTable:          .word <data.hardcaps>
+_E4CapTable:			.word <data.e4normalcaps>
+_E4HardCapTable:		.word <data.e4hardcaps>
+_return_addr:           .word <thumb.levelup.capshook+B>
+_Something:     		.word <thumb.levelup.capshook+2B>
+.end
+
+@!game(BPRE0_BPGE0_BPRE1_BPGE1) @thumb.levelup.caps(BC)
+.thumb
+
+    push  {r0-r4}
+	ldr   r0, _FlagEnableLevelCaps
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+	cmp   r0, #0x0
+    beq   Exit
+HardCheck:
+	ldr   r0, _FlagEnableHardCaps
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+	cmp   r0, #0x1
+    beq   HardCaps
+NormalCaps:
+    mov   r4, #130
+    lsl   r4, r4, #4
+    mov   r3, #0
+Gymcheck:
+    push  {r3}
+    mov   r0, r4
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+    cmp   r0, #0
+    beq   Levelcheck
+    pop   {r3}
+    add   r4, r4, #1
+    add   r3, r3, #1
+    cmp   r3, #8
+    beq   E4Check
+    b     Gymcheck
+Levelcheck:
+    pop   {r3}
+    ldr   r0, _NormalCapTable
+    ldrb  r6, [r0, r3]
+    pop   {r0-r4}
+    cmp   r0, r6
+    bhs   Dunno
+    b     Levels
+E4Check:
+	ldr   r0, _FlagCheckGameClear
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+	cmp   r0, #0x1
+    beq   Exit
+E4Caps:
+    mov   r4, #75
+    lsl   r4, r4, #4
+    add   r4, r4, #8
+    mov   r3, #0
+E4BeatCheck:
+    push  {r3}
+    mov   r0, r4
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+    cmp   r0, #0
+    beq   Levelcheck3
+    pop   {r3}
+    add   r4, r4, #1
+    add   r3, r3, #1
+    cmp   r3, #5
+    beq   Exit
+    b     E4BeatCheck
+Levelcheck3:
+    pop   {r3}
+    ldr   r0, _E4CapTable
+    ldrb  r6, [r0, r3]
+    pop   {r0-r4}
+    cmp   r0, r6
+    bhs   Dunno
+    b     Levels
+Exit:
+    pop   {r0-r4}
+Levels:
+    cmp   r0, #100
+    beq   Dunno
+    ldr   r0, _Something
+    bx    r0
+Dunno:
+    ldr   r1, [r5, #0]
+    add   r1, r1, #83
+    ldrb  r0, [r1, #0]
+    ldr   r2, _return_addr
+.OuttaHere:
+    bx    r2
+HardCaps:
+    mov   r4, #130
+    lsl   r4, r4, #4
+    mov   r3, #0
+Gymcheck2:
+    push  {r3}
+    mov   r0, r4
+    ldr   r2, _FlagGet
+    bl    .OuttaHere2
+    cmp   r0, #0
+    beq   Levelcheck2
+    pop   {r3}
+    add   r4, r4, #1
+    add   r3, r3, #1
+    cmp   r3, #8
+    beq   E4Check2
+    b     Gymcheck2
+Levelcheck2:
+    pop   {r3}
+    ldr   r0, _HardCapTable
+    ldrb  r6, [r0, r3]
+    pop   {r0-r4}
+    cmp   r0, r6
+    bhs   Dunno2
+    b     Levels2
+E4Check2:
+	ldr   r0, _FlagCheckGameClear
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+	cmp   r0, #0x1
+    beq   Exit
+E4Caps2:
+    mov   r4, #75
+    lsl   r4, r4, #4
+    add   r4, r4, #8
+    mov   r3, #0
+E4BeatCheck2:
+    push  {r3}
+    mov   r0, r4
+    ldr   r2, _FlagGet
+    bl    .OuttaHere
+    cmp   r0, #0
+    beq   Levelcheck4
+    pop   {r3}
+    add   r4, r4, #1
+    add   r3, r3, #1
+    cmp   r3, #5
+    beq   Exit
+    b     E4BeatCheck2
+Levelcheck4:
+    pop   {r3}
+    ldr   r0, _E4HardCapTable
+    ldrb  r6, [r0, r3]
+    pop   {r0-r4}
+    cmp   r0, r6
+    bhs   Dunno
+    b     Levels2
+Exit2:
+    pop   {r0-r4}
+Levels2:
+    cmp   r0, #100
+    beq   Dunno2
+    ldr   r0, _Something
+    bx    r0
+Dunno2:
+    ldr   r1, [r5, #0]
+    add   r1, r1, #83
+    ldrb  r0, [r1, #0]
+    ldr   r2, _return_addr
+.OuttaHere2:
+    bx    r2
+.align 2
+_FlagEnableLevelCaps:   .word 0x150 @ replace this with whatever flag number you
+                                  @ want, to enable level caps
+_FlagEnableHardCaps:    .word 0x149 @ replace this with whatever flag number you
+                                  @ want, to enable harder level caps
+_FlagCheckGameClear:			.word 0x86C					  
+_FlagGet:               .word <thumb.FlagGet+1>
+_NormalCapTable:        .word <data.normalcaps>
+_HardCapTable:          .word <data.hardcaps>
+_E4CapTable:			.word <data.e4normalcaps>
+_E4HardCapTable:		.word <data.e4hardcaps>
+_return_addr:           .word <thumb.levelup.capshook+B>
+_Something:     		.word <thumb.levelup.capshook+2B>
+.end
+
+@!game(All) @thumb.levelup.capshook
+.thumb
+	nop
+    ldr r1, =<thumb.levelup.caps+1>
+    bx r1
+.end

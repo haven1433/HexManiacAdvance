@@ -1,0 +1,15 @@
+﻿<ComboBox x:Class="HavenSoft.HexManiac.WPF.Controls.EditableComboBox"
+   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+   xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
+   IsEditable="True"
+   IsTextSearchEnabled="False"
+   PreviewKeyDown="KeyDownToViewModel"
+   ItemsSource="{Binding Options}"
+   SelectedIndex="{Binding SelectedIndex}"
+   Text="{Binding Text}">
+   <ComboBox.Style>
+      <Style TargetType="hsg3hv:EditableComboBox" BasedOn="{StaticResource {x:Type ComboBox}}"/>
+   </ComboBox.Style>
+</ComboBox>
+

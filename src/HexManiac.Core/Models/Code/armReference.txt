@@ -1,0 +1,126 @@
+@ quick reference special registers:
+@      r0-r3: use as arguments. r0 is assumed to be the return value from a function. 
+@             r0 to r3 are assumed to not be preserved after function calls.
+@             Treat these like scratch space.
+@      r4-r7: easy access variable registers. These can be used with all instructions, and generally store local variables.
+@      r8-r12: hard access variables. High registers cannot be pushed/popped, and cannot be used with most instructions.
+@              these are usually used for 'long term storage' within a function.
+@             r12 is additionally treated as volatile, same as r0-r3 and lr: it's assumed to not be preserved after function calls
+@ sp = r13    The stack pointer. Pushing decreases the value. You can manually subtract more to create extra space for more variables.
+@ lr = r14    bl commands set lr to the current value of pc as part of the branch. This sets you branch 'back' using lr.
+@             If you want to branch within the new function without losing this value, you'll need to store the value to the stack.
+@             Therefore, most functions start with some variant of 'push lr', which can be used to find the start of a function.
+@             Likewise, most functions end with 'pop r1 / bx r1' to jump back. Though if you know you're returning to thumb code, a simple 'pop pc' would suffice.
+@ pc = r15    Stores the location of the next instruction to execute. +1 for thumb mode. 
+
+@ possible compare results
+eq=0000  @ == equal
+ne=0001  @ != not equal
+hs=0010  @    higher or same        (unsigned)
+lo=0011  @    lower                 (unsigned)
+cs=0010  @    carry set
+cc=0011  @    carry clear
+mi=0100  @    minus/negative
+pl=0101  @    plus/positive or zero
+vs=0110  @    overflow
+vc=0111  @    no overflow
+hi=1000  @    higher                (unsigned)
+ls=1001  @    less or same          (unsigned)
+ge=1010  @ >= greater than or equal (signed)
+lt=1011  @ <  less than             (signed)
+gt=1100  @ >  greater than          (signed)
+le=1101  @ <= less than or equal    (signed)
+al=1110  @    always
+nv=1111  @    never
+
+@ opcodes and args
+0000000000000000    |     nop                 @ does nothing
+00000 # rm rd       |     lsl   rd, rm, #     @ rd = rm << #
+00000 # rd rd       |     lsl   rd, #         @ rd <<= #
+00001 # rm rd       |     lsr   rd, rm, #     @ rd = rm >> #
+00001 # rd rd       |     lsr   rd, #         @ rd >>= #
+00010 # rm rd       |     asr   rd, rm, #     @ rd = rm >>> #
+0001100 rm rn rd    |     add   rd, rn, rm    @ rd = rn + rm
+0001101 rm rn rd    |     sub   rd, rn, rm    @ rd = rn - rm
+0001110000 rn rd    |     mov   rd, rn        @ rd = rn
+00110 rd #          |     add   rd, rd, #     @ rd += # (alias)
+00111 rd #          |     sub   rd, rd, #     @ rd -= # (alias)
+0001110 # rn rd     |     add   rd, rn, #     @ rd = rn + #
+0001111 # rn rd     |     sub   rd, rn, #     @ rd = rn - #
+00100 rd #          |     mov   rd, #         @ rd = #
+00101 rn #          |     cmp   rn, #         @ flags <- rn - #
+00110 rd #          |     add   rd, #         @ rd += #
+00111 rd #          |     sub   rd, #         @ rd -= #
+0100000000 rm rd    |     and   rd, rm        @ rd &= rm
+0100000000 rm rd    |     and   rd, rd, rm    @ alias
+0100000001 rm rd    |     eor   rd, rm        @ rd ^= rm
+0100000001 rm rd    |     eor   rd, rd, rm    @ rd ^= rm
+0100000001 rm rd    |     eor   rd, rm, rd    @ rd ^= rm
+0100000001 rm rd    |     xor   rd, rm        @ rd ^= rm
+0100000001 rm rd    |     xor   rd, rd, rm    @ rd ^= rm
+0100000001 rm rd    |     xor   rd, rm, rd    @ rd ^= rm
+0100000010 rs rd    |     lsl   rd, rs        @ rd <<= rs
+0100000011 rs rd    |     lsr   rd, rs        @ rd >>= rs
+0100000100 rs rd    |     asr   rd, rs        @ rd >>>= rs
+0100000101 rm rd    |     adc   rd, rm        @ rd += rm + C
+0100000110 rm rd    |     sbc   rd, rm        @ rd -= rm - C
+0100000111 rs rd    |     ror   rd, rs        @ rd = rd rotate-right Rs (numbers shifted off are appended to the top)
+0100001000 rn rm    |     tst   rm, rn        @ flags <- rm & rn
+0100001001 rm rd    |     neg   rd, rm        @ rd = -rm
+0100001010 rn rm    |     cmp   rm, rn        @ flags <- rm - rn
+0100001011 rn rm    |     cmn   rm, rn        @ flags <- rm + rn
+0100001100 rm rd    |     orr   rd, rm        @ rd |= rm
+0100001100 rm rd    |     orr   rd, rd, rm    @ rd |= rm
+0100001101 rm rd    |     mul   rd, rm        @ rd *= rm
+0100001101 rm rd    |     mul   rd, rd, rm    @ rd *= rm (alias)
+0100001110 rd rm    |     bic   rm, rd        @ rd &= ~rm
+0100001111 rm rd    |     mvn   rd, rm        @ rd = ~rm
+01000100 h h rm rd  |     add   rd, rm        @ rd += rm, where rd or rm must be high registers
+01000101 h h rn rm  |     cmp   rm, rn        @ flags <- rm - rn
+01000110 h h rm rd  |     mov   rd, rm        @ rd = rm
+010001110 h rm 000  |     bx    rm            @ Goto rm (normal mode or thumb mode is the lowest bit)
+010001111 h rm 000  |     blx   rm            @ Call rm (normal mode or thumb mode is the lowest bit)
+01001 rd #          |     ldr   rd, [pc, #=pc+#*4+4]   @ rd = *(PC+#*4)
+0101000 rm rn rd    |     str   rd, [rn, rm]  @ *(rn+rm) = rd
+0101001 rm rn rd    |     strh  rd, [rn, rm]  @ *(rn+rm) = rd (half word version?)
+0101010 rm rn rd    |     strb  rd, [rn, rm]  @ *(rn+rm) = rd (byte version?)
+0101011 rm rn rd    |     ldrsb rd, [rn, rm]  @ rd = *(rn+rm) (signed byte)
+0101100 rm rn rd    |     ldr   rd, [rn, rm]
+0101101 rm rn rd    |     ldrh  rd, [rn, rm]
+0101110 rm rn rd    |     ldrb  rd, [rn, rm]
+0101111 rm rn rd    |     ldrsh rd, [rn, rm]
+01100 # rn rd       |     str   rd, [rn, #=#*4]
+0110000000 rn rd    |     str   rd, [rn]
+01101 # rn rd       |     ldr   rd, [rn, #=#*4]
+0110100000 rn rd    |     ldr   rd, [rn]
+01110 # rn rd       |     strb  rd, [rn, #]
+0111000000 rn rd    |     strb  rd, [rn]
+01111 # rn rd       |     ldrb  rd, [rn, #]
+0111100000 rn rd    |     ldrb  rd, [rn]
+10000 # rn rd       |     strh  rd, [rn, #=#*2]
+1000000000 rn rd    |     strh  rd, [rn]
+10001 # rn rd       |     ldrh  rd, [rn, #=#*2]
+1000100000 rn rd    |     ldrh  rd, [rn]
+10010 rd #          |     str   rd, [sp, #=#*4]
+10010 rd 00000000   |     str   rd, [sp]
+10011 rd #          |     ldr   rd, [sp, #=#*4]
+10011 rd 00000000   |     ldr   rd, [sp]
+10100 rd #          |     add   rd, pc, #=#*4      @ rd = pc + #*4
+10101 rd #          |     add   rd, sp, #=#*4      @ rd = sp + #*4
+101100000 #         |     add   sp, #=#*4          @ sp += #*4
+101100001 #         |     sub   sp, #=#*4          @ sp -= #*4
+10110100 list       |     push  {list}
+10110101 list       |     push  {list, lr}     @ note: 'tsil' is a reverse 'list'. The bits are stored in the opposite order.
+10110101 list       |     push  lr, {list}     @ note: 'tsil' is a reverse 'list'. The bits are stored in the opposite order.
+10111100 list       |     pop   {list}
+10111101 list       |     pop   {list, pc}
+10111101 list       |     pop   pc, {list}
+11000 rn list       |     stmia rn, {list}     @ *(rn)=Rx, then increment rn by 4. Continue for each x in list. (store array)
+11000 rn list       |     stm   rn, {list}     @ *(rn)=Rx, then increment rn by 4. Continue for each x in list. (store array)
+11001 rn list       |     ldmia rn, {list}
+11011111 #          |     swi   #              @ run a bios function
+1101 cond #         |     b{cond}   #=pc+#*2+4 @ if(cond) PC = *(PC+#*2) @example: b #10 jumps to the instruction 28 bytes after the current instruction.
+11100 #             |     b     #=pc+#*2+4     @ PC = *(PC+#*2)
+11111 #11 11110 #11 |     bl    #=pc+#*2+4     @ The 22 numeric bits go together and act as a single signed 22-bit number
+                                               @ If I want to branch-link, I need the space of 2 instructions, or a register for blx
+                                               @ conditional branching cannot link

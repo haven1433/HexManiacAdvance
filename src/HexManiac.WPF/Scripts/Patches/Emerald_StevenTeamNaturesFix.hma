@@ -1,0 +1,8 @@
+# A fix to a Pokémon Emerald bug so that Steven's team natures are right.
+# Research by Phoenixbound
+# Script by Shiny Till Dawn
+
+@!game(BPEE0)
+
+# Replacing var i with j in the code fragment:
+@165496 11 9B

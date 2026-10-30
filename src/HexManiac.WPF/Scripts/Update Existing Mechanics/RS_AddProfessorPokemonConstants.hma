@@ -1,0 +1,33 @@
+# Add Professor Pokemon Constants for R/S
+# After adjusting this constant,
+# also look for pointers to:
+# * graphics.pokemon.sprites.front/350
+# * graphics.pokemon.palettes.normal/350
+
+@!game(AXVE0_AXVE1_AXPE0_AXPE1)
+
+# change `Task_NewGameSpeech7` to use ldr instead of mov/lsl
+@00A4F8 09
+@00A504 03 D1 03 48 00 21 6A F0 9B FD 30 BC 01 BC 00 47 5E 01
+
+# there's a one-byte difference in these functions for different versions because of a `bl` command
+@00A50C
+@!game(AXPE0) 9D
+@!game(AXVE1) AB
+@!game(AXPE1) AD
+@!game(AXVE0_AXVE1_AXPE0_AXPE1)
+
+# add a constant
+@00A514 :scripts.newgame.professor.pokemon
+
+# change `CreateAzurillSprite` to use ldr instead of mov/lsl
+@00B270
+10 4B 9B 00 D1 18 09 78 01 33 D2 18 12 78 10 4C
+23 68 64 68 00 94 0B 4C 01 94 02 F0 3D F8 0D 48
+02 F0 08 F8 20 1C 01 21 31 F0 68 F9 0A 48 29 1C
+32 1C 00 23 F5 F7 9A FC 00 06 00 0E 02 B0 70 BC
+02 BC 08 47 5E 01
+
+# add a constant
+@00B2B4 :scripts.newgame.professor.pokemon
+

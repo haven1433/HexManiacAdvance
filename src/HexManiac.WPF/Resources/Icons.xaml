@@ -1,0 +1,353 @@
+﻿<!--
+   A cache of useful, named icons, stored as geometries.
+   This file is in a format to make the icons easy to see when editing.
+   This ItemsControl is meant to be used like a resource.
+   Instead, access these icons using IconExtensions.
+-->
+<ItemsControl x:Class="HavenSoft.HexManiac.WPF.Resources.Icons"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+            xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
+            mc:Ignorable="d" 
+            d:DesignHeight="480" d:DesignWidth="540">
+   <ItemsControl.ItemsPanel>
+      <ItemsPanelTemplate>
+         <WrapPanel/>
+      </ItemsPanelTemplate>
+   </ItemsControl.ItemsPanel>
+   <ItemsControl.ItemTemplate>
+      <DataTemplate>
+         <Path Data="{Binding}" Fill="Black" Stretch="Uniform" Width="58" Height="58" Stroke="Red" Margin="1"/>
+      </DataTemplate>
+   </ItemsControl.ItemTemplate>
+   <ItemsControl.Items>
+      <CombinedGeometry x:Name="New" GeometryCombineMode="Exclude"
+         Geometry1="{hsv:Geometry 'M0,0 L5.5,0 L8.5,3 L8.5,11 L0,11 z'}"
+         Geometry2="{hsv:Geometry 'M5.5,0 L5.5,3 L8.5,3 L8.5,3.5 L5,3.5 L5,0'}"/>
+      <CombinedGeometry x:Name="Open" GeometryCombineMode="Exclude"
+         Geometry1="{hsv:Geometry 'M0,0 L10,0 L10,5 L30,5 L30,25 L0,25 z'}"
+         Geometry2="{hsv:Geometry 'M0,5 L10,5 L10,4 L0,4 z'}"/>
+      <CombinedGeometry x:Name="Settings" GeometryCombineMode="Exclude">
+         <CombinedGeometry.Geometry1>
+            <GeometryGroup FillRule="Nonzero">
+               <EllipseGeometry Center="50,50" RadiusX="38" RadiusY="38"/>
+               <RectangleGeometry Rect="0,40,100,20" Transform="{hsv:RotateTransform 60,50,50}"/>
+               <RectangleGeometry Rect="0,40,100,20" Transform="{hsv:RotateTransform -60,50,50}"/>
+               <RectangleGeometry Rect="0,40,100,20"/>
+            </GeometryGroup>
+         </CombinedGeometry.Geometry1>
+         <CombinedGeometry.Geometry2>
+            <EllipseGeometry Center="50,50" RadiusX="10" RadiusY="10"/>
+         </CombinedGeometry.Geometry2>
+      </CombinedGeometry>
+      <PathGeometry x:Name="Help" Figures="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm0 22c-5.514 0-10-4.486-10-10s4.486-10 10-10 10 4.486 10 10-4.486 10-10 10zm0-18.8c-4.853 0-8.8 3.947-8.8 8.8s3.947 8.8 8.8 8.8 8.8-3.947 8.8-8.8-3.947-8.8-8.8-8.8zm0 15.05c-.689 0-1.25-.56-1.25-1.25s.561-1.25 1.25-1.25c.691 0 1.25.56 1.25 1.25s-.559 1.25-1.25 1.25zm1.961-5.928c-.904.975-.947 1.514-.935 2.178h-2.005c-.007-1.475.02-2.125 1.432-3.468.572-.544 1.024-.975.962-1.821-.058-.805-.73-1.226-1.364-1.226-.709 0-1.538.527-1.538 2.013h-2.011c0-2.4 1.41-3.95 3.59-3.95 1.036 0 1.942.339 2.551.955.57.578.865 1.372.854 2.298-.018 1.383-.859 2.291-1.536 3.021z"/>
+      <GeometryGroup x:Name="Save">
+         <CombinedGeometry GeometryCombineMode="Exclude">
+            <CombinedGeometry.Geometry1>
+               <GeometryGroup FillRule="Nonzero">
+                  <RectangleGeometry Rect="0,0,50,50" RadiusX="5" RadiusY="5"/>
+                  <RectangleGeometry Rect="0,0,10,10"/>
+               </GeometryGroup>
+            </CombinedGeometry.Geometry1>
+            <CombinedGeometry.Geometry2>
+               <GeometryGroup FillRule="Nonzero">
+                  <PathGeometry Figures="M42,0 L50,0 50,8 Z"/>
+                  <RectangleGeometry Rect="10,1,30,18"/>
+               </GeometryGroup>
+            </CombinedGeometry.Geometry2>
+         </CombinedGeometry>
+         <RectangleGeometry Rect="8,25,34,20" RadiusX="3" RadiusY="3"/>
+         <RectangleGeometry Rect="27,3,7,14"/>
+         <LineGeometry StartPoint="12,32" EndPoint="38,32"/>
+         <LineGeometry StartPoint="12,38" EndPoint="38,38"/>
+      </GeometryGroup>
+      <PathGeometry x:Name="Exit" Figures="m0,0 l -1,-1 1,-1 1,1 1,-1 1,1 -1,1 1,1 -1,1 -1,-1 -1,1 -1,-1 1,-1"/>
+      <PathGeometry x:Name="Tiles" Figures="m0,0 L5,0 5,5 0,5 z M7,0 L12,0 12,5 7,5 z M0,7 L5,7 5,12 0,12 z M7,7 L12,7 12,12 7,12 z"/>
+      <PathGeometry x:Name="List" Figures="m0,0 L5,0 5,5 0,5 z M0,7 L5,7 5,12 0,12 z M0,14 L5,14 5,19 0,19 z M7,2 L19,2 19,3 7,3 z M7,9 l12,0 0,1 -12,0 z m0,6 l12,0 0,1 -12,0 z"/>
+      <PathGeometry x:Name="MultiList" Figures="M0,0 l12,0 0,1 -12,0 z M15,0 l12,0 0,1 -12,0 z M0,5 l12,0 0,1 -12,0 z M0,10 l12,0 0,1 -12,0 z M15,5 l12,0 0,1 -12,0 z M15,10 l12,0 0,1 -12,0 z"/>
+      <GeometryGroup x:Name="Camera">
+         <RectangleGeometry Rect="0,0,50,30" RadiusX="5" RadiusY="5"/>
+         <RectangleGeometry Rect="30,-6,12,6"/>
+         <EllipseGeometry Center="25,15" RadiusX="10" RadiusY="10"/>
+         <EllipseGeometry Center="25,15" RadiusX="5" RadiusY="5"/>
+      </GeometryGroup>
+      <CombinedGeometry x:Name="Palette" GeometryCombineMode="Exclude">
+         <CombinedGeometry.Geometry1>
+            <EllipseGeometry RadiusX="50" RadiusY="30"/>
+         </CombinedGeometry.Geometry1>
+         <CombinedGeometry.Geometry2>
+            <GeometryGroup FillRule="Nonzero">
+               <EllipseGeometry Center="30,  10" RadiusX="5" RadiusY="4"/>
+               <RectangleGeometry Rect="26,   8,  9, 20" Transform="{hsv:RotateTransform -25, 35, 10}"/>
+               <EllipseGeometry Center=" 12  15" RadiusX="8"  RadiusY="6"/>
+               <EllipseGeometry Center="-35   0" RadiusX="7"  RadiusY="5"/>
+               <EllipseGeometry Center="-27 -13" RadiusX="7"  RadiusY="5"/>
+               <EllipseGeometry Center="-10 -20" RadiusX="7"  RadiusY="5"/>
+               <EllipseGeometry Center=" 10 -20" RadiusX="7"  RadiusY="5"/>
+               <EllipseGeometry Center=" 28 -15" RadiusX="7"  RadiusY="5"/>
+            </GeometryGroup>
+         </CombinedGeometry.Geometry2>
+      </CombinedGeometry>
+      <PathGeometry x:Name="DownArrow" Figures="M5,5 L5,15 L0,15 L10,25 L20,15 L15,15 L15,5 z"/>
+      <PathGeometry x:Name="UpArrow" Figures="M5,-5 L5,-15 L0,-15 L10,-25 L20,-15 L15,-15 L15,-5 z"/>
+      <PathGeometry x:Name="RightArrow" Figures="M5,5 L15,5 L15,0 L25,10 L15,20 L15,15 L5,15 z"/>
+      <PathGeometry x:Name="LeftArrow" Figures="M-5,5 L-15,5 L-15,0 L-25,10 L-15,20 L-15,15 L-5,15 z"/>
+      <PathGeometry x:Name="ArrowsLeftRight" Figures="M6,6 L7,6 7,5 9,7 7,9 7,8 6,8 6,8 5,8 5,9 3,7 5,5 5,6 z"/>
+      <PathGeometry x:Name="ArrowsLeftRightDisconnect" Figures="M0,0 L1,-1 1,1 Z M3,0 L2,-1 2,1 Z"/>
+      <PathGeometry x:Name="ArrowsUpDown" Figures="M6,6 L6,7 5,7 7,9 9,7 8,7 8,6 8,6 8,5 9,5 7,3 5,5 6,5 z"/>
+      <PathGeometry x:Name="ArrowsUpDownDisconnect" Figures="M0,0 L-1,1 1,1 Z M0,3 L-1,2 1,2 Z"/>
+      <PathGeometry x:Name="LineArrowRight" Figures="M0,0 L1,0, 1,2, 4,2 4,1 6,3 4,5 4,4 1,4 1,6 0,6 Z" />
+      <PathGeometry x:Name="LineArrowDown" Figures="M0,0 L1,0, 1,2, 4,2 4,1 6,3 4,5 4,4 1,4 1,6 0,6 Z" Transform="{hsv:RotateTransform 90}" />
+      <PathGeometry x:Name="LineArrowLeft" Figures="M0,0 L1,0, 1,2, 4,2 4,1 6,3 4,5 4,4 1,4 1,6 0,6 Z" Transform="{hsv:RotateTransform 180}" />
+      <PathGeometry x:Name="LineArrowUp" Figures="M0,0 L1,0, 1,2, 4,2 4,1 6,3 4,5 4,4 1,4 1,6 0,6 Z" Transform="{hsv:RotateTransform 270}" />
+      <PathGeometry x:Name="UndoArrow" Figures="m-7,2 L-3,-5 -2,-2 7,-5 6,2 3,6 4,-1 -1,2 0,5 z"/>
+      <PathGeometry x:Name="RedoArrow" Figures="m7,2 L3,-5 2,-2 -7,-5 -6,2 -3,6 -4,-1 1,2 0,5 z"/>
+      <PathGeometry x:Name="Add" Figures="M -5,-5 L -5,-10 0,-10 0,-5 5,-5 5,0 0,0 0,5 -5,5 -5,0 -10,0 -10,-5 -5,-5"/>
+      <PathGeometry x:Name="Remove" Figures="M -5,-2.5 L 5,-2.5 5,2.5 -5,2.5 -5,-2.5 "/>
+      <CombinedGeometry x:Name="RotationArrow" GeometryCombineMode="Xor">
+         <CombinedGeometry.Geometry1>
+            <GeometryGroup FillRule="Nonzero">
+               <CombinedGeometry GeometryCombineMode="Union">
+                  <CombinedGeometry.Geometry1>
+                     <CombinedGeometry GeometryCombineMode="Exclude">
+                        <CombinedGeometry.Geometry1>
+                           <CombinedGeometry GeometryCombineMode="Exclude">
+                              <CombinedGeometry.Geometry1>
+                                 <EllipseGeometry Center="15, 15" RadiusX="15" RadiusY="15"/>
+                              </CombinedGeometry.Geometry1>
+                              <CombinedGeometry.Geometry2>
+                                 <EllipseGeometry Center="15, 15" RadiusX="10" RadiusY="10"/>
+                              </CombinedGeometry.Geometry2>
+                           </CombinedGeometry>
+                        </CombinedGeometry.Geometry1>
+                        <CombinedGeometry.Geometry2>
+                           <PathGeometry Figures="M15,0 L30,0 30,15 15,15 Z"/>
+                        </CombinedGeometry.Geometry2>
+                     </CombinedGeometry>
+                  </CombinedGeometry.Geometry1>
+                  <CombinedGeometry.Geometry2>
+                     <PathGeometry Figures="M15,-4.5 L15,9.5 22,2.5 Z"/>
+                  </CombinedGeometry.Geometry2>
+               </CombinedGeometry>
+               <EllipseGeometry Center="15, 15" RadiusX="3" RadiusY="3"/>
+            </GeometryGroup>
+         </CombinedGeometry.Geometry1>
+         <CombinedGeometry.Geometry2>
+            <EllipseGeometry Center="15, 15" RadiusX="20" RadiusY="20"/>
+         </CombinedGeometry.Geometry2>
+      </CombinedGeometry>
+      <GeometryGroup x:Name="Polar" FillRule="EvenOdd">
+         <EllipseGeometry RadiusX="10" RadiusY="10"/>
+         <EllipseGeometry RadiusX="9" RadiusY="9"/>
+         <EllipseGeometry RadiusX="5" RadiusY="5"/>
+         <EllipseGeometry RadiusX="4" RadiusY="4"/>
+      </GeometryGroup>
+      <GeometryGroup x:Name="Cartesian" FillRule="Nonzero">
+         <LineGeometry StartPoint="1,0" EndPoint="1,11"/>
+         <LineGeometry StartPoint="4,0" EndPoint="4,11"/>
+         <LineGeometry StartPoint="7,0" EndPoint="7,11"/>
+         <LineGeometry StartPoint="10,0" EndPoint="10,11"/>
+         <LineGeometry StartPoint="0,1" EndPoint="11,1"/>
+         <LineGeometry StartPoint="0,4" EndPoint="11,4"/>
+         <LineGeometry StartPoint="0,7" EndPoint="11,7"/>
+         <LineGeometry StartPoint="0,10" EndPoint="11,10"/>
+      </GeometryGroup>
+      <PathGeometry x:Name="SizeArrow" Figures="M -6,-6 L 6,-6 6,6 -6,6 Z M 4,4 L -4,4 4,-4 Z M -4,-4 l 5,0 -5,5 Z"/>
+      <PathGeometry x:Name="SizeArrow2" Figures="M 4,4 L -4,4 4,-4 Z M -4,-4 l 5,0 -5,5 Z"/>
+      <CombinedGeometry x:Name="RightMouseButton" GeometryCombineMode="Exclude">
+         <CombinedGeometry.Geometry1>
+            <GeometryGroup FillRule="Nonzero">
+               <EllipseGeometry RadiusX="10" RadiusY="10"/>
+               <EllipseGeometry Center="0,10" RadiusX="10" RadiusY="10"/>
+               <RectangleGeometry Rect="-10,0,20,10"/>
+            </GeometryGroup>
+         </CombinedGeometry.Geometry1>
+         <CombinedGeometry.Geometry2>
+            <GeometryGroup FillRule="Nonzero">
+               <CombinedGeometry GeometryCombineMode="Exclude">
+                  <CombinedGeometry.Geometry1>
+                     <EllipseGeometry RadiusX="8" RadiusY="8"/>
+                  </CombinedGeometry.Geometry1>
+                  <CombinedGeometry.Geometry2>
+                     <GeometryGroup FillRule="Nonzero">
+                        <RectangleGeometry Rect="-10,-10,10,20"/>
+                        <RectangleGeometry Rect="0,0,10,10"/>
+                     </GeometryGroup>
+                  </CombinedGeometry.Geometry2>
+               </CombinedGeometry>
+               <RectangleGeometry Rect="0,0,8,4"/>
+            </GeometryGroup>
+         </CombinedGeometry.Geometry2>
+      </CombinedGeometry>
+      <CombinedGeometry x:Name="LeftMouseButton" GeometryCombineMode="Exclude">
+         <CombinedGeometry.Geometry1>
+            <GeometryGroup FillRule="Nonzero">
+               <EllipseGeometry RadiusX="10" RadiusY="10"/>
+               <EllipseGeometry Center="0,10" RadiusX="10" RadiusY="10"/>
+               <RectangleGeometry Rect="-10,0,20,10"/>
+            </GeometryGroup>
+         </CombinedGeometry.Geometry1>
+         <CombinedGeometry.Geometry2>
+            <GeometryGroup FillRule="Nonzero">
+               <CombinedGeometry GeometryCombineMode="Exclude">
+                  <CombinedGeometry.Geometry1>
+                     <EllipseGeometry RadiusX="8" RadiusY="8"/>
+                  </CombinedGeometry.Geometry1>
+                  <CombinedGeometry.Geometry2>
+                     <GeometryGroup FillRule="Nonzero">
+                        <RectangleGeometry Rect="0,-10,10,20"/>
+                        <RectangleGeometry Rect="-10,0,10,10"/>
+                     </GeometryGroup>
+                  </CombinedGeometry.Geometry2>
+               </CombinedGeometry>
+               <RectangleGeometry Rect="-8,0,8,4"/>
+            </GeometryGroup>
+         </CombinedGeometry.Geometry2>
+      </CombinedGeometry>
+      <CombinedGeometry x:Name="LeftMouseDoubleClick" GeometryCombineMode="Exclude">
+         <!-- Base Shape -->
+         <CombinedGeometry.Geometry1>
+            <GeometryGroup FillRule="Nonzero">
+               <EllipseGeometry RadiusX="10" RadiusY="10"/>
+               <EllipseGeometry Center="0,10" RadiusX="10" RadiusY="10"/>
+               <RectangleGeometry Rect="-10,0,20,10"/>
+            </GeometryGroup>
+         </CombinedGeometry.Geometry1>
+         <CombinedGeometry.Geometry2>
+            <CombinedGeometry GeometryCombineMode="Xor" Geometry2="{hsv:TextGeometry 2,-7,-8,10}">
+               <CombinedGeometry.Geometry1>
+                  <!-- Left Click 1 -->
+                  <GeometryGroup FillRule="Nonzero">
+                     <GeometryGroup.Transform>
+                        <TranslateTransform X="-.5" Y="-.5" />
+                     </GeometryGroup.Transform>
+                     <CombinedGeometry GeometryCombineMode="Exclude">
+                        <CombinedGeometry.Geometry1>
+                           <EllipseGeometry RadiusX="8" RadiusY="8"/>
+                        </CombinedGeometry.Geometry1>
+                        <CombinedGeometry.Geometry2>
+                           <GeometryGroup FillRule="Nonzero">
+                              <RectangleGeometry Rect="0,-10,10,20"/>
+                              <RectangleGeometry Rect="-10,0,10,10"/>
+                           </GeometryGroup>
+                        </CombinedGeometry.Geometry2>
+                     </CombinedGeometry>
+                     <RectangleGeometry Rect="-8,0,8,4"/>
+                  </GeometryGroup>
+               </CombinedGeometry.Geometry1>
+            </CombinedGeometry>
+         </CombinedGeometry.Geometry2>
+      </CombinedGeometry>
+      <CombinedGeometry x:Name="MiddleMouseButton" GeometryCombineMode="Exclude">
+         <CombinedGeometry.Geometry1>
+            <GeometryGroup FillRule="Nonzero">
+               <EllipseGeometry RadiusX="10" RadiusY="10"/>
+               <EllipseGeometry Center="0,10" RadiusX="10" RadiusY="10"/>
+               <RectangleGeometry Rect="-10,0,20,10"/>
+            </GeometryGroup>
+         </CombinedGeometry.Geometry1>
+         <CombinedGeometry.Geometry2>
+            <GeometryGroup FillRule="Nonzero">
+               <EllipseGeometry RadiusX="2" RadiusY="2" Center="0,-5"/>
+               <RectangleGeometry Rect="-2,-5,4,4"/>
+               <EllipseGeometry RadiusX="2" RadiusY="2" Center="0,-1"/>
+            </GeometryGroup>
+         </CombinedGeometry.Geometry2>
+      </CombinedGeometry>
+      <CombinedGeometry x:Name="CtrlKey" GeometryCombineMode="Exclude" Geometry2="{hsv:TextGeometry Ctrl,0,0,12}">
+         <CombinedGeometry.Geometry1>
+            <RectangleGeometry Rect="-1,2,20,11" RadiusX="2" RadiusY="2"/>
+         </CombinedGeometry.Geometry1>
+      </CombinedGeometry>
+      <CombinedGeometry x:Name="EscapeKey" GeometryCombineMode="Exclude" Geometry2="{hsv:TextGeometry Esc,1,0,12}">
+         <CombinedGeometry.Geometry1>
+            <RectangleGeometry Rect="-1,2,20,11" RadiusX="2" RadiusY="2"/>
+         </CombinedGeometry.Geometry1>
+      </CombinedGeometry>
+      <CombinedGeometry x:Name="ThinPlus" GeometryCombineMode="Union">
+         <CombinedGeometry.Geometry1>
+            <RectangleGeometry Rect="-5,0,12,2"/>
+         </CombinedGeometry.Geometry1>
+         <CombinedGeometry.Geometry2>
+            <RectangleGeometry Rect="0,-5,2,12"/>
+         </CombinedGeometry.Geometry2>
+      </CombinedGeometry>
+      <RectangleGeometry x:Name="ThinMinus" Rect="-5,0,12,2"/>
+      <PathGeometry x:Name="SmallHexGrid" Figures="M0,7 l4,0 l 4,-7 4,0 M4,7 l 4,7"/>
+      <PathGeometry x:Name="LargeHexGrid" Figures="M0,19 l11,0 l 11,-19 11,0 M11,19 l 11,19"/>
+      <GeometryGroup x:Name="Gradient" FillRule="EvenOdd">
+         <RectangleGeometry Rect="0,0,12,12"/>
+         <RectangleGeometry Rect="14,0,12,12"/>
+         <RectangleGeometry Rect="28,0,12,12"/>
+         <RectangleGeometry Rect="0,14,12,12"/>
+         <RectangleGeometry Rect="14,14,12,12"/>
+         <RectangleGeometry Rect="28,14,12,12"/>
+
+         <RectangleGeometry Rect="1,1,10,10"/>
+         <RectangleGeometry Rect="15,1,8,10"/>
+         <RectangleGeometry Rect="29,1,6,10"/>
+         <RectangleGeometry Rect="1,15,4,10"/>
+         <RectangleGeometry Rect="15,15,2,10"/>
+      </GeometryGroup>
+
+      <PathGeometry x:Name="EyeDropper" Figures="M17.542 13.147l-7.455-6.667 1.334-1.49c.822.736 2.087.666 2.822-.159l3.503-3.831c.593-.663 1.414-1 2.238-1 1.666 0 3.016 1.358 3.016 2.996 0 .723-.271 1.435-.78 2.005l-3.503 3.83c-.735.824-.666 2.087.158 2.825l-1.333 1.491zm-4.314-1.175l-7.791 8.65c-.314.352-1.322.323-1.853.557.172-.554.048-1.538.362-1.89l7.791-8.651-1.491-1.333-7.9 8.794c-1.277 1.423-.171 2.261-1.149 4.052-.135.244-.197.48-.197.698 0 .661.54 1.151 1.141 1.151.241 0 .492-.079.724-.256 1.733-1.332 2.644-.184 3.954-1.647l7.9-8.792-1.491-1.333z"/>
+      <PathGeometry x:Name="Selection" Figures="M18.764 17.385l2.66 5.423-2.441 1.192-2.675-5.474-3.308 2.863v-12.389l10 7.675-4.236.71zm2.236-7.385h2v-4h-2v4zm0 2.619l2 1.535v-2.154h-2v.619zm-10 8.77v-1.389h-4v2h4v-.611zm-8-3.389h-2v4h4v-2h-2v-2zm-2-14h2v-2h2v-2h-4v4zm2 8h-2v4h2v-4zm8-12h-4v2h4v-2zm6 0h-4v2h4v-2zm4 4h2v-4h-4v2h2v2zm-18 2h-2v4h2v-4z"/>
+      <PathGeometry x:Name="FourDirectionArrows" Figures="M12 10c1.104 0 2 .896 2 2s-.896 2-2 2-2-.896-2-2 .896-2 2-2zm-3.857 3c-.084-.321-.143-.652-.143-1s.059-.679.143-1h-2.143v-4l-6 5 6 5v-4h2.143zm7.714-2c.084.321.143.652.143 1s-.059.679-.143 1h2.143v4l6-5-6-5v4h-2.143zm-2.857 4.857c-.321.084-.652.143-1 .143s-.679-.059-1-.143v2.143h-4l5 6 5-6h-4v-2.143zm-2-7.714c.321-.084.652-.143 1-.143s.679.059 1 .143v-2.143h4l-5-6-5 6h4v2.143z"/>
+      <PathGeometry x:Name="Pencil" Figures="M18.363 8.464l1.433 1.431-12.67 12.669-7.125 1.436 1.439-7.127 12.665-12.668 1.431 1.431-12.255 12.224-.726 3.584 3.584-.723 12.224-12.257zm-.056-8.464l-2.815 2.817 5.691 5.692 2.817-2.821-5.693-5.688zm-12.318 18.718l11.313-11.316-.705-.707-11.313 11.314.705.709z"/>
+      <PathGeometry x:Name="FillBucket" Figures="M21.143 9.667c-.733-1.392-1.914-3.05-3.617-4.753-2.977-2.978-5.478-3.914-6.785-3.914-.414 0-.708.094-.86.246l-1.361 1.36c-1.899-.236-3.42.106-4.294.983-.876.875-1.164 2.159-.792 3.523.492 1.806 2.305 4.049 5.905 5.375.038.323.157.638.405.885.588.588 1.535.586 2.121 0s.588-1.533.002-2.119c-.588-.587-1.537-.588-2.123-.001l-.17.256c-2.031-.765-3.395-1.828-4.232-2.9l3.879-3.875c.496 2.73 6.432 8.676 9.178 9.178l-7.115 7.107c-.234.153-2.798-.316-6.156-3.675-3.393-3.393-3.175-5.271-3.027-5.498l1.859-1.856c-.439-.359-.925-1.103-1.141-1.689l-2.134 2.131c-.445.446-.685 1.064-.685 1.82 0 1.634 1.121 3.915 3.713 6.506 2.764 2.764 5.58 4.243 7.432 4.243.648 0 1.18-.195 1.547-.562l8.086-8.078c.91.874-.778 3.538-.778 4.648 0 1.104.896 1.999 2 1.999 1.105 0 2-.896 2-2 0-3.184-1.425-6.81-2.857-9.34zm-16.209-5.371c.527-.53 1.471-.791 2.656-.761l-3.209 3.206c-.236-.978-.049-1.845.553-2.445zm9.292 4.079l-.03-.029c-1.292-1.292-3.803-4.356-3.096-5.063.715-.715 3.488 1.521 5.062 3.096.862.862 2.088 2.247 2.937 3.458-1.717-1.074-3.491-1.469-4.873-1.462z"/>
+      <PathGeometry x:Name="VenDiagram" Figures="M66.457,21.458c-4.615,0-9.031,1.078-13.124,3.204c-0.939,0.488-1.304,1.644-0.817,2.582  c0.488,0.938,1.644,1.303,2.582,0.817c3.542-1.84,7.364-2.773,11.358-2.773c13.627,0,24.713,11.085,24.713,24.711  c0,13.627-11.086,24.713-24.713,24.713c-3.995,0-7.816-0.933-11.358-2.773c-0.938-0.487-2.095-0.122-2.582,0.817  c-0.487,0.938-0.122,2.094,0.817,2.582c4.093,2.126,8.508,3.204,13.124,3.204C82.196,78.542,95,65.738,95,49.999  C95,34.262,82.196,21.458,66.457,21.458z M33.542,78.542c4.614,0,9.029-1.078,13.123-3.204c0.939-0.488,1.304-1.644,0.817-2.582  c-0.488-0.938-1.643-1.303-2.582-0.817c-3.543,1.84-7.364,2.773-11.357,2.773c-13.627,0-24.712-11.086-24.712-24.713  c0-13.625,11.086-24.711,24.712-24.711c3.992,0,7.814,0.933,11.358,2.772c0.939,0.488,2.095,0.122,2.582-0.817  c0.487-0.939,0.121-2.094-0.817-2.582c-4.094-2.125-8.509-3.203-13.122-3.203C17.804,21.458,5,34.262,5,49.999  C5,65.738,17.804,78.542,33.542,78.542z M48.813,27.571c-6.927,5.456-10.9,13.631-10.9,22.428c0,8.799,3.973,16.974,10.9,22.428c0.348,0.273,0.766,0.41,1.185,0.41  c0.418,0,0.837-0.137,1.185-0.41c6.927-5.454,10.901-13.629,10.901-22.428c0-8.797-3.973-16.972-10.901-22.428  C50.487,27.024,49.508,27.024,48.813,27.571z M53.913,63.983l-12.09-12.09c-0.047-0.627-0.08-1.258-0.08-1.893  c0-0.403,0.013-0.804,0.032-1.204l13.313,13.312C54.725,62.749,54.333,63.374,53.913,63.983z M42.465,44.069  c0.196-0.796,0.43-1.579,0.703-2.347l14.333,14.333c-0.199,0.792-0.437,1.572-0.713,2.336L42.465,44.069z M58.253,49.999  c0,0.454-0.013,0.906-0.037,1.355L44.854,37.992c0.359-0.645,0.748-1.273,1.166-1.884l12.167,12.168  C58.226,48.847,58.253,49.421,58.253,49.999z M49.998,68.426c-2.979-2.656-5.228-5.933-6.621-9.564l8.11,8.11  C51.011,67.473,50.519,67.962,49.998,68.426z M56.705,41.378l-8.272-8.272c0.498-0.529,1.016-1.044,1.564-1.533  C53.042,34.287,55.32,37.652,56.705,41.378z"/>
+      <PathGeometry x:Name="Search" Figures="M16.021,15.96l-2.374-2.375c-0.048-0.047-0.105-0.079-0.169-0.099c0.403-0.566,0.643-1.26,0.643-2.009 C14.12,9.557,12.563,8,10.644,8c-1.921,0-3.478,1.557-3.478,3.478c0,1.92,1.557,3.477,3.478,3.477c0.749,0,1.442-0.239,2.01-0.643 c0.019,0.063,0.051,0.121,0.098,0.169l2.375,2.374c0.19,0.189,0.543,0.143,0.79-0.104S16.21,16.15,16.021,15.96z M10.644,13.69 c-1.221,0-2.213-0.991-2.213-2.213c0-1.221,0.992-2.213,2.213-2.213c1.222,0,2.213,0.992,2.213,2.213 C12.856,12.699,11.865,13.69,10.644,13.69z"/> <!--From https://commons.wikimedia.org/wiki/File:VisualEditor_-_Icon_-_Search.svg-->
+      <PathGeometry x:Name="Home" Figures="M0,0 L 0,-3 2,-4 4,-3 4,0 3,0 3,-2 2,-2 2,0 Z"/>
+      <PathGeometry x:Name="Book" Figures="M12.64,77.27l0.31-54.92h-6.2v69.88c8.52-2.2,17.07-3.6,25.68-3.66c7.95-0.05,15.9,1.06,23.87,3.76 c-4.95-4.01-10.47-6.96-16.36-8.88c-7.42-2.42-15.44-3.22-23.66-2.52c-1.86,0.15-3.48-1.23-3.64-3.08 C12.62,77.65,12.62,77.46,12.64,77.27L12.64,77.27z M103.62,19.48c-0.02-0.16-0.04-0.33-0.04-0.51c0-0.17,0.01-0.34,0.04-0.51V7.34 c-7.8-0.74-15.84,0.12-22.86,2.78c-6.56,2.49-12.22,6.58-15.9,12.44V85.9c5.72-3.82,11.57-6.96,17.58-9.1 c6.85-2.44,13.89-3.6,21.18-3.02V19.48L103.62,19.48z M110.37,15.6h9.14c1.86,0,3.37,1.51,3.37,3.37v77.66 c0,1.86-1.51,3.37-3.37,3.37c-0.38,0-0.75-0.06-1.09-0.18c-9.4-2.69-18.74-4.48-27.99-4.54c-9.02-0.06-18.03,1.53-27.08,5.52 c-0.56,0.37-1.23,0.57-1.92,0.56c-0.68,0.01-1.35-0.19-1.92-0.56c-9.04-4-18.06-5.58-27.08-5.52c-9.25,0.06-18.58,1.85-27.99,4.54 c-0.34,0.12-0.71,0.18-1.09,0.18C1.51,100.01,0,98.5,0,96.64V18.97c0-1.86,1.51-3.37,3.37-3.37h9.61l0.06-11.26 c0.01-1.62,1.15-2.96,2.68-3.28l0,0c8.87-1.85,19.65-1.39,29.1,2.23c6.53,2.5,12.46,6.49,16.79,12.25 c4.37-5.37,10.21-9.23,16.78-11.72c8.98-3.41,19.34-4.23,29.09-2.8c1.68,0.24,2.88,1.69,2.88,3.33h0V15.6L110.37,15.6z M68.13,91.82c7.45-2.34,14.89-3.3,22.33-3.26c8.61,0.05,17.16,1.46,25.68,3.66V22.35h-5.77v55.22c0,1.86-1.51,3.37-3.37,3.37 c-0.27,0-0.53-0.03-0.78-0.09c-7.38-1.16-14.53-0.2-21.51,2.29C79.09,85.15,73.57,88.15,68.13,91.82L68.13,91.82z M58.12,85.25 V22.46c-3.53-6.23-9.24-10.4-15.69-12.87c-7.31-2.8-15.52-3.43-22.68-2.41l-0.38,66.81c7.81-0.28,15.45,0.71,22.64,3.06 C47.73,78.91,53.15,81.64,58.12,85.25L58.12,85.25z"/>
+      <CombinedGeometry x:Name="Discord">
+         <CombinedGeometry.Geometry1>
+            <PathGeometry Figures="M104.4 103.9c-5.7 0-10.2 5-10.2 11.1s4.6 11.1 10.2 11.1c5.7 0 10.2-5 10.2-11.1.1-6.1-4.5-11.1-10.2-11.1zM140.9 103.9c-5.7 0-10.2 5-10.2 11.1s4.6 11.1 10.2 11.1c5.7 0 10.2-5 10.2-11.1s-4.5-11.1-10.2-11.1z"/>
+         </CombinedGeometry.Geometry1>
+         <CombinedGeometry.Geometry2>
+            <PathGeometry Figures="M189.5 20h-134C44.2 20 35 29.2 35 40.6v135.2c0 11.4 9.2 20.6 20.5 20.6h113.4l-5.3-18.5 12.8 11.9 12.1 11.2 21.5 19V40.6c0-11.4-9.2-20.6-20.5-20.6zm-38.6 130.6s-3.6-4.3-6.6-8.1c13.1-3.7 18.1-11.9 18.1-11.9-4.1 2.7-8 4.6-11.5 5.9-5 2.1-9.8 3.5-14.5 4.3-9.6 1.8-18.4 1.3-25.9-.1-5.7-1.1-10.6-2.7-14.7-4.3-2.3-.9-4.8-2-7.3-3.4-.3-.2-.6-.3-.9-.5-.2-.1-.3-.2-.4-.3-1.8-1-2.8-1.7-2.8-1.7s4.8 8 17.5 11.8c-3 3.8-6.7 8.3-6.7 8.3-22.1-.7-30.5-15.2-30.5-15.2 0-32.2 14.4-58.3 14.4-58.3 14.4-10.8 28.1-10.5 28.1-10.5l1 1.2c-18 5.2-26.3 13.1-26.3 13.1s2.2-1.2 5.9-2.9c10.7-4.7 19.2-6 22.7-6.3.6-.1 1.1-.2 1.7-.2 6.1-.8 13-1 20.2-.2 9.5 1.1 19.7 3.9 30.1 9.6 0 0-7.9-7.5-24.9-12.7l1.4-1.6s13.7-.3 28.1 10.5c0 0 14.4 26.1 14.4 58.3 0 0-8.5 14.5-30.6 15.2z"/>
+         </CombinedGeometry.Geometry2>
+      </CombinedGeometry>
+      <GeometryGroup x:Name="GitHub">
+         <GeometryGroup.Transform>
+            <ScaleTransform ScaleY="-1"/>
+         </GeometryGroup.Transform>
+         <PathGeometry Figures="m 3506.09,4935.55 c -333.47,0 -603.88,-270.36 -603.88,-603.88 0,-266.81 173.03,-493.17 412.97,-573.02 30.18,-5.59 41.26,13.1 41.26,29.05 0,14.4 -0.56,61.97 -0.82,112.43 -168,-36.53 -203.45,71.25 -203.45,71.25 -27.47,69.8 -67.05,88.36 -67.05,88.36 -54.79,37.48 4.13,36.71 4.13,36.71 60.64,-4.25 92.57,-62.24 92.57,-62.24 53.86,-92.31 141.27,-65.62 175.73,-50.19 5.42,39.03 21.07,65.68 38.34,80.75 -134.13,15.27 -275.13,67.05 -275.13,298.44 0,65.93 23.59,119.8 62.22,162.09 -6.27,15.22 -26.94,76.63 5.85,159.81 0,0 50.71,16.23 166.11,-61.9 48.17,13.38 99.83,20.09 151.15,20.32 51.32,-0.23 103.02,-6.94 151.28,-20.32 115.26,78.13 165.9,61.9 165.9,61.9 32.87,-83.18 12.19,-144.59 5.92,-159.81 38.72,-42.29 62.15,-96.16 62.15,-162.09 0,-231.94 -141.27,-283.01 -275.74,-297.96 21.66,-18.74 40.96,-55.49 40.96,-111.83 0,-80.8 -0.7,-145.83 -0.7,-165.72 0,-16.07 10.87,-34.9 41.48,-28.97 239.81,79.94 412.62,306.22 412.62,572.94 0,333.52 -270.37,603.88 -603.87,603.88"/>
+         <PathGeometry Figures="m 3130.93,4068.51 c -1.33,-3.01 -6.05,-3.9 -10.35,-1.84 -4.38,1.97 -6.84,6.06 -5.42,9.07 1.3,3.08 6.03,3.94 10.4,1.89 4.39,-1.98 6.89,-6.11 5.37,-9.12 v 0"/>
+         <PathGeometry Figures="m 3155.39,4041.23 c -2.88,-2.67 -8.51,-1.43 -12.33,2.79 -3.95,4.21 -4.69,9.84 -1.77,12.55 2.97,2.66 8.43,1.41 12.39,-2.79 3.95,-4.26 4.72,-9.85 1.71,-12.55 v 0"/>
+         <PathGeometry Figures="m 3179.2,4006.45 c -3.7,-2.57 -9.75,-0.16 -13.49,5.21 -3.7,5.37 -3.7,11.81 0.08,14.39 3.75,2.58 9.71,0.25 13.5,-5.07 3.69,-5.46 3.69,-11.9 -0.09,-14.53 v 0"/>
+         <PathGeometry Figures="m 3211.82,3972.85 c -3.31,-3.65 -10.36,-2.67 -15.52,2.31 -5.28,4.87 -6.75,11.78 -3.43,15.43 3.35,3.66 10.44,2.63 15.64,-2.31 5.24,-4.86 6.84,-11.82 3.31,-15.43 v 0"/>
+         <PathGeometry Figures="m 3256.82,3953.34 c -1.46,-4.73 -8.25,-6.88 -15.09,-4.87 -6.83,2.07 -11.3,7.61 -9.92,12.39 1.42,4.76 8.24,7 15.13,4.85 6.82,-2.06 11.3,-7.56 9.88,-12.37 v 0"/>
+         <PathGeometry Figures="m 3306.24,3949.72 c 0.17,-4.98 -5.63,-9.11 -12.81,-9.2 -7.22,-0.16 -13.06,3.87 -13.14,8.77 0,5.03 5.67,9.12 12.89,9.24 7.18,0.14 13.06,-3.86 13.06,-8.81 v 0"/>
+         <PathGeometry Figures="m 3352.23,3957.55 c 0.86,-4.86 -4.13,-9.85 -11.26,-11.18 -7.01,-1.28 -13.5,1.72 -14.39,6.54 -0.87,4.98 4.21,9.97 11.21,11.26 7.14,1.24 13.53,-1.68 14.44,-6.62 v 0"/>
+      </GeometryGroup>
+      <PathGeometry x:Name="LeftAngleArrow" Figures="M0,0 L-40,0 -54,10 -40,20 -0,20 -14,10 Z"/>
+      <PathGeometry x:Name="OutAngleArrow" Figures="M0,0 L40,0 54,10 40,20 0,20 -14,10 Z"/>
+      <PathGeometry x:Name="RightAngleArrow" Figures="M0,0 L40,0 54,10 40,20 0,20 14,10 Z"/>
+      <GeometryGroup x:Name="ArrowKeys">
+         <RectangleGeometry Rect="11,1,8,8" />
+         <RectangleGeometry Rect="1,11,8,8" />
+         <RectangleGeometry Rect="11,11,8,8" />
+         <RectangleGeometry Rect="21,11,8,8" />
+      </GeometryGroup>
+      <GeometryGroup x:Name="Multiple" FillRule="EvenOdd">
+         <RectangleGeometry Rect="2,3,8,10"/>
+         <PathGeometry Figures="M2,10 l-2,0 0,-10 8,0 0,3"/>
+      </GeometryGroup>
+      <PathGeometry x:Name="Check" Figures="M0,0 L5,5 10,-5 4.5,2 Z" />
+      <PathGeometry x:Name="Copy" Figures="M89.62,13.96v7.73h12.19h0.01v0.02c3.85,0.01,7.34,1.57,9.86,4.1c2.5,2.51,4.06,5.98,4.07,9.82h0.02v0.02 v73.27v0.01h-0.02c-0.01,3.84-1.57,7.33-4.1,9.86c-2.51,2.5-5.98,4.06-9.82,4.07v0.02h-0.02h-61.7H40.1v-0.02 c-3.84-0.01-7.34-1.57-9.86-4.1c-2.5-2.51-4.06-5.98-4.07-9.82h-0.02v-0.02V92.51H13.96h-0.01v-0.02c-3.84-0.01-7.34-1.57-9.86-4.1 c-2.5-2.51-4.06-5.98-4.07-9.82H0v-0.02V13.96v-0.01h0.02c0.01-3.85,1.58-7.34,4.1-9.86c2.51-2.5,5.98-4.06,9.82-4.07V0h0.02h61.7 h0.01v0.02c3.85,0.01,7.34,1.57,9.86,4.1c2.5,2.51,4.06,5.98,4.07,9.82h0.02V13.96L89.62,13.96z M79.04,21.69v-7.73v-0.02h0.02 c0-0.91-0.39-1.75-1.01-2.37c-0.61-0.61-1.46-1-2.37-1v0.02h-0.01h-61.7h-0.02v-0.02c-0.91,0-1.75,0.39-2.37,1.01 c-0.61,0.61-1,1.46-1,2.37h0.02v0.01v64.59v0.02h-0.02c0,0.91,0.39,1.75,1.01,2.37c0.61,0.61,1.46,1,2.37,1v-0.02h0.01h12.19V35.65 v-0.01h0.02c0.01-3.85,1.58-7.34,4.1-9.86c2.51-2.5,5.98-4.06,9.82-4.07v-0.02h0.02H79.04L79.04,21.69z M105.18,108.92V35.65v-0.02 h0.02c0-0.91-0.39-1.75-1.01-2.37c-0.61-0.61-1.46-1-2.37-1v0.02h-0.01h-61.7h-0.02v-0.02c-0.91,0-1.75,0.39-2.37,1.01 c-0.61,0.61-1,1.46-1,2.37h0.02v0.01v73.27v0.02h-0.02c0,0.91,0.39,1.75,1.01,2.37c0.61,0.61,1.46,1,2.37,1v-0.02h0.01h61.7h0.02 v0.02c0.91,0,1.75-0.39,2.37-1.01c0.61-0.61,1-1.46,1-2.37h-0.02V108.92L105.18,108.92z" />
+      <PathGeometry x:Name="Paste" Figures="M96.59 35.73h34.9C133.94 15.58 150.2 0 169.92 0c19.6 0 35.77 15.37 38.39 35.31l35.47.42c2.37 0 4.26 1.89 4.26 4.26V87c0 2.36-1.89 4.26-4.26 4.26H96.63c-2.31 0-4.26-1.9-4.26-4.26V39.99c-.04-2.37 1.86-4.26 4.22-4.26zm108.07 301.63c-5.44 0-9.86-4.42-9.86-9.87 0-5.44 4.42-9.86 9.86-9.86h124.93c5.45 0 9.86 4.42 9.86 9.86 0 5.45-4.41 9.87-9.86 9.87H204.66zm103.16-170.67h.88c3.12 0 5.9 1.44 7.7 3.7l80.02 87.86a9.845 9.845 0 0 1 2.56 6.62l.02 2.66v223.28c0 5.81-2.41 11.13-6.25 14.97s-9.15 6.24-14.96 6.24H156.47c-5.77 0-11.08-2.39-14.94-6.24l-.04-.04c-3.84-3.87-6.23-9.14-6.23-14.93V187.7c0-5.83 2.38-11.14 6.22-14.98s9.15-6.23 14.99-6.23h149.37c.68 0 1.34.07 1.98.2zm71.46 110.8c-43.74-1.7-65.42-3.27-77.68-16.13-12.27-12.88-11.51-32.56-10.03-70.26l.19-4.88H156.47c-.41 0-.78.17-1.05.44-.27.26-.44.64-.44 1.04v303.11c0 .41.16.78.41 1.03l.04.04c.26.26.63.42 1.04.42h221.32c.37 0 .74-.18 1.02-.46s.47-.65.47-1.03V277.49zm-68.25-80.91c-1.13 29.16-1.41 44.68 4.82 51.22 6.15 6.45 21.33 8.17 50.65 9.5l-55.47-60.72zM204.66 447.87c-5.44 0-9.86-4.41-9.86-9.86 0-5.44 4.42-9.86 9.86-9.86h124.93c5.45 0 9.86 4.42 9.86 9.86 0 5.45-4.41 9.86-9.86 9.86H204.66zm0-55.26c-5.44 0-9.86-4.41-9.86-9.86 0-5.44 4.42-9.86 9.86-9.86h124.93c5.45 0 9.86 4.42 9.86 9.86 0 5.45-4.41 9.86-9.86 9.86H204.66zm-104.29 7.49c6.93 0 12.55 5.62 12.55 12.55 0 6.92-5.62 12.55-12.55 12.55H39.33c-10.72 0-20.58-4.45-27.75-11.61C4.45 406.51 0 396.69 0 385.86V91.56C0 80.73 4.42 70.9 11.54 63.78l.84-.77c7.05-6.66 16.55-10.77 26.95-10.77h32.46v25.11H39.33c-3.68 0-7.05 1.4-9.57 3.69l-.47.49c-2.58 2.58-4.19 6.14-4.19 10.03v294.3c0 3.87 1.63 7.42 4.21 10.01v.05c2.58 2.58 6.14 4.18 10.02 4.18h61.04zM268.61 52.24h32.44c10.79 0 20.6 4.45 27.72 11.56 7.17 7.16 11.62 17.02 11.62 27.76v29.91c0 6.93-5.62 12.55-12.55 12.55-6.93 0-12.55-5.62-12.55-12.55V91.56c0-3.88-1.6-7.44-4.17-10.01-2.58-2.58-6.15-4.2-10.07-4.2h-32.44V52.24zm-99.13-33.96c11.15 0 20.18 9.03 20.18 20.18s-9.03 20.19-20.18 20.19-20.19-9.04-20.19-20.19c0-11.15 9.04-20.18 20.19-20.18z" />
+      <PathGeometry x:Name="Bag" Figures="M336,111.797c8.844,0,16,7.156,16,16s-7.156,16-16,16H176c-8.844,0-16-7.156-16-16s7.156-16,16-16H336z M345.25,159.797 H166.734C87.469,217.609,32,340.141,32,417.953c0,104.656,100.281,93.5,224,93.5s224,11.156,224-93.5 C480,340.141,424.531,217.609,345.25,159.797z M166.734,95.797H345.25c0,0,70.75-61.719,38.75-88.719s-103,30-128,28 c-25,2-96-55-128-28S166.734,95.797,166.734,95.797z" />
+      <GeometryGroup x:Name="Dice">
+         <RectangleGeometry Rect="0,0,100,100" RadiusX="10" RadiusY="10" />
+         <EllipseGeometry Center="20,20" RadiusX="12" RadiusY="12" />
+         <EllipseGeometry Center="80,80" RadiusX="12" RadiusY="12" />
+         <EllipseGeometry Center="50,50" RadiusX="12" RadiusY="12" />
+      </GeometryGroup>
+      <PathGeometry x:Name="Chevron" Figures="M0,0 L1,0 2,1 3,0 4,0 3,1 2,2 Z" />
+      <PathGeometry x:Name="ChevronUp" Figures="M0,0 L 1,0 2,-1 3,0 4,0 3,-1 2,-2 Z" />
+      <PathGeometry x:Name="Flag" Figures="M0,10 L0,0 1,0 1,1 6,3 1,5 1,10 Z" />
+      <CombinedGeometry x:Name="Var" Geometry1="{hsv:TextGeometry var,0,0,12}" />
+   </ItemsControl.Items>
+</ItemsControl>

@@ -1,0 +1,1946 @@
+﻿[[NamedAnchors]]
+Name = '''data.header.title'''
+Address = 0x0000A0
+Format = '''`asc`12'''
+
+[[NamedAnchors]]
+Name = '''data.header.gamecode'''
+Address = 0x0000AC
+Format = '''`asc`4'''
+
+[[NamedAnchors]]
+Name = '''data.header.makercode'''
+Address = 0x0000B0
+Format = '''`asc`2'''
+
+[[TableGroup]]
+Name = '''Pokemon'''
+0 = [
+   '''data.pokemon.names''',
+   '''data.pokemon.stats''',
+   '''data.pokemon.evolutions''',
+   '''data.pokedex.regional''',
+   '''data.pokedex.national''',
+   '''data.pokedex.hoennToNational''',
+   '''data.pokedex.search.alpha''',
+   '''data.pokedex.search.weight''',
+   '''data.pokedex.search.size''',
+   '''data.pokedex.search.type''',
+   '''sound.pokemon.cry.growl''',
+   '''sound.pokemon.cry.normal''',
+   '''sound.pokemon.cry.hoennconversion''',
+]
+
+[[TableGroup]]
+Name = '''Sprites'''
+0 = [
+   '''graphics.pokemon.sprites.front''',
+   '''graphics.pokemon.sprites.coordinates.front''',
+   '''graphics.pokemon.sprites.elevation''',
+   '''graphics.pokemon.animations.front''',
+   '''graphics.pokemon.animations.delay''',
+   '''graphics.pokemon.sprites.back''',
+   '''graphics.pokemon.sprites.coordinates.back''',
+   '''graphics.pokemon.animations.back''',
+   '''graphics.pokemon.palettes.normal''',
+   '''graphics.pokemon.palettes.shiny''',
+   '''graphics.pokemon.icons.sprites''',
+   '''graphics.pokemon.icons.index''',
+   '''graphics.pokemon.sprites.anchor''',
+   '''graphics.pokemon.animations.frames''',
+   '''graphics.pokemon.sprites.footprint''',
+]
+
+[[TableGroup]]
+Name = '''Moves'''
+0 = [
+   '''data.pokemon.moves.levelup''',
+   '''data.pokemon.moves.tutorcompatibility''',
+   '''data.pokemon.moves.tmcompatibility''',
+]
+
+[[TableGroup]]
+Name = '''Trainer'''
+0 = [
+   '''data.trainers.stats|0''',
+]
+
+[[TableGroup]]
+Name = '''Team'''
+0 = [
+   '''data.trainers.stats|1''',
+]
+
+[[TableGroup]]
+Name = '''Move'''
+0 = [
+   '''data.pokemon.moves.names''',
+   '''data.pokemon.moves.descriptions''',
+   '''graphics.pokemon.moves.animations''',
+   '''data.pokemon.moves.stats.contest''',
+]
+
+[[TableGroup]]
+Name = '''Battle'''
+0 = [
+   '''data.pokemon.moves.stats.battle''',
+]
+
+[[TableGroup]]
+Name = '''Stats'''
+0 = [
+   '''data.items.stats''',
+]
+
+[[TableGroup]]
+Name = '''More'''
+0 = [
+   '''graphics.items.sprites''',
+   '''data.items.effects''',
+]
+
+[[TableGroup]]
+Name = '''Background'''
+0 = [
+   '''graphics.battle.background.sprites|0'''
+]
+
+[[TableGroup]]
+Name = '''Intro'''
+0 = [
+   '''graphics.battle.background.sprites|1'''
+]
+
+[[List]]
+Name = '''weathertypes'''
+0 = [
+   '''None''',
+   '''SunnyClouds''',
+   '''Sunny''',
+   '''Rain''',
+   '''Snow''',
+   '''RainThunderstorm''',
+   '''FogHorizontal''',
+   '''VolcanicAsh''',
+   '''Sandstorm''',
+   '''FogDiagonal''',
+   '''Underwater''',
+   '''Shade''',
+   '''Drought''',
+   '''Downpour''',
+   '''UnderwaterBubbles''',
+   '''Abnormal''',
+   '''Route119Cycle''',
+   '''Route123Cycle''',
+]
+
+[[List]]
+Name = '''maptypes'''
+0 = [
+   '''none''',
+   '''town''',
+   '''city''',
+   '''route''',
+   '''underground''',
+   '''underwater''',
+   '''ocean_route''',
+   '''unknown''',
+   '''indoor''',
+   '''secret_base''',
+]
+
+[[List]]
+Name = '''mapdirections'''
+0 = [
+   '''None''',
+   '''Down''',
+   '''Up''',
+   '''Left''',
+   '''Right''',
+   '''Dive''',
+   '''Emerge''',
+]
+
+[[List]]
+Name = '''egggroups'''
+0 = [
+   '''None''',
+   '''Monster''',
+   '''Water1''',
+   '''Bug''',
+   '''Flying''',
+   '''Field''',
+   '''Fairy''',
+   '''Grass''',
+   '''Human-Like''',
+   '''Water3''',
+   '''Mineral''',
+   '''Amorphous''',
+   '''Water2''',
+   '''Ditto''',
+   '''Dragon''',
+   '''Undiscovered''',
+]
+
+[[List]]
+Name = '''scriptvariablealiases'''
+0x4000 = [
+   '''temp0''',
+   '''temp1''',
+   '''temp2''',
+   '''temp3''',
+   '''temp4''',
+   '''temp5''',
+   '''temp6''',
+   '''temp7''',
+   '''temp8''',
+   '''temp9''',
+   '''tempA''',
+   '''tempB''',
+   '''tempC''',
+   '''tempD''',
+   '''tempE''',
+   '''tempF''',
+   '''gfx0''',
+   '''gfx1''',
+   '''gfx2''',
+   '''gfx3''',
+   '''gfx4''',
+   '''gfx5''',
+   '''gfx6''',
+   '''gfx7''',
+   '''gfx8''',
+   '''gfx9''',
+   '''gfxA''',
+   '''gfxB''',
+   '''gfxC''',
+   '''gfxD''',
+   '''gfxE''',
+   '''gfxF''',
+]
+
+0x8000 = [
+   '''var0''',
+   '''var1''',
+   '''var2''',
+   '''var3''',
+   '''var4''',
+   '''var5''',
+   '''var6''',
+   '''var7''',
+   '''var8''',
+   '''var9''',
+   '''varA''',
+   '''varB''',
+   '''varFacing''',
+   '''varResult''',
+   '''varItemID''',
+   '''varLastTalked''',
+]
+
+[[List]]
+Name = '''FacingOptions'''
+0 = [
+   '''NoMovement''',
+   '''LookAround''',
+   '''WanderAround''',
+   '''WanderUpAndDown''',
+   '''WanderDownAndUp''',
+   '''WanderLeftAndRight''',
+   '''WanderRightAndLeft''',
+   '''FaceUp''',
+   '''FaceDown''',
+   '''FaceLeft''',
+   '''FaceRight''',
+   '''Player''',
+   '''BerryTreeGrowth''',
+   '''FaceDownAndUp''',
+   '''FaceLeftAndRight''',
+   '''FaceUpAndLeft''',
+   '''FaceUpAndRight''',
+   '''FaceDownAndLeft''',
+   '''FaceDownAndRight''',
+   '''FaceDownUpAndLeft''',
+   '''FaceDownUpAndRight''',
+   '''FaceUpLeftAndRight''',
+   '''FaceDownLeftAndRight''',
+   '''RotateCounterclockwise''',
+   '''RotateClockwise''',
+   '''WalkUpAndDown''',
+   '''WalkDownAndUp''',
+   '''WalkLeftAndRight''',
+   '''WalkRightAndLeft''',
+   '''WalkSequenceUpRightLeftDown''',
+   '''WalkSequenceRightLeftDownUp''',
+   '''WalkSequenceDownUpRightLeft''',
+   '''WalkSequenceLeftDownUpRight''',
+   '''WalkSequenceUpLeftRightDown''',
+   '''WalkSequenceLeftRightDownUp''',
+   '''WalkSequenceDownUpLeftRight''',
+   '''WalkSequenceRightDownUpLeft''',
+   '''WalkSequenceLeftUpDownRight''',
+   '''WalkSequenceUpDownRightLeft''',
+   '''WalkSequenceRightLeftUpDown''',
+   '''WalkSequenceDownRightLeftUp''',
+   '''WalkSequenceRightUpDownLeft''',
+   '''WalkSequenceUpDownLeftRight''',
+   '''WalkSequenceLeftRightUpDown''',
+   '''WalkSequenceDownLeftRightUp''',
+   '''WalkSequenceUpLeftDownRight''',
+   '''WalkSequenceDownRightUpLeft''',
+   '''WalkSequenceLeftDownRightUp''',
+   '''WalkSequenceRightUpLeftDown''',
+   '''WalkSequenceUpRightDownLeft''',
+   '''WalkSequenceDownLeftUpRight''',
+   '''WalkSequenceLeftUpRightDown''',
+   '''WalkSequenceRightDownLeftUp''',
+   '''CopyPlayer''',
+   '''CopyPlayerOpposite''',
+   '''CopyPlayerCounterclockwise''',
+   '''CopyPlayerClockwise''',
+   '''TreeDisguise''',
+   '''MountainDisguise''',
+   '''CopyPlayerInGrass''',
+   '''CopyPlayerOppositeInGrass''',
+   '''CopyPlayerCounterclockwiseInGrass''',
+   '''CopyPlayerClockwiseInGrass''',
+   '''Buried''',
+   '''WalkInPlaceDown''',
+   '''WalkInPlaceUp''',
+   '''WalkInPlaceLeft''',
+   '''WalkInPlaceRight''',
+   '''WalkSlowlyInPlaceDown''',
+   '''WalkSlowlyInPlaceUp''',
+   '''WalkSlowlyInPlaceLeft''',
+   '''WalkSlowlyInPlaceRight''',
+   '''JogInPlaceDown''',
+   '''JogInPlaceUp''',
+   '''JogInPlaceLeft''',
+   '''JogInPlaceRight''',
+   '''Invisible''',
+   '''VsSeeker4d''',
+   '''VsSeeker4e''',
+   '''VsSeeker4f''',
+   '''WanderAroundSlower''',
+]
+
+[[List]]
+Name = '''terrains'''
+0 = [
+    '''grass''',
+    '''long grass''',
+    '''sand''',
+    '''underwater''',
+    '''water''',
+    '''pond water''',
+    '''rock''',
+    '''cave''',
+    '''building''',
+    '''plain''',
+]
+
+[[List]]
+Name = '''growthrates'''
+0 = [
+   '''Medium Fast''',
+   '''Erratic''',
+   '''Fluctuating''',
+   '''Medium Slow''',
+   '''Fast''',
+   '''Slow''',
+]
+
+[[List]]
+Name = '''bodycolors'''
+0 = [
+   '''Red''',
+   '''Blue''',
+   '''Yellow''',
+   '''Green''',
+   '''Black''',
+   '''Brown''',
+   '''Purple''',
+   '''Gray''',
+   '''White''',
+   '''Pink''',
+]
+
+[[List]]
+Name = '''effectiveness'''
+0 = '''None'''
+5 = '''Half'''
+10 = '''Normal'''
+20 = '''Double'''
+
+[[List]]
+Name = '''contesteffectnames'''
+0 = [
+    '''HighlyAppealing''',
+    '''UserMoreEasilyStartled''',
+    '''GreatAppealButNoMoreMoves''',
+    '''RepetitionNotBoring''',
+    '''AvoidStartleOnce''',
+    '''AvoidStartle''',
+    '''AvoidStartleSlightly''',
+    '''UserLessEasilyStartled''',
+    '''StartleFrontMon''',
+    '''SlightlyStartlePrevMons''',
+    '''StartlePrevMon''',
+    '''StartlePrevMons''',
+    '''BadlyStartleFrontMon''',
+    '''BadlyStartlePrevMons''',
+    '''StartlePrevMon2''',
+    '''StartPrevMons2''',
+    '''ShiftJudgeAttention''',
+    '''StartleMonWithJudgesAttention''',
+    '''JamsOthersButMissOneTurn''',
+    '''StartleMonsSameTypeAppeal''',
+    '''StartMonsCoolAppeal''',
+    '''StartleMonsBeautyAppeal''',
+    '''StartleMonsCuteAppeal''',
+    '''StartleMonsSmartAppeal''',
+    '''StartleMonsToughAppeal''',
+    '''MakeFollowingMonNervous''',
+    '''MakeFollowingMonsNervous''',
+    '''WorsenConditionOfPrevMons''',
+    '''BadlyStartlesMonsInGoodCondition''',
+    '''BetterIfFirst''',
+    '''BetterIfLast''',
+    '''AppealAsGoodAsPrevOnes''',
+    '''AppealAsGoodAsPrevOne''',
+    '''BetterWhenLater''',
+    '''QualityDependsOnTiming''',
+    '''BetterIfSameType''',
+    '''BetterIfDiffType''',
+    '''AffectedByPrevAppeal''',
+    '''ImproveConditionPreventNervousness''',
+    '''BetterWithGoodCondition''',
+    '''NextAppealEarlier''',
+    '''NextAppealLater''',
+    '''MakeScramblingTurnOrderEasier''',
+    '''ScrambleNextTurnOrder''',
+    '''ExciteAudienceInAnyContest''',
+    '''BadlyStartleMonsWithGoodAppeals''',
+    '''BettenWhenAudienceExcited''',
+    '''DontExciteAudience''',
+]
+
+[[List]]
+Name = '''contesteffects'''
+0 = [
+   '''Appeal''',
+   '''AvoidStartle''',
+   '''StartleMon''',
+   '''StartleMons''',
+   '''Worsen''',
+   '''SpecialAppeal''',
+   '''TurnOrder''',
+]
+
+[[List]]
+Name = '''contestcombostarter'''
+0 = [
+    '''-''',
+    '''Rain Dance''',
+    '''Rage''',
+    '''Focus Energy''',
+    '''Hypnosis''',
+    '''Endure''',
+    '''Horn Attack''',
+    '''Swords Dance''',
+    '''Stockpile''',
+    '''Sunny Day''',
+    '''Rest''',
+    '''Vice Grip''',
+    '''Defense Curl''',
+    '''Charge''',
+    '''Rock Throw''',
+    '''Yawn''',
+    '''Scary Face''',
+    '''Powder Snow''',
+    '''Lock On''',
+    '''Soft Boiled''',
+    '''Mean Look''',
+    '''Scratch''',
+    '''Growth''',
+    '''Hail''',
+    '''Sandstorm''',
+    '''Belly Drum''',
+    '''Mind Reader''',
+    '''Dragon Breath''',
+    '''Dragon Rage''',
+    '''Dragon Dance''',
+    '''Surf''',
+    '''Dive''',
+    '''String Shot''',
+    '''Leer''',
+    '''Taunt''',
+    '''Charm''',
+    '''Harden''',
+    '''Sing''',
+    '''Earthquake''',
+    '''DoubleTeam''',
+    '''Curse''',
+    '''SweetScent''',
+    '''Sludge''',
+    '''Sludge Bomb''',
+    '''Thunder Punch''',
+    '''Fire Punch''',
+    '''Ice Punch''',
+    '''Peck''',
+    '''Metal Sound''',
+    '''Mud Sport''',
+    '''Water Sport''',
+    '''Bone Club''',
+    '''Bonemerang''',
+    '''Bone Rush''',
+    '''Sand Attack''',
+    '''Mud Slap''',
+    '''Fake Out''',
+    '''Psychic''',
+    '''Kinesis''',
+    '''Confusion''',
+    '''Pound''',
+    '''Smog''',
+    '''Calm Mind''',
+]
+
+[[List]]
+Name = '''moveeffectoptions'''
+0 = [
+   '''None''',
+   '''SleepPrimary''',
+   '''PoisonHitChance''',
+   '''HealHalfDamage''',
+   '''BurnHitChance''',
+   '''FreezeHitChance''',
+   '''ParalyzeHitChance''',
+   '''SelfKOAndAttack''',
+   '''HealHalfIfOpponentSleeping''',
+   '''RepeatTargetMove''',
+   '''RaiseAttack1Primary''',
+   '''RaiseDefense1Primary''',
+   '''Unused0C''',
+   '''RaiseSpAttack1Primary''',
+   '''Unused0E''',
+   '''Unused0F''',
+   '''RaiseEvasiveness1Primary''',
+   '''NeverMiss''',
+   '''LowerAttack1Primary''',
+   '''LowerDefense1Primary''',
+   '''LowerSpeed1Primary''',
+   '''Unused15''',
+   '''Unused16''',
+   '''LowerAccuracy1Primary''',
+   '''LowerEvasion1Primary''',
+   '''RemoveStateChanges''',
+   '''Bide''',
+   '''2to3turnsThenConfused''',
+   '''OpponentSwitch''',
+   '''2to5hits''',
+   '''ChangeTypeToFriendlyMove''',
+   '''Flinch''',
+   '''HealHalfSelf''',
+   '''BadPoisonPrimary''',
+   '''Money''',
+   '''RaiseSpDefense2Wall''',
+   '''ParalyzeBurnFreeze''',
+   '''Rest''',
+   '''OHKO''',
+   '''2turnHighCrit''',
+   '''HalfDamage''',
+   '''40Damage''',
+   '''2to5turnTrap''',
+   '''HighCrit''',
+   '''2hits''',
+   '''MissHurtSelf''',
+   '''PreventStatReduction''',
+   '''RaiseCriticalRate''',
+   '''25Recoil''',
+   '''ConfusionPrimary''',
+   '''RaiseAttack2Primary''',
+   '''RaiseDefense2Primary''',
+   '''RaiseSpeed2Primary''',
+   '''RaiseSpAttack2Primary''',
+   '''RaiseSpDefense2Primary''',
+   '''Unused37''',
+   '''Unused38''',
+   '''Transform''',
+   '''LowerAttack2Primary''',
+   '''LowerDefense2Primary''',
+   '''LowerSpeed2Primary''',
+   '''Unused3D''',
+   '''LowerSpDefense2Primary''',
+   '''Unused3F''',
+   '''Unused40''',
+   '''RaiseDefense2Wall''',
+   '''PoisonPrimary''',
+   '''ParalyzePrimary''',
+   '''LowerAttack1HitChance''',
+   '''LowerDefense1HitChance''',
+   '''LowerSpeed1HitChance''',
+   '''LowerSpAttack1HitChance''',
+   '''LowerSpDefense1HitChance''',
+   '''LowerAccuracy1HitChance''',
+   '''Unused4A''',
+   '''2turnHighCritFlinch''',
+   '''ConfusionHitChance''',
+   '''2hitsPoisonHitChance''',
+   '''NeverMissMoveLast''',
+   '''Substitute''',
+   '''SkipNextTurn''',
+   '''RaiseAttack1IfDamaged''',
+   '''Mimic''',
+   '''RandomMove''',
+   '''SeedOpponent''',
+   '''Splash''',
+   '''Disable''',
+   '''DamageBasedOnLevel''',
+   '''DamageRandom''',
+   '''DoubleBackPhysicalDamage''',
+   '''OpponentRepeatMoveFor2to6turns''',
+   '''PainSplit''',
+   '''WhileSleepingAndFlinch''',
+   '''ChangeTypeToResistPreviousHit''',
+   '''NextAttackHits''',
+   '''Sketch''',
+   '''Unused60''',
+   '''SleepTalk''',
+   '''DestinyBond''',
+   '''StrengthDependsOnHealth''',
+   '''ReducePP''',
+   '''NeverKOTarget''',
+   '''HealPartyStatus''',
+   '''NormalPlusPriority''',
+   '''3turnTripleHit''',
+   '''StealItem''',
+   '''NoSwitch''',
+   '''Nightmare''',
+   '''RaiseEvasivenessAndBecomeSmaller''',
+   '''Curse''',
+   '''Unused6E''',
+   '''EvadeNextAttack''',
+   '''Spikes''',
+   '''TargetCannnotRaiseEvasion''',
+   '''PerishSong''',
+   '''Sand5Turns''',
+   '''Endure''',
+   '''5turnsUntilMiss''',
+   '''ConfuseAndRaiseAttack2''',
+   '''GetStrongerEachHit''',
+   '''Attract''',
+   '''StrongerWithFriendship''',
+   '''Present''',
+   '''WeakerWithFriendship''',
+   '''PreventStatus5Turns''',
+   '''BurnDefrost''',
+   '''Magnitude''',
+   '''BatonPass''',
+   '''DoublePowerIfOpponentSwitching''',
+   '''RemoveBindSeedSpikes''',
+   '''20Damage''',
+   '''Unused83''',
+   '''MorningSun''',
+   '''Synthesis''',
+   '''Moonlight''',
+   '''HiddenPower''',
+   '''Rain5turns''',
+   '''Sun5turns''',
+   '''RaiseDefense1HitChance''',
+   '''RaiseAttack1HitChance''',
+   '''RaiseAllStats1HitChance''',
+   '''Unused8D''',
+   '''HalfHealthToRaiseAttackMax''',
+   '''CopyTargetStatChangesPrimary''',
+   '''DoubleBackSpecialDamage''',
+   '''RaiseDefenseThenAttackTurn2''',
+   '''FlinchAndDoubleDamageToFly''',
+   '''DoubleDamageToDig''',
+   '''DamageIn2Turns''',
+   '''DoubleDamageToFly''',
+   '''FlinchAndDoubleDamageToMinimize''',
+   '''ChargeFirstTurn''',
+   '''ParalyzeAndIncreaseAccuracyInRain''',
+   '''Escape''',
+   '''DamageBasedOnPartySize''',
+   '''2turn''',
+   '''RaiseDefenseAndImproveRollingMoves''',
+   '''RestoreHPOrAllyInField''',
+   '''MoveFirstFlinchOnlyWorksTurn1''',
+   '''2to5turnsAndAllNoSleep''',
+   '''Stockpile''',
+   '''SpitUp''',
+   '''Swallow''',
+   '''UnusedA3''',
+   '''Hail5turns''',
+   '''Torment''',
+   '''ConfuseAndRaiseSpAttack2''',
+   '''BurnPrimary''',
+   '''SelfKOLowerAttack2SpAttack2''',
+   '''DoubleDamageIfSelfStatus''',
+   '''SelfFlinchIfHit''',
+   '''DoubleDamageToParalyzeAndHealParalyze''',
+   '''ForceFoesTargetUser''',
+   '''NaturePower''',
+   '''BoostNextElectricMove''',
+   '''Taunt''',
+   '''BoostAllyPower''',
+   '''TradeHeldItems''',
+   '''CopyAbility''',
+   '''HealHalfNextTurn''',
+   '''UseAllyMove''',
+   '''Ingrain''',
+   '''LowerSelfAttack1Defense1''',
+   '''ReflectStatusMoves''',
+   '''Recycle''',
+   '''DoubleDamageIfHitThisTurn''',
+   '''BreakWall''',
+   '''Yawn''',
+   '''KnockOff''',
+   '''TargetHPEqualUser''',
+   '''DamageBasedOnHighRemainingHealth''',
+   '''SwapAbilityWithTarget''',
+   '''Imprison''',
+   '''HealSelfStatus''',
+   '''Grudge''',
+   '''Snatch''',
+   '''DamageBasedOnTargetWeight''',
+   '''SecondEffectBasedOnTerrain''',
+   '''33Recoil''',
+   '''ConfuseAllPokemon''',
+   '''HighCritBurn''',
+   '''MudSport''',
+   '''BadPoisonHitChance''',
+   '''WeatherBall''',
+   '''LowerSpAttack2Self''',
+   '''LowerAttack1Defense1Primary''',
+   '''RaiseDefense1SpDefense1''',
+   '''CanDamageFly''',
+   '''RaiseAttack1Defense1Primary''',
+   '''HighCritPoison''',
+   '''WaterSport''',
+   '''RaiseSpAttack1SpDefense1Primary''',
+   '''RaiseAttack1Speed1Primary''',
+   '''ChangetypeFromTerrain''',
+]
+
+[[List]]
+Name = '''moveinfo'''
+0 = [
+   '''Makes Contact''',
+   '''Affected by Protect''',
+   '''Affected by Magic Coat''',
+   '''Affected by Snatch''',
+   '''Affected by Mirror Move''',
+   '''Affected by King's Rock''',
+]
+
+[[List]]
+Name = '''holdeffects'''
+0 = [
+   '''None''',
+   '''Heal|HP Yellow|Once''',
+   '''Remove Paralysis|Once''',
+   '''Remove Sleep|Once''',
+   '''Remove Poison|Once''',
+   '''Remove Burn|Once''',
+   '''Remove Freeze|Once''',
+   '''Restore PP|Empty|Once''',
+   '''Remove Confusion|Once''',
+   '''Remove Any Status Condition|Once''',
+   '''Heal, May Confuse − Attack natures|Once''',
+   '''Heal, May Confuse − Sp. Atk natures|Once''',
+   '''Heal, May Confuse − Speed natures|Once''',
+   '''Heal, May Confuse − Sp. Def natures|Once''',
+   '''Heal, May Confuse − Defense natures|Once''',
+   '''Boost ATK|HP Red|Once''',
+   '''Boost DEF|HP Red|Once''',
+   '''Boost SPD|HP Red|Once''',
+   '''Boost SP.ATK|HP Red|Once''',
+   '''Boost SP.DEF|HP Red|Once''',
+   '''Boost Crit.Ratio|HP Red|Once''',
+   '''Sharp Boost Random Stat|HP Red|Once''',
+   '''Reduce Enemy Accuracy''',
+   '''Restore Any Stat Loss|Once''',
+   '''Macho Brace''',
+   '''Exp. Share''',
+   '''May Strike First''',
+   '''Boost Friendliness''',
+   '''Remove Infatuation''',
+   '''Choice Band''',
+   '''Enemy May Flinch''',
+   '''Boost Bug-Type Moves''',
+   '''Doubles Battle Money''',
+   '''Repels Wild PKMN''',
+   '''Soul Dew''',
+   '''Boost SP.ATK for Clamperl''',
+   '''Boost SP.DEF for Clamperl''',
+   '''Flee Any Wild Battle''',
+   '''Prevent Evolution''',
+   '''May Endure Hit''',
+   '''Boost Exp. Gain''',
+   '''Boost Crit Ratio''',
+   '''Boost Steel-Type Moves''',
+   '''Restore Health Each Round''',
+   '''No effect''',
+   '''Boost SP.ATK For Pikachu''',
+   '''Boost Ground-Type Moves''',
+   '''Boost Rock-Type Moves''',
+   '''Boost Grass-Type Moves''',
+   '''Boost Dark-Type Moves''',
+   '''Boost Fighting-Type Moves''',
+   '''Boost Electric-Type Moves''',
+   '''Boost Water-Type Moves''',
+   '''Boost Flying-Type Moves''',
+   '''Boost Poison-Type Moves''',
+   '''Boost Ice-Type Moves''',
+   '''Boost Ghost-Type Moves''',
+   '''Boost Psychic-Type Moves''',
+   '''Boost Fire-Type Moves''',
+   '''Boost Dragon-Type Moves''',
+   '''Boost Normal-Type Moves''',
+   '''Up-Grade''',
+   '''Heal When Striking An Enemy''',
+   '''Boost Chansey's Crit.Ratio''',
+   '''Boost Ditto's DEF''',
+   '''Boost Cubone and Marowak ATK''',
+   '''Boost Farfetch'd Crit.Ratio''',
+]
+
+[[List]]
+Name = '''contestPokemonFlags'''
+0 = [
+    '''whichRankHigh''',
+    '''whichRankLow''',
+    '''Cool''',
+    '''Beauty''',
+    '''Cute''',
+    '''Smart''',
+    '''Tough''',
+]
+
+[[List]]
+Name = '''owfootprints'''
+0 = [
+    '''None''',
+    '''Feet''',
+    '''Bike''',
+]
+
+[[List]]
+Name = '''movetarget'''
+0 = [
+   '''RecentAttacker''',
+   '''UserOrSelected''',
+   '''Random''',
+   '''Both''',
+   '''Self''',
+   '''Everyone''',
+   '''Hazard''',
+]
+
+[[List]]
+Name = '''trainerStructType'''
+0 = [
+    '''Normal''',
+    '''Moves''',
+    '''Items''',
+    '''Both''',
+]
+
+[[List]]
+Name = '''decorpermissions'''
+0 = [
+   '''Normal''',
+   '''Put On Floor''',
+   '''Object''',
+   '''Place On Wall''',
+   '''Doll or Cushion''',
+]
+
+[[List]]
+Name = '''decorcategory'''
+0 = [
+   '''Desk''',
+   '''Chair''',
+   '''Plant''',
+   '''Unique''',
+   '''Mat''',
+   '''Poster''',
+   '''Doll''',
+   '''Cushion''',
+]
+
+[[List]]
+Name = '''decorshape'''
+0 = [
+   '''1x1''',
+   '''2x1''',
+   '''unused''',
+   '''1x1t''',
+   '''2x2p''',
+   '''1x1p''',
+   '''unused''',
+   '''3x1''',
+   '''2x2''',
+   '''3x2''',
+]
+
+[[List]]
+Name = '''evolutionmethods'''
+0 = [
+   '''None''',
+   '''Happiness''',
+   '''Happy Day''',
+   '''Happy Night''',
+   '''Level''',
+   '''Trade''',
+   '''Trade Item''',
+   '''Stone''',
+   '''Level High Attack''',
+   '''Level Attack matches Defense''',
+   '''Level High Defense''',
+   '''Level Odd Personality''',
+   '''Level Even Personality''',
+   '''Level And New Pokemon''',
+   '''Level But New Pokemon''',
+   '''Beauty''',
+]
+
+[[List]]
+Name = '''evbits'''
+0 = [
+   '''+1 HP''',
+   '''+2 HP''',
+   '''+1 Attack''',
+   '''+2 Attack''',
+   '''+1 Defense''',
+   '''+2 Defense''',
+   '''+1 Speed''',
+   '''+2 Speed''',
+   '''+1 Sp Attack''',
+   '''+2 Sp Attack''',
+   '''+1 Sp Defense''',
+   '''+2 Sp Defense''',
+]
+
+[[List]]
+Name = '''battletowerEvFlags'''
+0 = [
+    '''Hp''',
+    '''Attack''',
+    '''Defense''',
+    '''Speed''',
+    '''SpAttack''',
+    '''SpDefense''',
+]
+
+[[List]]
+Name = '''traineraibits'''
+0 = [
+   '''CheckBadMove''',
+   '''TryToKO''',
+   '''CheckViability''',
+   '''SetupFirstTurn''',
+   '''Risky''',
+   '''PreferStrongestMove''',
+   '''PreferBatonPass''',
+   '''DoubleBattle''',
+   '''HPAware''',
+   '''Unknown''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Ret''',
+   '''Roaming''',
+   '''Safari''',
+   '''FirstBattle''',
+]
+
+[[List]]
+Name = '''script_compare'''
+0 = [
+    '''<''',
+    '''==''',
+    '''>''',
+    '''<=''',
+    '''>=''',
+    '''!=''',
+]
+
+[[List]]
+Name = '''battle_compare'''
+0 = [
+    '''=''',
+    '''!=''',
+    '''>''',
+    '''<''',
+    '''&''',
+    '''&~''',
+]
+
+[[List]]
+Name = '''catchmap_shape'''
+0 = [
+    '''small''',
+    '''wide''',
+    '''tall''',
+    '''wider''',
+    '''taller''',
+    '''widest''',
+    '''tallest''',
+]
+
+[[List]]
+Name = '''mapnamepopuptheme'''
+0 = [
+    '''wood''',
+    '''marble''',
+    '''stone''',
+    '''brick''',
+    '''underwater''',
+    '''stone2''',
+]
+
+[[List]]
+Name = '''trainergender'''
+0 = [
+    '''male''',
+    '''female''',
+]
+
+[[List]]
+Name = '''doublebattleflag'''
+0 = [
+   '''Single''',
+   '''Double''',
+]
+
+[[List]]
+Name = '''songloopoptions'''
+0 = [
+    '''playOnce''',
+    '''loop''',
+]
+
+[[List]]
+Name = '''genderratiovalues''' 
+0 = '''100% Male'''
+31 = '''87% Male'''
+63 = '''75% Male'''
+89 = '''65% Male'''
+127 = '''50% Male & 50% Female'''
+165 = '''65% Female'''
+191 = '''75% Female'''
+223 = '''87% Female'''
+254 = '''100% Female'''
+255 = '''Genderless'''
+
+[[List]]
+Name = '''statusanimations'''
+0 = [
+   '''Poison''',
+   '''Confusion''',
+   '''Burn''',
+   '''Infatuation''',
+   '''Sleep''',
+   '''Paralysis''',
+   '''Freeze''',
+   '''Curse''',
+   '''Nightmare''',
+]
+
+# This item list isn't actually used... it works for most items, but for pokeball items, the 'type' list means something totally different.
+[[List]]
+Name = '''itemtype'''
+0 = [
+    '''Mail''',
+    '''Party_Menu''',
+    '''Field_Item''',
+    '''PokeBlock_Case''',
+    '''Bag_Menu''',
+]
+
+[[List]]
+Name = '''varmacros'''
+32780 = [
+   '''Facing''',
+   '''Ans''',
+   '''ItemID''',
+   '''LastTalked''',
+   '''ContestRank''',
+   '''ContestCategory''',
+   '''MonBoxID''',
+   '''MonBoxPosition''',
+]
+
+[[List]]
+Name = '''miscanimations'''
+0 = [
+   '''LevelUp''',
+   '''SwitchOutPlayerPokémon''',
+   '''SwitchOutEnemyPokémon''',
+   '''ThrowPokéBall''',
+   '''ThrowPokéBallWithTrainer''',
+   '''SubstituteToPokémon''',
+   '''PokémonToSubstitute''',
+]
+
+[[List]]
+Name = '''animationpan'''
+63 = '''sound_pan_target'''
+192 = '''sound_pan_attacker'''
+
+[[List]]
+Name = '''animationbanks'''
+0 = [
+   '''anim_attacker''',
+   '''anim_target''',
+   '''anim_atk_partner''',
+   '''anim_def_partner''',
+]
+
+[[List]]
+Name = '''animationbg'''
+0 = [
+   '''bg_none''',
+   '''bg_dark''',
+   '''bg_ghost''',
+   '''bg_psychic''',
+   '''bg_impact_opponent''',
+   '''bg_impact_player''',
+   '''bg_impact_contests''',
+   '''bg_drill''',
+   '''bg_drill_contests''',
+   '''bg_highspeed_opponent''',
+   '''bg_highspeed_player''',
+   '''bg_thunder''',
+   '''bg_guillotine_opponent''',
+   '''bg_guillotine_player''',
+   '''bg_guillotine_contests''',
+   '''bg_ice''',
+   '''bg_cosmic''',
+   '''bg_in_air''',
+   '''bg_sky''',
+   '''bg_sky_contests''',
+   '''bg_aurora''',
+   '''bg_fissure''',
+   '''bg_bug_opponent''',
+   '''bg_bug_player''',
+   '''bg_solar_beam_opponent''',
+   '''bg_solar_beam_player''',
+   '''bg_solar_beam_contests''',
+]
+
+[[List]]
+Name = '''messagevars'''
+0 = [
+     '''none''',
+     '''pokemonName''',
+     '''unused02''',
+     '''unused03''',
+     '''releasePokemon1''',
+     '''unused05''',
+     '''releasePokemon3''',
+     '''itemName''',
+]
+
+[[List]]
+Name = '''perstepcallbacks'''
+0 = [
+   '''Dummy''',
+   '''CollectAsh''',
+   '''FortreeBridge''',
+   '''PacifidlogBridge''',
+   '''SootopolisGymIce''',
+   '''EndTruckSequence''',
+   '''SecretBase''',
+   '''CrackedFloor''',
+]
+
+[[List]]
+Name = '''directions'''
+0 = [
+    '''0''',
+    '''South''',
+    '''North''',
+    '''West''',
+    '''East''',
+    '''Southwest''',
+    '''Southeast''',
+    '''Northwest''',
+    '''Northeast''',
+]
+
+[[List]]
+Name = '''AI_targets'''
+0 = [
+    '''target''',
+    '''user''',
+    '''targetPartner''',
+    '''userPartner''',
+]
+
+[[List]]
+Name = '''AI_type_matchups'''
+0 = '''NoEffect'''
+10 = '''DoubleNotVeryEffective'''
+20 = '''NotVeryEffective'''
+40 = '''Neutral'''
+80 = '''SuperEffective'''
+160 = '''DoubleSuperEffective'''
+
+[[List]]
+Name = '''screenfades'''
+0 = [
+   '''FromBlack''',
+   '''ToBlack''',
+   '''FromWhite''',
+   '''ToWhite''',
+]
+
+[[List]]
+Name = '''move_particles'''
+0 = [
+   '''Bone''',
+   '''SparkThunderbolt''',
+   '''Pencil''',
+   '''AirWave''',
+   '''WhiteOrb''',
+   '''Sword''',
+   '''LeechSeed''',
+   '''ExplosionCircles''',
+   '''PinkOrb(Unused)''',
+   '''Gust''',
+   '''IceCube''',
+   '''SparkParalysis''',
+   '''OrangeOrb(Unused)''',
+   '''YellowBall''',
+   '''LockOn''',
+   '''TiedBag''',
+   '''BlackSmoke''',
+   '''BlackBall''',
+   '''ConversionSquares''',
+   '''Glass(Unused)''',
+   '''OrangeHorn''',
+   '''OrangeHit''',
+   '''BlueHit''',
+   '''BlueShards(Unused)''',
+   '''ClosingFrowningEye(Unused)''',
+   '''WavingHand(Unused)''',
+   '''OrangeHitClone(Unused)''',
+   '''LeerFlash''',
+   '''BlueBurst(Unused)''',
+   '''SmallFire''',
+   '''GraySmoke''',
+   '''HPRestoredStar''',
+   '''BubbleBurst''',
+   '''SacredFire''',
+   '''SpinningFire(Unused)''',
+   '''BlastBurnFire''',
+   '''Lightning(Unused)''',
+   '''Lightning_Thunder''',
+   '''ClawSlashCurved(Unused)''',
+   '''ClawSlashDiagonal''',
+   '''ScratchCurved(Unused)''',
+   '''ScratchHorizontal(Unused)''',
+   '''BubbleBurst(Unused)''',
+   '''IceBall''',
+   '''GlassPane(Unused)''',
+   '''PinkHearts(Unused)''',
+   '''SapDripAmber(Unused)''',
+   '''SapDripPink(Unused)''',
+   '''GreenSparkle''',
+   '''Yellowsparkle''',
+   '''HumanoidFoot(Unused)''',
+   '''AnimalFoot''',
+   '''HumanoidHand(Unused)''',
+   '''NoiseLine''',
+   '''Unused0x2746''',
+   '''HumanoidFist(Unused)''',
+   '''SlamImpact''',
+   '''TealRing(Unused)''',
+   '''SmallRocks''',
+   '''BlueZ(Unused)''',
+   '''Unused0x274C''',
+   '''Gust(Unused)''',
+   '''SpinningGreenOrbs(Unused)''',
+   '''SmallLeaf''',
+   '''MetronomeFinger''',
+   '''PurplePowder''',
+   '''BrownTriangle(Unused)''',
+   '''GreenPowder''',
+   '''YellowPowder''',
+   '''PurplePowderClone(Unused)''',
+   '''LightBlueSmallSparkles''',
+   '''LightBlueLargeSparkles''',
+   '''PinkNotesAndRests''',
+   '''RubberDuck''',
+   '''Mud''',
+   '''RedAlert''',
+   '''WideBlueFire(Unused)''',
+   '''BlueFire(Unused)''',
+   '''SmallShockAndOrbs(Unused)''',
+   '''LargeShockAndOrbs''',
+   '''Bell(Unused)''',
+   '''PinkGlove(Unused)''',
+   '''BlueLines(Unused)''',
+   '''OrangeImpact(Unused)''',
+   '''LightBlueImpact(Unused)''',
+   '''LockOn(Unused)''',
+   '''Exhale''',
+   '''FrustrationMark''',
+   '''TinySnowball(Unused)''',
+   '''LongVine(Unused)''',
+   '''Dagger(Unused)''',
+   '''Clapping(Unused)''',
+   '''MagentaTube(Unused)''',
+   '''AmnesiaQuestionMark''',
+   '''String(Unused)''',
+   '''SmallPencil(Unused)''',
+   '''Petal(Unused)''',
+   '''BentSpoon''',
+   '''Cobweb(Unused)''',
+   '''BottleOfMilk''',
+   '''PayDayCoin''',
+   '''GreenCrackedEgg(Unused)''',
+   '''GreenHatchingEgg(Unused)''',
+   '''WhiteEgg(Unused)''',
+   '''NarrowFangs(Unused)''',
+   '''LargeExplosion(Unused)''',
+   '''SmallExplosion(Unused)''',
+   '''WaterDroplet(Unused)''',
+   '''WaterDropletBurst(Unused)''',
+   '''SmallSeed(Unused)''',
+   '''Sprout(Unused)''',
+   '''RustedNail(Unused)''',
+   '''PlasmaBall(Unused)''',
+   '''WaterColumn(Unused)''',
+   '''Mud(Unused)''',
+   '''Raining''',
+   '''FurySwipes(Unused)''',
+   '''CurvedVine(Unused)''',
+   '''Teeth(Unused)''',
+   '''ShadowBone(Unused)''',
+   '''WhiteBag(Unused)''',
+   '''Unused0x2789''',
+   '''PurpleCoral(Unused)''',
+   '''PurpleDroplet(Unused)''',
+   '''MediumShockAndOrbs(Unused)''',
+   '''ClosingEye(Unused)''',
+   '''GrayOrb(Unused)''',
+   '''SubstituteDoll''',
+   '''LargeWhirlwind(Unused)''',
+   '''SmallWhirlwind(Unused)''',
+   '''MediumExplosion(Unused)''',
+   '''ExplosionCircles(Unused)''',
+   '''HumanoidTongue(Unused)''',
+   '''LightGraySmokePuff(Unused)''',
+   '''LightGraySmokeCloud(Unused)''',
+   '''Hit''',
+   '''TinyHit''',
+   '''ScratchCurved''',
+   '''Cut''',
+   '''LongTeeth''',
+   '''RainbowRing''',
+   '''IceCrystals''',
+   '''IceSpikes''',
+   '''HandsAndFeet''',
+   '''WhiteMist''',
+   '''Clamp''',
+   '''MediumBubble''',
+   '''SolarBeamOrbs''',
+   '''WaterHit''',
+   '''WaterOrb''',
+   '''SludgeAndPoisonBubble''',
+   '''ToxicBubble''',
+   '''Spikes''',
+   '''YellowHorn''',
+   '''RazorWind''',
+   '''SmallBubble''',
+   '''RoundShadow''',
+   '''Sunlight''',
+   '''Spore''',
+   '''Flower''',
+   '''RazorLeaf''',
+   '''SpikeCannonSpike''',
+   '''Whirlwind''',
+   '''GoldRing''',
+   '''PurpleRing''',
+   '''BlueRing''',
+   '''GreenScreen''',
+   '''BlueScreen''',
+   '''RedScreen''',
+   '''GrayScreen''',
+   '''GoldScreen''',
+   '''BlackBall2''',
+   '''PoisonGas''',
+   '''ThunderWave''',
+   '''SwiftStar''',
+   '''WhiteEgg''',
+   '''ShadowBall''',
+   '''Tongue''',
+   '''VoidLines''',
+   '''BendyString''',
+   '''WebThread''',
+   '''SpiderWeb''',
+   '''LightBulb(Unused)''',
+   '''Slash''',
+   '''FocusEnergy''',
+   '''SharpenBall''',
+   '''Tendrils''',
+   '''OpenedEye''',
+   '''WhiteShadow''',
+   '''TealAlert''',
+   '''OpeningEye''',
+   '''WhiteHalo''',
+   '''FangAttack''',
+   '''GlowingHand''',
+   '''Moon''',
+   '''MoonlightSparkle''',
+   '''Spiral''',
+   '''GrayZ''',
+   '''Explosion''',
+   '''GrayNail''',
+   '''GhostlySpirit''',
+   '''EruptionRock''',
+   '''BreakingEgg''',
+   '''LargeThinRing''',
+   '''PunchImpact(Unused)''',
+   '''Bell''',
+   '''RedAndYellowNotesAndRests''',
+   '''SpeedDust''',
+   '''TornMetal''',
+   '''ThoughtBubble''',
+   '''MagentaHeart''',
+   '''LimeGreenOrbs''',
+   '''CircleOfLight''',
+   '''Electricity''',
+   '''TauntFinger''',
+   '''MovementWaves''',
+   '''RedHeart''',
+   '''RedOrb''',
+   '''EyeSparkle''',
+   '''PinkHeart''',
+   '''SweetKissAngel''',
+   '''LovelyKissDevil''',
+   '''Swipe''',
+   '''Roots''',
+   '''WhiteBag''',
+   '''UproarNote''',
+   '''PokéBall''',
+   '''RedSpotlight''',
+   '''TanZ''',
+   '''RapidSpin''',
+   '''TriAttackTriangle''',
+   '''WillOWispOrb''',
+   '''WillOWispFire''',
+   '''GoldStars''',
+   '''EclipsingOrb''',
+   '''GrayOrbs''',
+   '''BlueOrbs''',
+   '''RedOrbs''',
+   '''Petal''',
+   '''PainSplit''',
+   '''Confetti''',
+   '''LightGreenStar''',
+   '''PinkCloud''',
+   '''TinyWaterDroplet''',
+   '''GuardRing''',
+   '''PurpleScratch''',
+   '''RevengeSwipe''',
+   '''LightPinkHand''',
+   '''SmallRedEye''',
+   '''DragonDanceOrb''',
+   '''GiantRedX''',
+   '''ExperienceOrb''',
+   '''PawPrint''',
+   '''PurpleFire''',
+   '''BarrageBall''',
+   '''SmellingSaltsEffect''',
+   '''SuperpowerEffect''',
+   '''FlatRock''',
+   '''MagnifyingGlass''',
+   '''MudShotOrb''',
+   '''MetalSoundWaves''',
+   '''FlyingDirt''',
+   '''IcicleSpear''',
+   '''Hail''',
+   '''GlowingRedOrb''',
+   '''GlowingGreenOrb''',
+   '''GreenNeedle''',
+   '''WhiteCircleOfLight''',
+   '''GlowingBlueOrb''',
+   '''PokéBlock''',
+   '''WhiteFeather''',
+   '''GraySparkle''',
+   '''Splash''',
+   '''WaterBead''',
+   '''GemTopLeft(Unused)''',
+   '''GemCenterBottom(Unused)''',
+   '''GemRight(Unused)''',
+   '''KnockOffHit''',
+   '''Recycling''',
+   '''Particles(Unused)''',
+   '''Protect''',
+   '''DirtMound''',
+   '''ElectricOrbs''',
+   '''WeatherBall''',
+   '''SkyAttackBird''',
+   '''XImpact''',
+   '''FalseSwipeHit''',
+   '''WhipHit''',
+   '''WhiteRing''',
+]
+
+[[List]]
+Name = '''MapLayerOptions'''
+0 = [
+   '''Normal''',
+   '''Covered''',
+   '''Split''',
+]
+
+[[List]]
+Name = '''MapTerrainOptions'''
+0 = [
+   '''Normal''',
+   '''Grass''',
+   '''Water''',
+]
+
+[[List]]
+Name = '''MapEncounterOptions'''
+0 = [
+   '''Normal''',
+   '''Grass''',
+   '''Water''',
+]
+
+[[List]]
+Name = '''MapSignpostKindOptions'''
+0 = [
+   '''Facing Any''',
+   '''Facing North''',
+   '''Facing South''',
+   '''Facing East''',
+   '''Facing West''',
+   '''Hidden Item (unused 1)''',
+   '''Hidden Item (unused 2)''',
+   '''Hidden Item''',
+   '''Secret Base''',
+]
+
+[[List]]
+Name = '''allowcanceloptions'''
+0 = [
+   '''AllowCancel''',
+   '''ForbidCancel''',
+]
+
+[[List]]
+Name = '''bufferNames'''
+0 = [
+   '''buffer1''',
+   '''buffer2''',
+   '''buffer3''',
+]
+
+[[List]]
+Name = '''bs_battlers'''
+0 = [
+   '''target''',
+   '''attacker''',
+   '''effect_battler''',
+   '''fainted''',
+   '''attacker_with_partner''',
+   '''fainted_link_multiple_1''',
+   '''fainted_link_multiple_2''',
+   '''battler_0''',
+   '''attacker_side''',
+   '''not_attacker_side''',
+   '''scripting''',
+   '''player1''',
+   '''opponent1''',
+   '''player2''',
+   '''opponent2''',
+]
+
+[[List]]
+Name = '''bs_stats'''
+0 = [
+   '''hp''',
+   '''attack''',
+   '''defense''',
+   '''speed''',
+   '''spAttack''',
+   '''spDefense''',
+   '''accuracy''',
+   '''evasion''',
+]
+
+[[List]]
+Name = '''stat_stages'''
+0 = [
+   '''negative_6''',
+   '''negative_5''',
+   '''negative_4''',
+   '''negative_3''',
+   '''negative_2''',
+   '''negative_1''',
+   '''default''',
+   '''positive_1''',
+   '''positive_2''',
+   '''positive_3''',
+   '''positive_4''',
+   '''positive_5''',
+   '''positive_6''',
+]
+
+[[List]]
+Name = '''bs_moveeffects'''
+1 = [
+   '''Sleep''',
+   '''Poison''',
+   '''Burn''',
+   '''Freeze''',
+   '''Paralyze''',
+   '''BadPoison''',
+   '''Confusion''',
+   '''Flinch''',
+   '''BurnFreezeParalyze''',
+   '''2to5turnsAndAllNoSleep''',
+   '''Money''',
+   '''ChargeFirstTurn''',
+   '''2to5turnTrap''',
+   '''25Recoil''',
+   '''RaiseAtk1''',
+   '''RaiseDef1''',
+   '''RaiseSpeed1''',
+   '''RaiseSpAtk1''',
+   '''RaiseSpDef1''',
+   '''RaiseAcc1''',
+   '''RaiseEvasion1''',
+   '''LowerAtk1''',
+   '''LowerDef1''',
+   '''LowerSpeed1''',
+   '''LowerSpAtk1''',
+   '''LowerSpDef1''',
+   '''LowerAcc1''',
+   '''LowerEvasion1''',
+   '''RechargeNextTurn''',
+   '''RaiseAtk1IfDamaged''',
+   '''StealItem''',
+   '''NoSwitch''',
+   '''Nightmare''',
+   '''RaiseAllStats1''',
+   '''RemoveBindSeedSpikes''',
+   '''RemoveParalyze''',
+   '''LowerAtk1Def1''',
+   '''33Recoil''',
+   '''RaiseAtk2''',
+   '''RaiseDef2''',
+   '''RaiseSpeed2''',
+   '''RaiseSpAtk2''',
+   '''RaiseSpDef2''',
+   '''RaiseAcc2''',
+   '''RaiseEvasion2''',
+   '''LowerAtk2''',
+   '''LowerDef2''',
+   '''LowerSpeed2''',
+   '''LowerSpAtk2''',
+   '''LowerSpDef2''',
+   '''LowerAcc2''',
+   '''LowerEvasion2''',
+   '''2to3turnsThenConfused''',
+   '''KnockOff''',
+]
+65 = [
+   '''SelfSleep''',
+   '''SelfPoison''',
+   '''SelfBurn''',
+   '''SelfFreeze''',
+   '''SelfParalyze''',
+   '''SelfBadPoison''',
+   '''SelfConfusion''',
+   '''SelfFlinch''',
+   '''SelfBurnFreezeParalyze''',
+   '''Self2to5turnsAndAllNoSleep''',
+   '''SelfMoney''',
+   '''SelfChargeFirstTurn''',
+   '''Self2to5turnTrap''',
+   '''Self25Recoil''',
+   '''SelfRaiseAtk1''',
+   '''SelfRaiseDef1''',
+   '''SelfRaiseSpeed1''',
+   '''SelfRaiseSpAtk1''',
+   '''SelfRaiseSpDef1''',
+   '''SelfRaiseAcc1''',
+   '''SelfRaiseEvasion1''',
+   '''SelfLowerAtk1''',
+   '''SelfLowerDef1''',
+   '''SelfLowerSpeed1''',
+   '''SelfLowerSpAtk1''',
+   '''SelfLowerSpDef1''',
+   '''SelfLowerAcc1''',
+   '''SelfLowerEvasion1''',
+   '''SelfRechargeNextTurn''',
+   '''SelfRaiseAtk1IfDamaged''',
+   '''SelfStealItem''',
+   '''SelfNoSwitch''',
+   '''SelfNightmare''',
+   '''SelfRaiseAllStats1''',
+   '''SelfRemoveBindSeedSpikes''',
+   '''SelfRemoveParalyze''',
+   '''SelfLowerAtk1Def1''',
+   '''Self33Recoil''',
+   '''SelfRaiseAtk2''',
+   '''SelfRaiseDef2''',
+   '''SelfRaiseSpeed2''',
+   '''SelfRaiseSpAtk2''',
+   '''SelfRaiseSpDef2''',
+   '''SelfRaiseAcc2''',
+   '''SelfRaiseEvasion2''',
+   '''SelfLowerAtk2''',
+   '''SelfLowerDef2''',
+   '''SelfLowerSpeed2''',
+   '''SelfLowerSpAtk2''',
+   '''SelfLowerSpDef2''',
+   '''SelfLowerAcc2''',
+   '''SelfLowerEvasion2''',
+   '''Self2to3turnsThenConfused''',
+   '''SelfKnockOff''',
+]
+129 = [
+   '''SleepCertain''',
+   '''PoisonCertain''',
+   '''BurnCertain''',
+   '''FreezeCertain''',
+   '''ParalyzeCertain''',
+   '''BadPoisonCertain''',
+   '''ConfusionCertain''',
+   '''FlinchCertain''',
+   '''BurnFreezeParalyzeCertain''',
+   '''2to5turnsAndAllNoSleepCertain''',
+   '''MoneyCertain''',
+   '''ChargeFirstTurnCertain''',
+   '''2to5turnTrapCertain''',
+   '''25RecoilCertain''',
+   '''RaiseAtk1Certain''',
+   '''RaiseDef1Certain''',
+   '''RaiseSpeed1Certain''',
+   '''RaiseSpAtk1Certain''',
+   '''RaiseSpDef1Certain''',
+   '''RaiseAcc1Certain''',
+   '''RaiseEvasion1Certain''',
+   '''LowerAtk1Certain''',
+   '''LowerDef1Certain''',
+   '''LowerSpeed1Certain''',
+   '''LowerSpAtk1Certain''',
+   '''LowerSpDef1Certain''',
+   '''LowerAcc1Certain''',
+   '''LowerEvasion1Certain''',
+   '''RechargeNextTurnCertain''',
+   '''RaiseAtk1IfDamagedCertain''',
+   '''StealItemCertain''',
+   '''NoSwitchCertain''',
+   '''NightmareCertain''',
+   '''RaiseAllStats1Certain''',
+   '''RemoveBindSeedSpikesCertain''',
+   '''RemoveParalyzeCertain''',
+   '''LowerAtk1Def1Certain''',
+   '''33RecoilCertain''',
+   '''RaiseAtk2Certain''',
+   '''RaiseDef2Certain''',
+   '''RaiseSpeed2Certain''',
+   '''RaiseSpAtk2Certain''',
+   '''RaiseSpDef2Certain''',
+   '''RaiseAcc2Certain''',
+   '''RaiseEvasion2Certain''',
+   '''LowerAtk2Certain''',
+   '''LowerDef2Certain''',
+   '''LowerSpeed2Certain''',
+   '''LowerSpAtk2Certain''',
+   '''LowerSpDef2Certain''',
+   '''LowerAcc2Certain''',
+   '''LowerEvasion2Certain''',
+   '''2to3turnsThenConfusedCertain''',
+   '''KnockOffCertain''',
+]
+193 = [
+   '''SelfSleepCertain''',
+   '''SelfPoisonCertain''',
+   '''SelfBurnCertain''',
+   '''SelfFreezeCertain''',
+   '''SelfParalyzeCertain''',
+   '''SelfBadPoisonCertain''',
+   '''SelfConfusionCertain''',
+   '''SelfFlinchCertainCertain''',
+   '''SelfBurnFreezeParalyzeCertain''',
+   '''Self2to5turnsAndAllNoSleepCertain''',
+   '''SelfMoneyCertain''',
+   '''SelfChargeFirstTurnCertain''',
+   '''Self2to5turnTrapCertain''',
+   '''Self25RecoilCertain''',
+   '''SelfRaiseAtk1Certain''',
+   '''SelfRaiseDef1Certain''',
+   '''SelfRaiseSpeed1Certain''',
+   '''SelfRaiseSpAtk1Certain''',
+   '''SelfRaiseSpDef1Certain''',
+   '''SelfRaiseAcc1Certain''',
+   '''SelfRaiseEvasion1Certain''',
+   '''SelfLowerAtk1Certain''',
+   '''SelfLowerDef1Certain''',
+   '''SelfLowerSpeed1Certain''',
+   '''SelfLowerSpAtk1Certain''',
+   '''SelfLowerSpDef1Certain''',
+   '''SelfLowerAcc1Certain''',
+   '''SelfLowerEvasion1Certain''',
+   '''SelfRechargeNextTurnCertain''',
+   '''SelfRaiseAtk1IfDamagedCertain''',
+   '''SelfStealItemCertain''',
+   '''SelfNoSwitchCertain''',
+   '''SelfNightmareCertain''',
+   '''SelfRaiseAllStats1Certain''',
+   '''SelfRemoveBindSeedSpikesCertain''',
+   '''SelfRemoveParalyzeCertain''',
+   '''SelfLowerAtk1Def1Certain''',
+   '''Self33RecoilCertain''',
+   '''SelfRaiseAtk2Certain''',
+   '''SelfRaiseDef2Certain''',
+   '''SelfRaiseSpeed2Certain''',
+   '''SelfRaiseSpAtk2Certain''',
+   '''SelfRaiseSpDef2Certain''',
+   '''SelfRaiseAcc2Certain''',
+   '''SelfRaiseEvasion2Certain''',
+   '''SelfLowerAtk2Certain''',
+   '''SelfLowerDef2Certain''',
+   '''SelfLowerSpeed2Certain''',
+   '''SelfLowerSpAtk2Certain''',
+   '''SelfLowerSpDef2Certain''',
+   '''SelfLowerAcc2Certain''',
+   '''SelfLowerEvasion2Certain''',
+   '''Self2to3turnsThenConfusedCertain''',
+   '''SelfKnockOffCertain''',
+]
+251 = '''LowerSpAtk2SelfCertain'''
+
+[[List]]
+Name = '''bs_statchanger'''
+17 = [
+   '''RaiseAtk1''',
+   '''RaiseDef1''',
+   '''RaiseSpeed1''',
+   '''RaiseSpAtk1''',
+   '''RaiseSpDef1''',
+   '''RaiseAcc1''',
+   '''RaiseEvasion1''',
+]
+33 = [
+   '''RaiseAtk2''',
+   '''RaiseDef2''',
+   '''RaiseSpeed2''',
+   '''RaiseSpAtk2''',
+   '''RaiseSpDef2''',
+   '''RaiseAcc2''',
+   '''RaiseEvasion2''',
+]
+145 = [
+   '''LowerAtk1''',
+   '''LowerDef1''',
+   '''LowerSpeed1''',
+   '''LowerSpAtk1''',
+   '''LowerSpDef1''',
+   '''LowerAcc1''',
+   '''LowerEvasion1''',
+]
+161 = [
+   '''LowerAtk2''',
+   '''LowerDef2''',
+   '''LowerSpeed2''',
+   '''LowerSpAtk2''',
+   '''LowerSpDef2''',
+   '''LowerAcc2''',
+   '''LowerEvasion2''',
+]
+
+[[List]]
+Name = '''statanimation'''
+2 = '''Atk'''
+4 = '''Def'''
+6 = '''Atk|Def'''
+8 = '''Speed'''
+10 = '''Atk|Speed'''
+12 = '''Def|Speed'''
+14 = '''Atk|Def|Speed'''
+16 = '''SpAtk'''
+18 = '''Atk|SpAtk'''
+20 = '''Def|SpAtk'''
+22 = '''Atk|Def|SpAtk'''
+24 = '''Speed|SpAtk'''
+26 = '''Atk|Speed|SpAtk'''
+28 = '''Def|Speed|SpAtk'''
+30 = '''Atk|Def|Speed|SpAtk'''
+32 = '''SpDef'''
+34 = '''Atk|SpDef'''
+36 = '''Def|SpDef'''
+38 = '''Atk|Def|SpDef'''
+40 = '''Speed|SpDef'''
+42 = '''Atk|Speed|SpDef'''
+44 = '''Def|Speed|SpDef'''
+46 = '''Atk|Def|Speed|SpDef'''
+48 = '''SpAtk|SpDef'''
+50 = '''Atk|SpAtk|SpDef'''
+52 = '''Def|SpAtk|SpDef'''
+54 = '''Atk|Def|SpAtk|SpDef'''
+56 = '''Speed|SpAtk|SpDef'''
+58 = '''Atk|Speed|SpAtk|SpDef'''
+60 = '''Def|Speed|SpAtk|SpDef'''
+62 = '''Atk|Def|Speed|SpAtk|SpDef'''
+64 = '''Acc'''
+66 = '''Atk|Acc'''
+68 = '''Def|Acc'''
+70 = '''Atk|Def|Acc'''
+72 = '''Speed|Acc'''
+74 = '''Atk|Speed|Acc'''
+76 = '''Def|Speed|Acc'''
+78 = '''Atk|Def|Speed|Acc'''
+80 = '''SpAtk|Acc'''
+82 = '''Atk|SpAtk|Acc'''
+84 = '''Def|SpAtk|Acc'''
+86 = '''Atk|Def|SpAtk|Acc'''
+88 = '''Speed|SpAtk|Acc'''
+90 = '''Atk|Speed|SpAtk|Acc'''
+92 = '''Def|Speed|SpAtk|Acc'''
+94 = '''Atk|Def|Speed|SpAtk|Acc'''
+96 = '''SpDef|Acc'''
+98 = '''Atk|SpDef|Acc'''
+100 = '''Def|SpDef|Acc'''
+102 = '''Atk|Def|SpDef|Acc'''
+104 = '''Speed|SpDef|Acc'''
+106 = '''Atk|Speed|SpDef|Acc'''
+108 = '''Def|Speed|SpDef|Acc'''
+110 = '''Atk|Def|Speed|SpDef|Acc'''
+112 = '''SpAtk|SpDef|Acc'''
+114 = '''Atk|SpAtk|SpDef'''
+116 = '''Def|SpAtk|SpDef'''
+118 = '''Atk|Def|SpAtk|SpDef'''
+120 = '''Speed|SpAtk|SpDef|Acc'''
+122 = '''Atk|Speed|SpAtk|SpDef|Acc'''
+124 = '''Def|Speed|SpAtk|SpDef|Acc'''
+126 = '''Atk|Def|Speed|SpAtk|SpDef|Acc'''

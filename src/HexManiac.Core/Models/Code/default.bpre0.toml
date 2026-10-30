@@ -1,0 +1,50 @@
+﻿# BPRE0
+
+[[NamedAnchors]]
+Name = '''scripts.newgame.starters.left'''
+Address = 0x169BB5
+Format = '''[species1:data.pokemon.names]scripts.newgame.starters.middle'''
+
+[[NamedAnchors]]
+Name = '''scripts.newgame.starters.middle'''
+Address = 0x169D82
+Format = '''[species2:data.pokemon.names]1'''
+
+[[NamedAnchors]]
+Name = '''scripts.newgame.starters.right'''
+Address = 0x169DB8
+Format = '''[species3:data.pokemon.names]scripts.newgame.starters.middle'''
+
+[[List]]
+Name = '''onland'''
+0 = '''NotLand'''
+1 = '''OnLand'''
+
+[[List]]
+Name = '''onwater'''
+0 = '''NotWater'''
+1 = '''OnWater'''
+
+[[OffsetPointer]]
+Address = 0x114DD8
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x115068
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x12DF5C
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x0C6D9C
+Offset = 0x000010
+
+[[OffsetPointer]]
+Address = 0x0BFCA4
+Offset = -8
+
+[[OffsetPointer]]
+Address = 0x0BFCC4
+Offset = -8

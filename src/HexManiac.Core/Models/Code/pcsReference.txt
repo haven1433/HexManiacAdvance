@@ -1,0 +1,234 @@
+﻿
+0x00 = " ÀÁÂÇÈÉÊËÌ"
+0x0B = "ÎÏÒÓÔ"
+0x10 = "ŒÙÚÛÑßàá"
+0x19 = "çèéêëì"
+0x20 = "îïòóôœùúûñºª"
+
+0x2C = \e
+0x2D = &
+0x2E = \+
+0x34 = \Lv
+0x35 = "=;"
+0x48 = \r
+
+0x51 = ¿
+0x52 = ¡
+0x53 = \pk
+0x54 = \mn
+0x55 = \Po
+0x56 = \Ke
+0x57 = \Bl
+0x58 = \Lo
+0x59 = \Ck
+0x5A = "Í%()"
+
+0x68 = â
+0x6F = í
+
+0x79 = \au   # arrow up
+0x7A = \ad   # arrow down
+0x7B = \al   # arrow left
+0x7C = \ar   # arrow right
+
+0x84 = \d
+0x85 = \<
+0x86 = \>
+
+0xA1 = "0123456789"
+0xAB = "!?.-‧"
+
+0xB0 = \.    # ellipses
+0xB1 = \qo   # quote open
+0xB2 = \qc   # quote close
+0xB3 = ‘
+0xB4 = '
+0xB5 = \sm   # symbol male
+0xB6 = \sf   # symbol female
+0xB7 = "$,*/"
+0xBB = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+0xD5 = "abcdefghijklmnopqrstuvwxyz"
+0xF0 = ":ÄÖÜäöü"
+
+0xF7 = \?
+0xF8 = \btn   # button escape: next byte is read as a button ID. order is [A, B, L, R, START, SELECT, UP, DOWN, LEFT, RIGHT, UP_DOWN, LEFT_RIGHT, DPAD]
+0xF9 = \9
+0xFC = \CC    # control code, used for lots of stuff, see below
+0xFD = \\     # standard escape character: next byte is raw
+0xFF = "
+
+0xFE = \n     # standard newline
+0xFA = \l     # line feed: scroll one line once the player hits a button
+0xFB = \pn    # paragraph feed: clear text once the player hits a button
+
+
+
+# different control codes have a different number of byte arguments
+# most functions have 1 variable
+# functions higher than 0x14 have 0 variables
+# anything else is listed here
+CC_04 = 3 # text shadow highlight
+CC_09 = 0 # pause                 -> no args
+CC_0A = 0 # wait for sound effect -> no args
+CC_0B = 2 # play background music
+CC_10 = 2 # play sound effects
+
+
+
+# macros
+
+[player]       FD 01
+[buffer1]      FD 02  # These buffers can store various data in string form.
+[buffer2]      FD 03  # Used with buffernumber, bufferPokemon, etc.
+[buffer3]      FD 04
+[rival]        FD 06
+[resetfont]    FC 07
+[pause]        FC 09  # pause until a button is pressed
+[wait_sound]   FC 0A  # wait for sound effect to finish
+[escape]       FC 0C
+[shift_right]  FC 0D  # a nop in Ruby/Sapphire
+[shift_down]   FC 0E
+[fill_window]  FC 0F  # clear window text lines in Ruby/Sapphire
+[skip]         FC 12
+[japanese]     FC 15
+[latin]        FC 16
+
+[pause_music]  FC 17
+[resume_music] FC 18
+
+[up]                     F9 00
+[down]                   F9 01
+[left]                   F9 02
+[right]                  F9 03
+[plus]                   F9 04
+[LV]                     F9 05
+[PP]                     F9 06
+[ID]                     F9 07
+[No]                     F9 08
+[_]                      F9 09
+[1]                      F9 0A
+[2]                      F9 0B
+[3]                      F9 0C
+[4]                      F9 0D
+[5]                      F9 0E
+[6]                      F9 0F
+[7]                      F9 10
+[8]                      F9 11
+[9]                      F9 12
+[left_parenthesis]       F9 13
+[right_parenthesis]      F9 14
+[super_effective]        F9 15
+[not_very_effective]     F9 16
+[not_effective]          F9 17
+[down_bar]               F9 D0
+[vertical_bar]           F9 D1
+[up_bar]                 F9 D2
+[tilde]                  F9 D3
+[left_parenthesis_bold]  F9 D4
+[right_parenthesis_bold] F9 D5
+[subset_of]              F9 D6
+[greater_than_short]     F9 D7
+[left_eye]               F9 D8
+[right_eye]              F9 D9
+[commercial_at]          F9 DA
+[semicolon]              F9 DB
+[bold_plus_1]            F9 DC
+[bold_minus]             F9 DD
+[bold_equals]            F9 DE
+[dazed]                  F9 DF
+[tongue]                 F9 E0
+[delta]                  F9 E1
+[acute]                  F9 E2
+[grave]                  F9 E3
+[circle]                 F9 E4
+[triangle]               F9 E5
+[square]                 F9 E6
+[heart]                  F9 E7
+[moon]                   F9 E8
+[eighth_note]            F9 E9
+[half_circle]            F9 EA
+[thunderbolt]            F9 EB
+[leaf]                   F9 EC
+[fire]                   F9 ED
+[teardrop]               F9 EE
+[left_wing]              F9 EF
+[right_wing]             F9 F0
+[rose]                   F9 F1
+[unknown_F2]             F9 F2
+[unknown_F3]             F9 F3
+[frustration_mark]       F9 F4
+[sad]                    F9 F5
+[happy]                  F9 F6
+[angry]                  F9 F7
+[excited]                F9 F8
+[joyful]                 F9 F9
+[maliciously_happy]      F9 FA
+[upset]                  F9 FB
+[straight_face]          F9 FC
+[surprised]              F9 FD
+[outraged]               F9 FE
+
+# macros for colors
+
+@!game(BPRE_BPGE)
+[white]        FC 01 00
+[white2]       FC 01 01
+[black]        FC 01 02
+[grey]         FC 01 03
+[gray]         FC 01 03
+[red]          FC 01 04
+[orange]       FC 01 05
+[green]        FC 01 06
+[lightgreen]   FC 01 07
+[blue]         FC 01 08
+[lightblue]    FC 01 09
+[white3]       FC 01 0A
+[lightblue2]   FC 01 0B
+[cyan]         FC 01 0C
+[lightblue3]   FC 01 0D
+[navyblue]     FC 01 0E
+[darknavyblue] FC 01 0F
+
+@!game(AXVE_AXPE)
+[transp]       FC 01 00
+[darkgrey]     FC 01 01
+[darkgray]     FC 01 01
+[red]          FC 01 02
+[lightgreen]   FC 01 03
+[blue]         FC 01 04
+[yellow]       FC 01 05
+[cyan]         FC 01 06
+[magenta]      FC 01 07
+[grey]         FC 01 08
+[gray]         FC 01 08
+[black]        FC 01 09
+[black2]       FC 01 0A
+[lightgrey]    FC 01 0B
+[lightgray]    FC 01 0B
+[white]        FC 01 0C
+[skyblue]      FC 01 0D
+[darkskyblue]  FC 01 0E
+[white2]       FC 01 0F
+
+@!game(BPEE)
+[white]        FC 01 00
+[white2]       FC 01 01
+[darkgrey]     FC 01 02
+[darkgray]     FC 01 02
+[grey]         FC 01 03
+[gray]         FC 01 03
+[red]          FC 01 04
+[orange]       FC 01 05
+[green]        FC 01 06
+[lightgreen]   FC 01 07
+[blue]         FC 01 08
+[lightblue]    FC 01 09
+[white3]       FC 01 0A
+[grey2]        FC 01 0B
+[gray2]        FC 01 0B
+[white4]       FC 01 0C
+[limegreen]    FC 01 0D
+[aqua]         FC 01 0E
+[navy]         FC 01 0F
+
+

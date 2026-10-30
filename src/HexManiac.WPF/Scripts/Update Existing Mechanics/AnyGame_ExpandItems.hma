@@ -1,0 +1,26 @@
+﻿﻿# Add support for expanding items
+# After using this, any item after the pokeballs can have item effects.
+
+
+# remove item effect limiters
+@!game(AXVE0_AXPE0_AXVE1_AXPE1)     @03E2F8 00 2C 37 DB
+@!game(BPRE0_BPGE0)                 @04152C @!game(BPRE1_BPGE1)                 @041540 @!game(BPRE0_BPGE0_BPRE1_BPGE1) 00 2C 3B DB
+@!game(BPRE0_BPGE0)                 @042508 @!game(BPRE1_BPGE1)                 @04251C @!game(BPRE0_BPGE0_BPRE1_BPGE1) 00 2C 35 DB
+@!game(BPRE0) @126C76 @!game(BPGE0) @126C4E @!game(BPRE1) @126CEE @!game(BPGE1) @126CC6 @!game(BPRE0_BPGE0_BPRE1_BPGE1) 00 2A 00 DA
+@!game(BPEE0) @1B7CFA 00 2A 00 DC   @06BE74 00 2C 3B DB
+
+
+# remove item limiter
+@!game(BPEE0) @1B001A C0
+@!game(AXVE0_AXPE0) @0A98BC @!game(AXVE1_AXPE1) @0A98DC
+@!game(AXVE0_AXPE0_AXVE1_AXPE1) 70 47
+@!game(BPRE0) @09A8A4 @!game(BPGE0) @09A878 @!game(BPRE1) @09A8B8 @!game(BPGE1) @09A88C
+@!game(BPEE0) @0D745C
+@!game(BPRE0_BPGE0_BPRE1_BPGE1_BPEE0) ^thumb.item.SanitizeItemId .thumb
+  r1 = 375
+  if r0 >= r1 {
+    r0 = 0
+  }
+  bx lr
+.end
+@thumb.item.SanitizeItemId+C :data.items.count

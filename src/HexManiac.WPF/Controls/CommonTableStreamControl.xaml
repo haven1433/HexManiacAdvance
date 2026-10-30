@@ -1,0 +1,88 @@
+﻿<UserControl x:Class="HavenSoft.HexManiac.WPF.Controls.CommonTableStreamControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:hsi="clr-namespace:HavenSoft.HexManiac.WPF.Implementations"
+             xmlns:hmc="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
+   <UserControl.Resources>
+      <hsi:BooleanConverter x:Key="InverseBoolToVisibility" True="Collapsed" False="Visible" />
+   </UserControl.Resources>
+   <StackPanel>
+      <DockPanel Visibility="{Binding CanRepoint, Converter={StaticResource BoolToVisibility}}">
+
+         <Grid DockPanel.Dock="Right">
+            <hmc:AngleButton Content="Repoint this one" Command="{Binding Repoint}" Direction="Right"
+                  Visibility="{Binding CanRepointAll, Converter={StaticResource InverseBoolToVisibility}}">
+               <hmc:AngleButton.ToolTip>
+                  <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                     <TextBlock TextAlignment="Left">
+                        Make a copy of the data and <LineBreak/>
+                        change this pointer to reference it. <LineBreak/>
+                        Other pointers will remain unchanged.
+                     </TextBlock>
+                  </ToolTip>
+               </hmc:AngleButton.ToolTip>
+            </hmc:AngleButton>
+            <Menu Visibility="{Binding CanRepointAll, Converter={StaticResource BoolToVisibility}}" Background="{DynamicResource Background}">
+               <Menu.Style>
+                  <Style TargetType="Menu" BasedOn="{StaticResource {x:Type Menu}}">
+                     <Setter Property="BorderThickness" Value="1"/>
+                     <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                           <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                        </Trigger>
+                     </Style.Triggers>
+                  </Style>
+               </Menu.Style>
+               <hmc:AngleMenuItem Header="Repoint" Margin="0,1,0,0" Background="{DynamicResource Backlight}" Direction="Right">
+                  <MenuItem Header="This One" Command="{Binding Repoint}">
+                     <MenuItem.ToolTip>
+                        <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                           <TextBlock TextAlignment="Left">
+                              Make a copy of the data and <LineBreak/>
+                              change this pointer to reference it. <LineBreak/>
+                              Other pointers will remain unchanged.
+                           </TextBlock>
+                        </ToolTip>
+                     </MenuItem.ToolTip>
+                  </MenuItem>
+                  <MenuItem Header="All" Command="{Binding RepointAll}">
+                     <MenuItem.ToolTip>
+                        <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                           <TextBlock TextAlignment="Left">
+                              Make several copies of the data and change <LineBreak/>
+                              each pointer to reference a different one. <LineBreak/>
+                              The earliest pointer will remain unchanged.
+                           </TextBlock>
+                        </ToolTip>
+                     </MenuItem.ToolTip>
+                  </MenuItem>
+               </hmc:AngleMenuItem>
+            </Menu>
+         </Grid>
+         
+         <StackPanel VerticalAlignment="Center">
+            <TextBlock Foreground="{DynamicResource Secondary}" FontStyle="Italic" TextWrapping="Wrap"
+               Visibility="{Binding HasMultipleUses, Converter={StaticResource BoolToVisibility}}">
+               <Run Text="This is used by"/>
+               <Run Foreground="{DynamicResource Accent}" Text="{Binding UsageCount, Mode=OneWay}"/>
+               <Run Text="pointers."/>
+            </TextBlock>
+            <TextBlock Foreground="{DynamicResource Secondary}" FontStyle="Italic" TextWrapping="Wrap"
+               Visibility="{Binding DataIsValidButNoRun, Converter={StaticResource BoolToVisibility}}">
+               Data conflict detected.
+            </TextBlock>
+         </StackPanel>
+      </DockPanel>
+      <hmc:AngleButton Content="Create new data" Command="{Binding CreateNew}" DockPanel.Dock="Right" Direction="Out"
+            Visibility="{Binding CanCreateNew, Converter={StaticResource BoolToVisibility}}">
+         <hmc:AngleButton.ToolTip>
+            <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+               <TextBlock TextAlignment="Left">
+                  Create new data in free space that <LineBreak/>
+                  matches the expected format.
+               </TextBlock>
+            </ToolTip>
+         </hmc:AngleButton.ToolTip>
+      </hmc:AngleButton>
+   </StackPanel>
+</UserControl>

@@ -1,0 +1,168 @@
+<UserControl x:Class="HavenSoft.HexManiac.WPF.Controls.ReflectionPaletteView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:hshmwpfc="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
+   <UserControl.Resources>
+      <BooleanToVisibilityConverter x:Key="BoolToVisible"/>
+      <Style x:Key="Hint" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+         <Setter Property="Foreground" Value="{DynamicResource Secondary}"/>
+         <Setter Property="TextWrapping" Value="Wrap"/>
+         <Setter Property="Margin" Value="0,2"/>
+      </Style>
+      <Style x:Key="ToolButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+         <Setter Property="Padding" Value="10,2"/>
+         <Setter Property="Margin" Value="0,0,6,4"/>
+      </Style>
+      <Style x:Key="Card" TargetType="Border">
+         <Setter Property="BorderBrush" Value="{DynamicResource Backlight}"/>
+         <Setter Property="BorderThickness" Value="1"/>
+         <Setter Property="Padding" Value="8"/>
+         <Setter Property="Margin" Value="0,0,0,8"/>
+      </Style>
+      <Style x:Key="SectionTitle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+         <Setter Property="FontSize" Value="16"/>
+         <Setter Property="FontWeight" Value="Bold"/>
+         <Setter Property="Margin" Value="0,0,0,2"/>
+      </Style>
+   </UserControl.Resources>
+
+   <!-- One column of the table tool (next to the overworld sprites): everything is stacked, and the table tool's own scroll bar scrolls it. -->
+   <StackPanel Margin="0,4,0,0">
+
+      <!-- ============ header ============ -->
+      <DockPanel Margin="0,0,0,4">
+         <Button DockPanel.Dock="Right" Content="Refresh" Command="{Binding Refresh}" Padding="8,1" VerticalAlignment="Top" Margin="6,0,0,0" ToolTip="Read everything from the ROM again"/>
+         <TextBlock Text="Reflection Palettes" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+      </DockPanel>
+      <TextBlock Text="{Binding Introduction}" Style="{StaticResource Hint}" HorizontalAlignment="Left"/>
+
+      <!-- ============ the list of palettes ============ -->
+      <Border Style="{StaticResource Card}">
+         <DockPanel>
+            <TextBlock DockPanel.Dock="Top" Text="Palettes" Style="{StaticResource SectionTitle}"/>
+            <WrapPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
+               <Button Content="Open palette table" Command="{Binding OpenPaletteTable}" Style="{StaticResource ToolButton}" ToolTip="Show the overworld palette table in the main tab"/>
+            </WrapPanel>
+            <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,4,0,0">
+               <ItemsControl ItemsSource="{Binding Entries}" IsTabStop="False">
+                  <ItemsControl.ItemTemplate>
+                     <DataTemplate>
+                        <Border BorderThickness="2" Margin="0,0,0,2" Padding="4,3" Cursor="Hand">
+                           <Border.InputBindings>
+                              <MouseBinding MouseAction="LeftClick" Command="{Binding Select}"/>
+                           </Border.InputBindings>
+                           <Border.Style>
+                              <Style TargetType="Border">
+                                 <Setter Property="BorderBrush" Value="Transparent"/>
+                                 <Setter Property="Background" Value="Transparent"/>
+                                 <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Selected}" Value="True">
+                                       <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                       <Setter Property="Background" Value="{DynamicResource Backlight}"/>
+                                    </DataTrigger>
+                                 </Style.Triggers>
+                              </Style>
+                           </Border.Style>
+                           <StackPanel>
+                              <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                              <TextBlock Text="{Binding Status}" Style="{StaticResource Hint}" Margin="0,0,0,2"/>
+                              <ItemsControl ItemsSource="{Binding Colors}" IsTabStop="False" Visibility="{Binding HasColors, Converter={StaticResource BoolToVisible}}" HorizontalAlignment="Left">
+                                 <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                       <StackPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                 </ItemsControl.ItemsPanel>
+                                 <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                       <Rectangle Width="14" Height="12" Fill="{Binding Converter={StaticResource PaletteColorConverter}}"/>
+                                    </DataTemplate>
+                                 </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                           </StackPanel>
+                        </Border>
+                     </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+               </ItemsControl>
+            </ScrollViewer>
+         </DockPanel>
+      </Border>
+
+      <!-- ============ the selected palette ============ -->
+      <Border Style="{StaticResource Card}">
+         <StackPanel>
+            <TextBlock Text="{Binding Title}" Style="{StaticResource SectionTitle}" TextWrapping="Wrap"/>
+            <TextBlock Text="{Binding Description}" Style="{StaticResource Hint}"/>
+            <TextBlock Text="{Binding Where}" Style="{StaticResource Hint}" Visibility="{Binding HasWhere, Converter={StaticResource BoolToVisible}}"/>
+            <StackPanel Visibility="{Binding IsEditable, Converter={StaticResource BoolToVisible}}" Margin="0,4,0,0">
+               <hshmwpfc:PaletteControl DataContext="{Binding Palette}" ShowToolButtons="False" HorizontalAlignment="Stretch" Margin="0,4,0,6"/>
+               <TextBlock Text="{Binding ColorSummary}" Style="{StaticResource Hint}"/>
+            </StackPanel>
+         </StackPanel>
+      </Border>
+
+      <!-- ============ the sprites it affects ============ -->
+      <Border Style="{StaticResource Card}">
+         <StackPanel>
+            <TextBlock Text="Sprites this affects" Style="{StaticResource SectionTitle}"/>
+            <WrapPanel Margin="0,2">
+               <CheckBox Content="Show every sprite" IsChecked="{Binding ShowAllSprites}" VerticalAlignment="Center" Margin="0,0,12,0" Visibility="{Binding CanShowMore, Converter={StaticResource BoolToVisible}}"/>
+               <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="Zoom:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                  <Slider Width="100" Minimum="1" Maximum="5" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Zoom}" VerticalAlignment="Center"/>
+               </StackPanel>
+            </WrapPanel>
+            <TextBlock Style="{StaticResource Hint}" HorizontalAlignment="Left">
+               <Run Text="Each sprite is shown as it is (left) and as its reflection (upside down, in the colours of the selected palette). The game draws the reflection half see-through over the water."/>
+               <Run Text="{Binding SpriteSummary, Mode=OneWay}" FontWeight="Bold"/>
+            </TextBlock>
+            <TextBlock Text="{Binding PlayerNote}" Style="{StaticResource Hint}" HorizontalAlignment="Left" Visibility="{Binding HasPlayerNote, Converter={StaticResource BoolToVisible}}"/>
+            <TextBlock Style="{StaticResource Hint}" HorizontalAlignment="Left" Visibility="{Binding ShowsInGame, Converter={StaticResource BoolToVisible}}"
+                       Text="Third picture: how this game really draws the reflection (the water rule). Only the first two pictures change when you edit this palette."/>
+            <ItemsControl ItemsSource="{Binding Sprites}" IsTabStop="False" Margin="0,6,0,0">
+               <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                     <WrapPanel Orientation="Horizontal"/>
+                  </ItemsPanelTemplate>
+               </ItemsControl.ItemsPanel>
+               <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                     <Border Style="{StaticResource Card}" Margin="0,0,8,8" Padding="6">
+                        <StackPanel>
+                           <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                           <TextBlock Text="{Binding Note}" Style="{StaticResource Hint}" Visibility="{Binding HasNote, Converter={StaticResource BoolToVisible}}"/>
+                           <ItemsControl ItemsSource="{Binding Frames}" IsTabStop="False" Margin="0,4,0,0">
+                              <ItemsControl.ItemsPanel>
+                                 <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                 </ItemsPanelTemplate>
+                              </ItemsControl.ItemsPanel>
+                              <ItemsControl.ItemTemplate>
+                                 <DataTemplate>
+                                    <StackPanel Margin="0,0,10,0">
+                                       <StackPanel Orientation="Horizontal">
+                                          <Border Background="{DynamicResource Backlight}" Padding="2" Margin="0,0,4,0" VerticalAlignment="Top">
+                                             <hshmwpfc:PixelImage DataContext="{Binding Normal}" UseTrueTransparency="True"/>
+                                          </Border>
+                                          <Border Background="{DynamicResource Backlight}" Padding="2" Margin="0,0,4,0" VerticalAlignment="Top">
+                                             <hshmwpfc:PixelImage DataContext="{Binding Reflection}" UseTrueTransparency="True"/>
+                                          </Border>
+                                          <Border Background="{DynamicResource Backlight}" Padding="2" VerticalAlignment="Top" Visibility="{Binding InGame.HasImage, Converter={StaticResource BoolToVisible}}">
+                                             <hshmwpfc:PixelImage DataContext="{Binding InGame}" UseTrueTransparency="True"/>
+                                          </Border>
+                                       </StackPanel>
+                                       <TextBlock Text="{Binding Label}" Style="{StaticResource Hint}" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                 </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                           </ItemsControl>
+                           <Button Content="Open its palette" Command="{Binding OpenPalette}" Style="{StaticResource ToolButton}" Margin="0,4,0,0" HorizontalAlignment="Left"
+                                   ToolTip="Show the sprite's own palette in the main tab (the reflection colours follow from it in a game that works reflections out itself)"/>
+                        </StackPanel>
+                     </Border>
+                  </DataTemplate>
+               </ItemsControl.ItemTemplate>
+            </ItemsControl>
+         </StackPanel>
+      </Border>
+   </StackPanel>
+</UserControl>

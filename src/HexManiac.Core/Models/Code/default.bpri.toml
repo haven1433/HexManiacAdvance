@@ -1,0 +1,1216 @@
+﻿
+[[List]]
+Name = '''movementtypes'''
+0 = [
+   '''face_down''',
+   '''face_up''',
+   '''face_left''',
+   '''face_right''',
+   '''face_down_fast''',
+   '''face_up_fast''',
+   '''face_left_fast''',
+   '''face_right_fast''',
+   '''walk_slowest_down''',
+   '''walk_slowest_up''',
+   '''walk_slowest_left''',
+   '''walk_slowest_right''',
+   '''walk_slow_down''',
+   '''walk_slow_up''',
+   '''walk_slow_left''',
+   '''walk_slow_right''',
+   '''walk_down''',
+   '''walk_up''',
+   '''walk_left''',
+   '''walk_right''',
+   '''jump_2_down''',
+   '''jump_2_up''',
+   '''jump_2_left''',
+   '''jump_2_right''',
+   '''delay_1''',
+   '''delay_2''',
+   '''delay_4''',
+   '''delay_8''',
+   '''delay_16''',
+   '''walk_fast_down''',
+   '''walk_fast_up''',
+   '''walk_fast_left''',
+   '''walk_fast_right''',
+   '''walk_in_place_slow_down''',
+   '''walk_in_place_slow_up''',
+   '''walk_in_place_slow_left''',
+   '''walk_in_place_slow_right''',
+   '''walk_in_place_down''',
+   '''walk_in_place_up''',
+   '''walk_in_place_left''',
+   '''walk_in_place_right''',
+   '''walk_in_place_fast_down''',
+   '''walk_in_place_fast_up''',
+   '''walk_in_place_fast_left''',
+   '''walk_in_place_fast_right''',
+   '''walk_in_place_fastest_down''',
+   '''walk_in_place_fastest_up''',
+   '''walk_in_place_fastest_left''',
+   '''walk_in_place_fastest_right''',
+   '''ride_water_current_down''',
+   '''ride_water_current_up''',
+   '''ride_water_current_left''',
+   '''ride_water_current_right''',
+   '''walk_fastest_down''',
+   '''walk_fastest_up''',
+   '''walk_fastest_left''',
+   '''walk_fastest_right''',
+   '''slide_down''',
+   '''slide_up''',
+   '''slide_left''',
+   '''slide_right''',
+   '''player_run_down''',
+   '''player_run_up''',
+   '''player_run_left''',
+   '''player_run_right''',
+   '''player_run_down_slow''',
+   '''player_run_up_slow''',
+   '''player_run_left_slow''',
+   '''player_run_right_slow''',
+   '''step_45''',
+   '''jump_down_run''',
+   '''jump_up_run''',
+   '''jump_left_run''',
+   '''jump_right_run''',
+   '''face_player''',
+   '''face_away_player''',
+   '''lock_facing_direction''',
+   '''unlock_facing_direction''',
+   '''jump_down''',
+   '''jump_up''',
+   '''jump_left''',
+   '''jump_right''',
+   '''jump_in_place_down''',
+   '''jump_in_place_up''',
+   '''jump_in_place_left''',
+   '''jump_in_place_right''',
+   '''jump_in_place_down_up''',
+   '''jump_in_place_up_down''',
+   '''jump_in_place_left_right''',
+   '''jump_in_place_right_left''',
+   '''face_original_direction''',
+   '''nurse_joy_bow''',
+   '''enable_jump_landing_ground_effect''',
+   '''disable_jump_landing_ground_effect''',
+   '''disable_anim''',
+   '''restore_anim''',
+   '''set_invisible''',
+   '''set_visible''',
+   '''emote_exclamation_mark''',
+   '''emote_question_mark''',
+   '''emote_x''',
+   '''emote_double_exclamation_mark''',
+   '''emote_smile''',
+   '''reveal_trainer''',
+   '''rock_smash_break''',
+   '''cut_tree''',
+   '''set_fixed_priority''',
+   '''clear_fixed_priority''',
+   '''init_affine_anim''',
+   '''clear_affine_anim''',
+   '''walk_down_start_affine''',
+   '''walk_down_affine''',
+   '''acro_wheelie_face_down''',
+   '''acro_wheelie_face_up''',
+   '''acro_wheelie_face_left''',
+   '''acro_wheelie_face_right''',
+   '''acro_pop_wheelie_down''',
+   '''acro_pop_wheelie_up''',
+   '''acro_pop_wheelie_left''',
+   '''acro_pop_wheelie_right''',
+   '''acro_end_wheelie_face_down''',
+   '''acro_end_wheelie_face_up''',
+   '''acro_end_wheelie_face_left''',
+   '''acro_end_wheelie_face_right''',
+   '''acro_wheelie_hop_face_down''',
+   '''acro_wheelie_hop_face_up''',
+   '''acro_wheelie_hop_face_left''',
+   '''acro_wheelie_hop_face_right''',
+   '''acro_wheelie_hop_down''',
+   '''acro_wheelie_hop_up''',
+   '''acro_wheelie_hop_left''',
+   '''acro_wheelie_hop_right''',
+   '''acro_wheelie_jump_down''',
+   '''acro_wheelie_jump_up''',
+   '''acro_wheelie_jump_left''',
+   '''acro_wheelie_jump_right''',
+   '''acro_wheelie_in_place_down''',
+   '''acro_wheelie_in_place_up''',
+   '''acro_wheelie_in_place_left''',
+   '''acro_wheelie_in_place_right''',
+   '''acro_pop_wheelie_move_down''',
+   '''acro_pop_wheelie_move_up''',
+   '''acro_pop_wheelie_move_left''',
+   '''acro_pop_wheelie_move_right''',
+   '''acro_wheelie_move_down''',
+   '''acro_wheelie_move_up''',
+   '''acro_wheelie_move_left''',
+   '''acro_wheelie_move_right''',
+   '''spin_down''',
+   '''spin_up''',
+   '''spin_left''',
+   '''spin_right''',
+   '''0x98''',
+   '''0x99''',
+   '''0x9a''',
+   '''walk_slowest_down''',
+   '''walk_slowest_up''',
+   '''walk_slowest_left''',
+   '''walk_slowest_right''',
+   '''shake_head_or_walk_in_place''',
+   '''0xa0''',
+   '''0xa1''',
+   '''0xa2''',
+   '''0xa3''',
+   '''fly_up''',
+   '''fly_down''',
+   '''jump_special_with_effect_down''',
+   '''jump_special_with_effect_up''',
+   '''jump_special_with_effect_left''',
+   '''jump_special_with_effect_right''',
+]
+
+[[List]]
+Name = '''friendshipevents'''
+0 = [
+   '''GrowLevel''',
+   '''Vitamin''',
+   '''BattleItem''',
+   '''LeagueBattle''',
+   '''LearnTMHM''',
+   '''Walking''',
+   '''Massage''',
+   '''FaintInBattle''',
+   '''FaintOutsideBattle''',
+   '''FaintInBattleBigLevelGap''',
+]
+
+[[List]]
+Name = '''specials'''
+0x00 = '''HealPlayerParty'''
+0x01 = '''SetCableClubWarp'''
+0x02 = '''DoCableClubWarp'''
+0x03 = '''ReturnFromLinkRoom'''
+0x04 = '''CleanupLinkRoomState'''
+0x05 = '''ExitLinkRoom'''
+0x1c = '''TryBattleLinkup'''
+0x1d = '''TryTradeLinkup'''
+0x1e = '''TryRecordMixLinkup'''
+0x1f = '''CloseLink'''
+0x20 = '''EnterColosseumPlayerSpot'''
+0x21 = '''EnterTradeSeat'''
+0x22 = '''StartWiredCableClubTrade'''
+0x23 = '''CableClub_AskSaveTheGame'''
+0x27 = '''SavePlayerParty'''
+0x28 = '''LoadPlayerParty'''
+0x29 = '''ChooseHalfPartyForBattle'''
+0x2a = '''Script_ShowLinkTrainerCard'''
+0x32 = '''IsEnigmaBerryValid'''
+0x33 = '''GetTrainerBattleMode'''
+0x34 = '''ShowTrainerIntroSpeech'''
+0x35 = '''ShowTrainerCantBattleSpeech'''
+0x36 = '''Script_HasTrainerBeenFought'''
+0x37 = '''EndTrainerApproach'''
+0x38 = '''PlayTrainerEncounterMusic'''
+0x39 = '''ShouldTryRematchBattle'''
+0x3a = '''IsTrainerReadyForRematch'''
+0x3b = '''StartRematchBattle'''
+0x3c = '''ShowPokemonStorageSystemPC'''
+0x3d = '''HasEnoughMonsForDoubleBattle'''
+0x45 = '''HasLeadMonBeenRenamed'''
+0x5c = '''TryContestLinkup'''
+0x5d = '''Field_AskSaveTheGame'''
+0x5e = '''DoWateringBerryTreeAnim'''
+0x5f = '''ShowEasyChatScreen'''
+0x60 = '''ShowEasyChatMessage'''
+0x77 = '''GetHeracrossSizeRecordInfo'''
+0x78 = '''CompareHeracrossSize'''
+0x79 = '''GetMagikarpSizeRecordInfo'''
+0x7a = '''CompareMagikarpSize'''
+0x7b = '''NameRaterWasNicknameChanged'''
+0x7c = '''BufferMonNickname'''
+0x7d = '''IsMonOTIDNotPlayers'''
+0x80 = '''BufferRandomHobbyOrLifestyleString'''
+0x82 = '''RegisteredItemHandleBikeSwap'''
+0x83 = '''CalculatePlayerPartyCount'''
+0x84 = '''CountPartyNonEggMons'''
+0x85 = '''CountPartyAliveNonEggMons_IgnoreVar4Slot'''
+0x8d = '''ShowFieldMessageStringVar4'''
+0x8e = '''DrawWholeMapView'''
+0x8f = '''GetPlayerXY'''
+0x93 = '''GetPlayerTrainerIdOnesDigit'''
+0x94 = '''BufferBigGuyOrBigGirlString'''
+0x95 = '''BufferSonOrDaughterString'''
+0x96 = '''SetHiddenItemFlag'''
+0x99 = '''Overworld_PlaySpecialMapMusic'''
+0x9d = '''StartOldManTutorialBattle'''
+0x9e = '''ChangePokemonNickname'''
+0x9f = '''ChoosePartyMon'''                     # Selected index will be stored in var4. var4=1 for lead pokemon, var4=6 for last pokemon, var4=7 for cancel. Requires `waitstate` after.
+0xa3 = '''Script_IsFanClubMemberFanOfPlayer'''
+0xa4 = '''Script_GetNumFansOfPlayerInTrainerFanClub'''
+0xa5 = '''Script_BufferFanClubTrainerName'''
+0xa6 = '''Script_TryLoseFansFromPlayTimeAfterLinkBattle'''
+0xa7 = '''Script_TryLoseFansFromPlayTime'''
+0xa8 = '''Script_SetPlayerGotFirstFans'''
+0xa9 = '''Script_UpdateTrainerFanClubGameClear'''
+0xaa = '''Script_TryGainNewFanFromCounter'''
+0xab = '''RockSmashWildEncounter'''
+0xb4 = '''GetBattleOutcome'''
+0xb5 = '''GetDaycareMonNicknames'''
+0xb6 = '''GetDaycareState'''
+0xb7 = '''RejectEggFromDayCare'''
+0xb8 = '''GiveEggFromDaycare'''
+0xb9 = '''SetDaycareCompatibilityString'''
+0xba = '''GetSelectedMonNicknameAndSpecies'''
+0xbb = '''StoreSelectedPokemonInDaycare'''
+0xbc = '''ChooseSendDaycareMon'''
+0xbd = '''ShowDaycareLevelMenu'''
+0xbe = '''GetNumLevelsGainedFromDaycare'''
+0xbf = '''GetDaycareCost'''
+0xc0 = '''TakePokemonFromDaycare'''
+0xc1 = '''ScriptHatchMon'''
+0xc2 = '''EggHatch'''
+0xc3 = '''DaycareMonReceivedMail'''
+0xc4 = '''ShowBattleRecords'''
+0xc5 = '''IsEnoughForCostInVar5'''
+0xc6 = '''SubtractMoneyFromVar5'''
+0xc7 = '''TryFieldPoisonWhiteOut'''
+0xc8 = '''SetCB2WhiteOut'''
+0xcd = '''EnterSafariMode'''
+0xce = '''ExitSafariMode'''
+0xd4 = '''GetPokedexCount'''
+0xd5 = '''GetProfOaksRatingMessage'''
+0xd6 = '''AnimatePcTurnOn'''
+0xd7 = '''AnimatePcTurnOff'''
+0xd8 = '''GetElevatorFloor'''
+0xdb = '''SelectMoveTutorMon'''
+0xdc = '''SelectMoveDeleterMove'''
+0xdd = '''MoveDeleterForgetMove'''
+0xde = '''BufferMoveDeleterNicknameAndMove'''
+0xdf = '''GetNumMovesSelectedMonHas'''
+0xe0 = '''DisplayMoveTutorMenu'''
+0xe3 = '''GetPlayerAvatarBike'''
+0xe6 = '''GetLeadMonFriendship'''
+0xe7 = '''BattleTowerMapScript2'''
+0xe8 = '''ChooseNextBattleTowerTrainer'''
+0xe9 = '''CheckPartyBattleTowerBanlist'''
+0xea = '''PrintBattleTowerTrainerGreeting'''
+0xeb = '''BufferEReaderTrainerGreeting'''
+0xec = '''StartSpecialBattle'''
+0xed = '''SetBattleTowerProperty'''
+0xee = '''BattleTowerUtil'''
+0xef = '''SetBattleTowerParty'''
+0xf0 = '''SaveBattleTowerProgress'''
+0xf1 = '''BattleTower_SoftReset'''
+0xf2 = '''DetermineBattleTowerPrize'''
+0xf3 = '''GiveBattleTowerPrize'''
+0xf4 = '''AwardBattleTowerRibbons'''
+0xf5 = '''ChooseBattleTowerPlayerParty'''
+0xf6 = '''ValidateEReaderTrainer'''
+0xf8 = '''ReducePlayerPartyToThree'''
+0xf9 = '''BedroomPC'''
+0xfa = '''PlayerPC'''
+0xfb = '''ShowTownMap'''
+0xfc = '''GetInGameTradeSpeciesInfo'''
+0xfd = '''CreateInGameTradePokemon'''
+0xfe = '''DoInGameTradeScene'''
+0xff = '''GetTradeSpecies'''
+0x106 = '''CreatePCMenu'''
+0x107 = '''HallOfFamePCBeginFade'''
+0x108 = '''ShowDiploma'''
+0x10e = '''LookThroughPorthole'''
+0x10f = '''DoSoftReset'''
+0x110 = '''EnterHallOfFame'''
+0x111 = '''AnimateElevator'''
+0x113 = '''SpawnCameraObject'''
+0x114 = '''RemoveCameraObject'''
+0x11d = '''BufferEReaderTrainerName'''
+0x11e = '''GetRandomSlotMachineId'''
+0x11f = '''GetPlayerFacingDirection'''
+0x124 = '''LeadMonHasEffortRibbon'''
+0x125 = '''GiveLeadMonEffortRibbon'''
+0x126 = '''AreLeadMonEVsMaxedOut'''
+0x127 = '''Script_FacePlayer'''
+0x128 = '''Script_ClearHeldMovement'''
+0x129 = '''InitRoamer'''
+0x12b = '''PlayerHasGrassPokemonInParty'''
+0x12e = '''IsStarterFirstStageInParty'''
+0x130 = '''IsThereRoomInAnyBoxForMorePokemon'''
+0x132 = '''DrawElevatorCurrentFloorWindow'''
+0x134 = '''IsPokerusInParty'''
+0x135 = '''SetIcefallCaveCrackedIceMetatiles'''
+0x136 = '''ShakeScreen'''
+0x137 = '''StartGroudonKyogreBattle'''
+0x138 = '''StartLegendaryBattle'''
+0x139 = '''StartRegiBattle'''
+0x13a = '''SetUpTrainerMovement'''
+0x13d = '''StartDroughtWeatherBlend'''
+0x13e = '''DoDiveWarp'''
+0x13f = '''DoFallWarp'''
+0x142 = '''SetEReaderTrainerGfxId'''
+0x143 = '''StartSouthernIslandBattle'''
+0x147 = '''GetPartyMonSpecies'''        # Read party index from var4, return species
+0x148 = '''IsSelectedMonEgg'''
+0x14b = '''LoadPlayerBag'''
+0x14c = '''Script_FadeOutMapMusic'''
+0x14f = '''HasAllKantoMons'''
+0x150 = '''IsMonOTNameNotPlayers'''
+0x152 = '''Dummy_TryEnableBravoTrainerBattleTower'''
+0x153 = '''DoesPartyHaveEnigmaBerry'''
+0x155 = '''SetPostgameFlags'''
+0x156 = '''StartMarowakBattle'''
+0x157 = '''ForcePlayerOntoBike'''
+0x158 = '''ListMenu'''                  # Lists options from scripts.text.listmenu based on the value of var4
+0x159 = '''ReturnToListMenu'''
+0x15a = '''DoPicboxCancel'''
+0x15b = '''SetVermilionTrashCans'''
+0x15c = '''SeafoamIslandsB4F_CurrentDumpsPlayerOnLand'''
+0x15d = '''SampleResortGorgeousMonAndReward'''
+0x15e = '''CheckAddCoins'''
+0x15f = '''GetDaycarePokemonCount'''
+0x160 = '''CloseElevatorCurrentFloorWindow'''
+0x161 = '''ForcePlayerToStartSurfing'''
+0x162 = '''GetStarterSpecies'''
+0x163 = '''SetSeenMon'''
+0x164 = '''VsSeekerResetObjectMovementAfterChargeComplete'''
+0x165 = '''ShouldShowBoxWasFullMessage'''
+0x166 = '''ChangeBoxPokemonNickname'''
+0x167 = '''UpdateTrainerCardPhotoIcons'''
+0x168 = '''StickerManGetBragFlags'''
+0x169 = '''SetUsedPkmnCenterQuestLogEvent'''
+0x16a = '''IsWirelessAdapterConnected'''
+0x16b = '''TryBecomeLinkLeader'''
+0x16c = '''TryJoinLinkGroup'''
+0x16d = '''UnionRoomSpecial'''
+0x16e = '''ShowWirelessCommunicationScreen'''
+0x16f = '''EnableNationalPokedex'''
+0x170 = '''SetWalkingIntoSignVars'''
+0x171 = '''DisableMsgBoxWalkaway'''
+0x172 = '''VsSeekerFreezeObjectsAfterChargeComplete'''
+0x173 = '''SetFlavorTextFlagFromSpecialVars'''
+0x174 = '''UpdatePickStateFromSpecialVar5'''
+0x175 = '''OverworldWhiteOutGetMoneyLoss'''
+0x176 = '''PutMonInRoute5Daycare'''
+0x177 = '''GetCostToWithdrawRoute5DaycareMon'''
+0x178 = '''IsThereMonInRoute5Daycare'''
+0x179 = '''GetNumLevelsGainedForRoute5DaycareMon'''
+0x17a = '''TakePokemonFromRoute5Daycare'''
+0x17b = '''DoSeagallopFerryScene'''
+0x17c = '''DoesPlayerPartyContainSpecies''' # read species from var4, if it's in the party, return 1 (recommend returning to varResult) 
+0x17d = '''Script_SetHelpContext'''
+0x17e = '''BackupHelpContext'''
+0x17f = '''RestoreHelpContext'''
+0x180 = '''ValidateReceivedWonderCard'''
+0x181 = '''SetUnlockedPokedexFlags'''
+0x182 = '''InitUnionRoom'''
+0x183 = '''BufferUnionRoomPlayerName'''
+0x184 = '''QuestLog_StartRecordingInputsAfterDeferredEvent'''
+0x185 = '''GetMartClerkObjectId'''
+0x186 = '''BattleCardAction'''
+0x187 = '''GetQuestLogState'''
+0x188 = '''QuestLog_CutRecording'''
+0x189 = '''GetMENewsJisanItemAndState'''
+0x18a = '''GetPCBoxToSendMon'''
+0x18b = '''OpenMuseumFossilPic'''
+0x18c = '''CloseMuseumFossilPic'''
+0x18d = '''ChooseMonForMoveTutor'''
+0x18e = '''ChooseMonForWirelessMinigame'''
+0x18f = '''SetBattledTrainerFlag'''
+0x190 = '''SetHelpContextForMap'''
+0x191 = '''DoSSAnneDepartureCutscene'''
+0x192 = '''IsPokemonJumpSpeciesInParty'''
+0x193 = '''IsNationalPokedexEnabled'''
+0x194 = '''CallTrainerTowerFunc'''
+0x195 = '''ShowPokemonJumpRecords'''
+0x196 = '''BufferTMHMMoveName'''
+0x197 = '''DaisyMassageServices'''
+0x198 = '''HelpSystem_Disable'''
+0x199 = '''HelpSystem_Enable'''
+0x19a = '''SetPostgameFlags'''
+0x19b = '''HasAtLeastOneBerry'''
+0x19c = '''DisplayBerryPowderVendorMenu'''
+0x19d = '''RemoveBerryPowderVendorMenu'''
+0x19e = '''Script_HasEnoughBerryPowder'''
+0x19f = '''Script_TakeBerryPowder'''
+0x1a0 = '''PrintPlayerBerryPowderAmount'''
+0x1a1 = '''DoPokemonLeagueLightingEffect'''
+0x1a2 = '''ShowBerryCrushRankings'''
+0x1a3 = '''CapeBrinkGetMoveToTeachLeadPokemon'''
+0x1a4 = '''HasLearnedAllMovesFromCapeBrinkTutor'''
+0x1a5 = '''DoCredits'''
+0x1a6 = '''ShowDodrioBerryPickingRecords'''
+0x1a7 = '''DrawSeagallopDestinationMenu'''
+0x1a8 = '''GetSelectedSeagallopDestination'''
+0x1a9 = '''GetSeagallopNumber'''
+0x1aa = '''GetPlayerFacingDirection'''
+0x1ab = '''DoDeoxysTriangleInteraction'''
+0x1ac = '''SetDeoxysTrianglePalette'''
+0x1ad = '''IsPlayerLeftOfVermilionSailor'''
+0x1ae = '''IsBadEggInParty'''
+0x1af = '''ReadTrainerTowerAndValidate'''
+0x1b0 = '''HasAllMons'''
+0x1b1 = '''IsPlayerNotInTrainerTowerLobby'''
+0x1b2 = '''BrailleCursorToggle'''
+0x1b3 = '''Script_ResetUnionRoomTrade'''
+0x1b4 = '''PlayerPartyContainsSpeciesWithPlayerID'''
+0x1b5 = '''AnimateTeleporterHousing'''
+0x1b6 = '''IsDodrioInParty'''
+0x1b7 = '''AnimateTeleporterCable'''
+0x1b8 = '''InitElevatorFloorSelectMenuPos'''
+0x1b9 = '''UpdateLoreleiDollCollection'''
+0x1ba = '''LoopWingFlapSound'''
+0x1bb = '''CreateEventLegalEnemyMon'''
+
+[[List]]
+Name = '''songnames'''
+0 = [
+   '''mus_dummy''',
+   '''se_use_item''',
+   '''se_pc_login''',
+   '''se_pc_off''',
+   '''se_pc_on''',
+   '''se_select''',
+   '''se_win_open''',
+   '''se_wall_hit''',
+   '''se_rs_door''',
+   '''se_exit''',
+   '''se_ledge''',
+   '''se_bike_bell''',
+   '''se_not_effective''',
+   '''se_effective''',
+   '''se_super_effective''',
+   '''se_ball_open''',
+   '''se_faint''',
+   '''se_flee''',
+   '''se_sliding_door''',
+   '''se_ship''',
+   '''se_bang''',
+   '''se_pin''',
+   '''se_boo''',
+   '''se_ball''',
+   '''se_contest_place''',
+   '''se_success''',
+   '''se_failure''',
+   '''se_exp''',
+   '''se_bike_hop''',
+   '''se_switch''',
+   '''se_click''',
+   '''se_fu_zaku''',
+   '''se_contest_condition_lose''',
+   '''se_lavaridge_fall_warp''',
+   '''se_ice_stairs''',
+   '''se_ice_break''',
+   '''se_ice_crack''',
+   '''se_fall''',
+   '''se_unlock''',
+   '''se_warp_in''',
+   '''se_warp_out''',
+   '''se_repel''',
+   '''se_rotating_gate''',
+   '''se_truck_move''',
+   '''se_truck_stop''',
+   '''se_truck_unload''',
+   '''se_truck_door''',
+   '''se_berry_blender''',
+   '''se_save''',
+   '''se_ball_bounce_1''',
+   '''se_ball_bounce_2''',
+   '''se_ball_bounce_3''',
+   '''se_ball_bounce_4''',
+   '''se_ball_trade''',
+   '''se_ball_throw''',
+   '''se_note_c''',
+   '''se_note_d''',
+   '''se_note_e''',
+   '''se_note_f''',
+   '''se_note_g''',
+   '''se_note_a''',
+   '''se_note_b''',
+   '''se_note_c_high''',
+   '''se_puddle''',
+   '''se_bridge_walk''',
+   '''se_itemfinder''',
+   '''se_ding_dong''',
+   '''se_balloon_red''',
+   '''se_balloon_blue''',
+   '''se_balloon_yellow''',
+   '''se_breakable_door''',
+   '''se_mud_ball''',
+   '''se_field_poison''',
+   '''se_escalator''',
+   '''se_thunderstorm''',
+   '''se_thunderstorm_stop''',
+   '''se_downpour''',
+   '''se_downpour_stop''',
+   '''se_rain''',
+   '''se_rain_stop''',
+   '''se_thunder''',
+   '''se_thunder2''',
+   '''se_elevator''',
+   '''se_low_health''',
+   '''se_exp_max''',
+   '''se_roulette_ball''',
+   '''se_roulette_ball2''',
+   '''se_taillow_wing_flap''',
+   '''se_rs_shop''',
+   '''se_contest_heart''',
+   '''se_contest_curtain_rise''',
+   '''se_contest_curtain_fall''',
+   '''se_contest_icon_change''',
+   '''se_contest_icon_clear''',
+   '''se_contest_mons_turn''',
+   '''se_shiny''',
+   '''se_intro_blast''',
+   '''se_mugshot''',
+   '''se_applause''',
+   '''se_vend''',
+   '''se_orb''',
+   '''se_dex_scroll''',
+   '''se_dex_page''',
+   '''se_pokenav_on''',
+   '''se_pokenav_off''',
+   '''se_dex_search''',
+   '''se_egg_hatch''',
+   '''se_ball_tray_enter''',
+   '''se_ball_tray_ball''',
+   '''se_ball_tray_exit''',
+   '''se_glass_flute''',
+   '''se_m_thunderbolt''',
+   '''se_m_thunderbolt2''',
+   '''se_m_harden''',
+   '''se_m_nightmare''',
+   '''se_m_vital_throw''',
+   '''se_m_vital_throw2''',
+   '''se_m_bubble''',
+   '''se_m_bubble2''',
+   '''se_m_bubble3''',
+   '''se_m_rain_dance''',
+   '''se_m_cut''',
+   '''se_m_string_shot''',
+   '''se_m_string_shot2''',
+   '''se_m_rock_throw''',
+   '''se_m_gust''',
+   '''se_m_gust2''',
+   '''se_m_double_slap''',
+   '''se_m_double_team''',
+   '''se_m_razor_wind''',
+   '''se_m_icy_wind''',
+   '''se_m_thunder_wave''',
+   '''se_m_comet_punch''',
+   '''se_m_mega_kick''',
+   '''se_m_mega_kick2''',
+   '''se_m_crabhammer''',
+   '''se_m_jump_kick''',
+   '''se_m_flame_wheel''',
+   '''se_m_flame_wheel2''',
+   '''se_m_flamethrower''',
+   '''se_m_fire_punch''',
+   '''se_m_toxic''',
+   '''se_m_sacred_fire''',
+   '''se_m_sacred_fire2''',
+   '''se_m_ember''',
+   '''se_m_take_down''',
+   '''se_m_blizzard''',
+   '''se_m_blizzard2''',
+   '''se_m_scratch''',
+   '''se_m_vicegrip''',
+   '''se_m_wing_attack''',
+   '''se_m_fly''',
+   '''se_m_sand_attack''',
+   '''se_m_razor_wind2''',
+   '''se_m_bite''',
+   '''se_m_headbutt''',
+   '''se_m_surf''',
+   '''se_m_hydro_pump''',
+   '''se_m_whirlpool''',
+   '''se_m_horn_attack''',
+   '''se_m_tail_whip''',
+   '''se_m_mist''',
+   '''se_m_poison_powder''',
+   '''se_m_bind''',
+   '''se_m_dragon_rage''',
+   '''se_m_sing''',
+   '''se_m_perish_song''',
+   '''se_m_pay_day''',
+   '''se_m_dig''',
+   '''se_m_dizzy_punch''',
+   '''se_m_self_destruct''',
+   '''se_m_explosion''',
+   '''se_m_absorb_2''',
+   '''se_m_absorb''',
+   '''se_m_screech''',
+   '''se_m_bubble_beam''',
+   '''se_m_bubble_beam2''',
+   '''se_m_supersonic''',
+   '''se_m_belly_drum''',
+   '''se_m_metronome''',
+   '''se_m_bonemerang''',
+   '''se_m_lick''',
+   '''se_m_psybeam''',
+   '''se_m_faint_attack''',
+   '''se_m_swords_dance''',
+   '''se_m_leer''',
+   '''se_m_swagger''',
+   '''se_m_swagger2''',
+   '''se_m_heal_bell''',
+   '''se_m_confuse_ray''',
+   '''se_m_snore''',
+   '''se_m_brick_break''',
+   '''se_m_giga_drain''',
+   '''se_m_psybeam2''',
+   '''se_m_solar_beam''',
+   '''se_m_petal_dance''',
+   '''se_m_teleport''',
+   '''se_m_minimize''',
+   '''se_m_sketch''',
+   '''se_m_swift''',
+   '''se_m_reflect''',
+   '''se_m_barrier''',
+   '''se_m_detect''',
+   '''se_m_lock_on''',
+   '''se_m_moonlight''',
+   '''se_m_charm''',
+   '''se_m_charge''',
+   '''se_m_strength''',
+   '''se_m_hyper_beam''',
+   '''se_m_waterfall''',
+   '''se_m_reversal''',
+   '''se_m_acid_armor''',
+   '''se_m_sandstorm''',
+   '''se_m_tri_attack''',
+   '''se_m_tri_attack2''',
+   '''se_m_encore''',
+   '''se_m_encore2''',
+   '''se_m_baton_pass''',
+   '''se_m_milk_drink''',
+   '''se_m_attract''',
+   '''se_m_attract2''',
+   '''se_m_morning_sun''',
+   '''se_m_flatter''',
+   '''se_m_sand_tomb''',
+   '''se_m_grasswhistle''',
+   '''se_m_spit_up''',
+   '''se_m_dive''',
+   '''se_m_earthquake''',
+   '''se_m_twister''',
+   '''se_m_sweet_scent''',
+   '''se_m_yawn''',
+   '''se_m_sky_uppercut''',
+   '''se_m_stat_increase''',
+   '''se_m_heat_wave''',
+   '''se_m_uproar''',
+   '''se_m_hail''',
+   '''se_m_cosmic_power''',
+   '''se_m_teeter_dance''',
+   '''se_m_stat_decrease''',
+   '''se_m_haze''',
+   '''se_m_hyper_beam2''',
+   '''se_door''',
+   '''se_card_flip''',
+   '''se_card_flipping''',
+   '''se_card_open''',
+   '''se_bag_cursor''',
+   '''se_bag_pocket''',
+   '''se_ball_click''',
+   '''se_shop''',
+   '''se_ss_anne_horn''',
+   '''se_help_open''',
+   '''se_help_close''',
+   '''se_help_error''',
+   '''se_deoxys_move''',
+   '''se_poke_jump_success''',
+   '''se_poke_jump_failure''',
+   '''mus_heal''',
+   '''mus_level_up''',
+   '''mus_obtain_item''',
+   '''mus_evolved''',
+   '''mus_obtain_badge''',
+   '''mus_obtain_tmhm''',
+   '''mus_obtain_berry''',
+   '''mus_evolution_intro''',
+   '''mus_evolution''',
+   '''mus_rs_vs_gym_leader''',
+   '''mus_rs_vs_trainer''',
+   '''mus_school''',
+   '''mus_slots_jackpot''',
+   '''mus_slots_win''',
+   '''mus_move_deleted''',
+   '''mus_too_bad''',
+   '''mus_follow_me''',
+   '''mus_game_corner''',
+   '''mus_rocket_hideout''',
+   '''mus_gym''',
+   '''mus_jigglypuff''',
+   '''mus_intro_fight''',
+   '''mus_title''',
+   '''mus_cinnabar''',
+   '''mus_lavender''',
+   '''mus_heal_unused''',
+   '''mus_cycling''',
+   '''mus_encounter_rocket''',
+   '''mus_encounter_girl''',
+   '''mus_encounter_boy''',
+   '''mus_hall_of_fame''',
+   '''mus_viridian_forest''',
+   '''mus_mt_moon''',
+   '''mus_poke_mansion''',
+   '''mus_credits''',
+   '''mus_route1''',
+   '''mus_route24''',
+   '''mus_route3''',
+   '''mus_route11''',
+   '''mus_victory_road''',
+   '''mus_vs_gym_leader''',
+   '''mus_vs_trainer''',
+   '''mus_vs_wild''',
+   '''mus_vs_champion''',
+   '''mus_pallet''',
+   '''mus_oak_lab''',
+   '''mus_oak''',
+   '''mus_poke_center''',
+   '''mus_ss_anne''',
+   '''mus_surf''',
+   '''mus_poke_tower''',
+   '''mus_silph''',
+   '''mus_fuchsia''',
+   '''mus_celadon''',
+   '''mus_victory_trainer''',
+   '''mus_victory_wild''',
+   '''mus_victory_gym_leader''',
+   '''mus_vermillion''',
+   '''mus_pewter''',
+   '''mus_encounter_rival''',
+   '''mus_rival_exit''',
+   '''mus_dex_rating''',
+   '''mus_obtain_key_item''',
+   '''mus_caught_intro''',
+   '''mus_photo''',
+   '''mus_game_freak''',
+   '''mus_caught''',
+   '''mus_new_game_instruct''',
+   '''mus_new_game_intro''',
+   '''mus_new_game_exit''',
+   '''mus_poke_jump''',
+   '''mus_union_room''',
+   '''mus_net_center''',
+   '''mus_mystery_gift''',
+   '''mus_berry_pick''',
+   '''mus_sevii_cave''',
+   '''mus_teachy_tv_show''',
+   '''mus_sevii_route''',
+   '''mus_sevii_dungeon''',
+   '''mus_sevii_123''',
+   '''mus_sevii_45''',
+   '''mus_sevii_67''',
+   '''mus_poke_flute''',
+   '''mus_vs_deoxys''',
+   '''mus_vs_mewtwo''',
+   '''mus_vs_legend''',
+   '''mus_encounter_gym_leader''',
+   '''mus_encounter_deoxys''',
+   '''mus_trainer_tower''',
+   '''mus_slow_pallet''',
+   '''mus_teachy_tv_menu''',
+]
+
+[[List]]
+Name = '''pocketid'''
+1 = [
+   '''item''',
+   '''key''',
+   '''ball''',
+   '''tm''',
+   '''berry'''
+]
+
+[[NamedAnchors]]
+Name = '''data.header.romname'''
+Address = 0x000108
+Format = '''`asc`32'''
+
+[[GotoShortcut]]
+Name = '''Pokemon'''
+Image = '''graphics.pokemon.sprites.front/29/sprite/'''
+Destination = '''data.pokemon.stats/1'''
+
+[[GotoShortcut]]
+Name = '''Trainers'''
+Image = '''graphics.trainers.sprites.front/19/sprite/'''
+Destination = '''data.trainers.stats'''
+
+[[GotoShortcut]]
+Name = '''Moves'''
+Image = '''graphics.moves.tmcase.sprite'''
+Destination = '''data.pokemon.moves.stats.battle'''
+
+[[GotoShortcut]]
+Name = '''Items'''
+Image = '''graphics.items.sprites/13/sprite/'''
+Destination = '''data.items.stats'''
+
+[[GotoShortcut]]
+Name = '''Maps'''
+Image = '''data.maps.banks/3/maps/0/map/0/layout/0/blockmap/'''
+Destination = '''maps.bank3.biancavilla.3-0'''
+
+[[List]]
+Name = '''effectanimations'''
+0 = [
+   '''FormChange''',
+   '''StatChange''',
+   '''SubstituteFade''',
+   '''SubstituteAppear''',
+   '''BaitThrow''',
+   '''ItemKnockOff''',
+   '''TurnTrap''',
+   '''HeldItemEffect''',
+   '''SmokeBall''',
+   '''FocusBand''',
+   '''Rain''',
+   '''Sun''',
+   '''Sandstorm''',
+   '''Hail''',
+   '''LeechSeedDrain''',
+   '''ConfuseHit''',
+   '''ItemSteal''',
+   '''SnatchMove''',
+   '''FutureSight''',
+   '''DoomDesire''',
+   '''FocusPunchSetUp''',
+   '''IngrainHeal''',
+   '''WishHeal''',
+   '''MonScared''',
+   '''GhostGetOut''',
+   '''SilphScoped''',
+   '''SafariRockThrow''',
+   '''SafariReaction''',
+]
+
+[[List]]
+Name = '''MapAttributeBehaviors'''
+0 = [
+    '''Normal''',
+    '''Unused_01''',
+    '''Tall_Grass''',
+    '''Unused_03''',
+    '''Unused_04''',
+    '''Unused_05''',
+    '''Unused_06''',
+    '''Unused_07''',
+    '''Cave''',
+    '''Unused_09''',
+    '''Running_Disallowed''',
+    '''Indoor_Encounter''',
+    '''Mountain_Top''',
+    '''Unused_0d''',
+    '''Unused_0e''',
+    '''Unused_0f''',
+    '''Pond_Water''',
+    '''Semi_Deep_Water''',
+    '''Deep_Water''',
+    '''Waterfall''',
+    '''Unused_14''',
+    '''Ocean_Water''',
+    '''Puddle''',
+    '''Shallow_Water''',
+    '''Unused_18''',
+    '''Underwater_Blocked_Above''',
+    '''Unused_Water''',
+    '''Cycling_Road_Water''',
+    '''Unused_1c''',
+    '''Unused_1d''',
+    '''Unused_1e''',
+    '''Unused_1f''',
+    '''Strength_Button''',
+    '''Sand''',
+    '''Seaweed''',
+    '''Ice''',
+    '''Unused_24''',
+    '''Unused_25''',
+    '''Thin_Ice''',
+    '''Cracked_Ice''',
+    '''Hot_Springs''',
+    '''Unused_29''',
+    '''Rock_Stairs''',
+    '''Sand_Cave''',
+    '''Unused_2c''',
+    '''Unused_2d''',
+    '''Unused_2e''',
+    '''Unused_2f''',
+    '''Impassable_East''',
+    '''Impassable_West''',
+    '''Impassable_North''',
+    '''Impassable_South''',
+    '''Impassable_Northeast''',
+    '''Impassable_Northwest''',
+    '''Impassable_Southeast''',
+    '''Impassable_Southwest''',
+    '''Jump_East''',
+    '''Jump_West''',
+    '''Jump_North''',
+    '''Jump_South''',
+    '''Unused_3c''',
+    '''Unused_3d''',
+    '''Unused_3e''',
+    '''Unused_3f''',
+    '''Walk_East''',
+    '''Walk_West''',
+    '''Walk_North''',
+    '''Walk_South''',
+    '''Slide_East''',
+    '''Slide_West''',
+    '''Slide_North''',
+    '''Slide_South''',
+    '''Trick_House_Puzzle_8_Floor''',
+    '''Unused_49''',
+    '''Unused_4a''',
+    '''Unused_4b''',
+    '''Unused_4c''',
+    '''Unused_4d''',
+    '''Unused_4e''',
+    '''Unused_4f''',
+    '''Eastward_Current''',
+    '''Westward_Current''',
+    '''Northward_Current''',
+    '''Southward_Current''',
+    '''Spin_Right''',
+    '''Spin_Left''',
+    '''Spin_Up''',
+    '''Spin_Down''',
+    '''Stop_Spinning''',
+    '''Unused_59''',
+    '''Unused_5a''',
+    '''Unused_5b''',
+    '''Unused_5c''',
+    '''Unused_5d''',
+    '''Unused_5e''',
+    '''Unused_5f''',
+    '''Cave_Door''',
+    '''Ladder''',
+    '''East_Arrow_Warp''',
+    '''West_Arrow_Warp''',
+    '''North_Arrow_Warp''',
+    '''South_Arrow_Warp''',
+    '''Fall_Warp''',
+    '''Regular_Warp''',
+    '''Lavaridge_1f_Warp''',
+    '''Warp_Door''',
+    '''Up_Escalator''',
+    '''Down_Escalator''',
+    '''Up_Right_Stair_Warp''',
+    '''Up_Left_Stair_Warp''',
+    '''Down_Right_Stair_Warp''',
+    '''Down_Left_Stair_Warp''',
+    '''Unused_70''',
+    '''Union_Room_Warp''',
+    '''Unused_72''',
+    '''Unused_73''',
+    '''Unused_74''',
+    '''Unused_75''',
+    '''Unused_76''',
+    '''Unused_77''',
+    '''Unused_78''',
+    '''Unused_79''',
+    '''Unused_7a''',
+    '''Unused_7b''',
+    '''Unused_7c''',
+    '''Unused_7d''',
+    '''Unused_7e''',
+    '''Unused_7f''',
+    '''Counter''',
+    '''Bookshelf''',
+    '''Pokemart_Shelf''',
+    '''Pc''',
+    '''Signpost''',
+    '''Region_Map''',
+    '''Television''',
+    '''Pokemon_Center_Sign''',
+    '''Pokemart_Sign''',
+    '''Cabinet''',
+    '''Kitchen''',
+    '''Dresser''',
+    '''Snacks''',
+    '''Cable_Club_Wireless_Monitor''',
+    '''Battle_Records''',
+    '''Questionnaire''',
+    '''Food''',
+    '''Indigo_Plateau_Sign_1''',
+    '''Indigo_Plateau_Sign_2''',
+    '''Blueprints''',
+    '''Painting''',
+    '''Power_Plant_Machine''',
+    '''Telephone''',
+    '''Computer''',
+    '''Advertising_Poster''',
+    '''Food_Smells_Tasty''',
+    '''Trash_Bin''',
+    '''Cup''',
+    '''Porthole''',
+    '''Window''',
+    '''Blinking_Lights''',
+    '''Neatly_Lined_Up_Tools''',
+    '''Impressive_Machine''',
+    '''Video_Game''',
+    '''Burglary''',
+    '''Trainer_Tower_Monitor''',
+    '''Unused_A4''',
+    '''Unused_A5''',
+    '''Unused_A6''',
+    '''Unused_A7''',
+    '''Unused_A8''',
+    '''Unused_A9''',
+    '''Unused_Aa''',
+    '''Unused_Ab''',
+    '''Unused_Ac''',
+    '''Unused_Ad''',
+    '''Unused_Ae''',
+    '''Unused_Af''',
+    '''Unused_B0''',
+    '''Unused_B1''',
+    '''Unused_B2''',
+    '''Unused_B3''',
+    '''Unused_B4''',
+    '''Unused_B5''',
+    '''Unused_B6''',
+    '''Unused_B7''',
+    '''Unused_B8''',
+    '''Unused_B9''',
+    '''Unused_Ba''',
+    '''Unused_Bb''',
+    '''Unused_Bc''',
+    '''Unused_Bd''',
+    '''Unused_Be''',
+    '''Unused_Bf''',
+    '''Unused_C0''',
+    '''Unused_C1''',
+    '''Unused_C2''',
+    '''Unused_C3''',
+    '''Unused_C4''',
+    '''Unused_C5''',
+    '''Unused_C6''',
+    '''Unused_C7''',
+    '''Unused_C8''',
+    '''Unused_C9''',
+    '''Unused_Ca''',
+    '''Unused_Cb''',
+    '''Unused_Cc''',
+    '''Unused_Cd''',
+    '''Unused_Ce''',
+    '''Unused_Cf''',
+    '''Cycling_Road_Pull_Down''',
+    '''Cycling_Road_Pull_Down_Grass''',
+    '''Unused_D2''',
+    '''Unused_D3''',
+    '''Unused_D4''',
+    '''Unused_D5''',
+    '''Unused_D6''',
+    '''Unused_D7''',
+    '''Unused_D8''',
+    '''Unused_D9''',
+    '''Unused_Da''',
+    '''Unused_Db''',
+    '''Unused_Dc''',
+    '''Unused_Dd''',
+    '''Unused_De''',
+    '''Unused_Df''',
+    '''Unused_E0''',
+    '''Unused_E1''',
+    '''Unused_E2''',
+    '''Unused_E3''',
+    '''Unused_E4''',
+    '''Unused_E5''',
+    '''Unused_E6''',
+    '''Unused_E7''',
+    '''Unused_E8''',
+    '''Unused_E9''',
+    '''Unused_Ea''',
+    '''Unused_Eb''',
+    '''Unused_Ec''',
+    '''Unused_Ed''',
+    '''Unused_Ee''',
+    '''Unused_Ef''',
+]
+
+[[List]]
+Name = '''floors'''
+0 = [
+'''N/A''',
+'''floor 1''',
+'''floor 2''',
+'''floor 3''',
+'''floor 4''',
+'''floor 5''',
+'''floor 6''',
+'''floor 7''',
+'''floor 8''',
+'''floor 9''',
+'''floor 10''',
+'''floor 11''',
+'''floor 12''',
+'''floor 13''',
+'''floor 14''',
+'''floor 15''',
+'''floor 16''',
+'''floor 17''',
+'''floor 18''',
+'''floor 19''',
+]
+127 = '''rooftop'''
+247 = [
+'''basement 9''',
+'''basement 8''',
+'''basement 7''',
+'''basement 6''',
+'''basement 5''',
+'''basement 4''',
+'''basement 3''',
+'''basement 2''',
+'''basement 1''',
+]
+
+[[List]]
+Name = '''transitiontype'''
+0 = [
+'''cave''',
+'''forest''',
+]
+
+[[List]]
+Name = '''encountersongs'''
+0 = [
+   '''boy00''',
+   '''girl01''',
+   '''girl02''',
+   '''rocket03''',
+   '''boy04''',
+   '''boy05''',
+   '''rocket06''',
+   '''rocket07''',
+   '''boy08''',
+   '''girl09''',
+   '''boy0A''',
+   '''boy0B''',
+   '''boy0C''',
+   '''boy0D''',
+]
+
+[[List]]
+Name = '''trainerMugshots'''
+0 = [
+   '''Lorelei''',
+   '''Bruno''',
+   '''Agatha''',
+   '''Lance''',
+   '''Blue''',
+]
+
+[[List]]
+Name = '''playerMugshots'''
+0 = [
+   '''Red''',
+   '''Leaf''',
+]

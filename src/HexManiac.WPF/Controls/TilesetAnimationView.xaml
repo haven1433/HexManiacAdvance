@@ -1,0 +1,366 @@
+<UserControl x:Class="HavenSoft.HexManiac.WPF.Controls.TilesetAnimationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:hshmwpfc="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
+   <UserControl.Resources>
+      <Style x:Key="Hint" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+         <Setter Property="Foreground" Value="{DynamicResource Secondary}"/>
+         <Setter Property="TextWrapping" Value="Wrap"/>
+         <Setter Property="Margin" Value="0,2"/>
+      </Style>
+      <Style x:Key="ToolButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+         <Setter Property="Padding" Value="10,2"/>
+         <Setter Property="Margin" Value="0,0,6,4"/>
+      </Style>
+   </UserControl.Resources>
+   <DockPanel Background="{DynamicResource Background}">
+      <DockPanel DockPanel.Dock="Top" Margin="6,4">
+         <TextBlock Text="Animated Tiles" FontSize="18" VerticalAlignment="Center" Margin="0,0,16,0"/>
+         <TextBlock Text="Map:" VerticalAlignment="Center"/>
+         <ComboBox Width="260" Margin="5,0" ItemsSource="{Binding Maps}" SelectedItem="{Binding SelectedMap}" DisplayMemberPath="Label" VerticalAlignment="Center"/>
+         <TextBlock Text="Zoom:" VerticalAlignment="Center" Margin="12,0,4,0"/>
+         <Slider Width="80" Minimum="1" Maximum="4" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding SpriteScale}" VerticalAlignment="Center"/>
+         <Button Content="Refresh" Command="{Binding Refresh}" Margin="12,0" Padding="8,1" VerticalAlignment="Center"/>
+         <TextBlock Text="{Binding Status}" VerticalAlignment="Center" Foreground="{DynamicResource Secondary}" Margin="12,0"/>
+      </DockPanel>
+      <Grid Margin="6,0,6,6">
+         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="6"/>
+            <ColumnDefinition Width="*"/>
+         </Grid.ColumnDefinitions>
+
+         <!-- ============ left: the primary and secondary tilesets and the 'new animation' box ============ -->
+         <DockPanel Grid.Column="0">
+            <TextBlock DockPanel.Dock="Top" Style="{StaticResource Hint}" MaxWidth="560" HorizontalAlignment="Left"
+                       Text="Both tilesets of the map are shown. Outlined tiles are animated (the animated ones move here too): click one to see its animation on the right. Click any tile to start a new animation there."/>
+            <Border DockPanel.Dock="Bottom" BorderBrush="{DynamicResource Backlight}" BorderThickness="1" Padding="6" Margin="0,6,0,0" MaxWidth="560" HorizontalAlignment="Left">
+               <StackPanel>
+                  <TextBlock Text="{Binding NewAnimationTitle}" FontSize="14" Margin="0,0,0,4"/>
+                  <TextBlock Style="{StaticResource Hint}" Text="1. Click the first tile in a tileset above.  2. Say how many tiles (in a row) animate together and how many frames you want.  3. Add it, then draw or import the frames on the right."/>
+                  <Grid Margin="0,4,0,0">
+                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                     </Grid.ColumnDefinitions>
+                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                     </Grid.RowDefinitions>
+                     <TextBlock Grid.Row="0" Grid.Column="0" Text="First tile:" VerticalAlignment="Center" Margin="0,2,6,2"/>
+                     <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
+                        <TextBox Width="50" Text="{Binding FirstTile, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                        <TextBlock Text="  tiles in a row:" VerticalAlignment="Center"/>
+                        <TextBox Width="40" Text="{Binding TileCount, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                        <TextBlock Text="{Binding SelectionText}" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="{DynamicResource Secondary}"/>
+                     </StackPanel>
+                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Preview:" VerticalAlignment="Center" Margin="0,2,6,2"/>
+                     <Border Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" Background="{DynamicResource Backlight}" Padding="2">
+                        <hshmwpfc:PixelImage DataContext="{Binding SelectionPreview}"/>
+                     </Border>
+                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Frames:" VerticalAlignment="Center" Margin="0,2,6,2"/>
+                     <TextBox Grid.Row="2" Grid.Column="1" Width="40" HorizontalAlignment="Left" Text="{Binding FrameCount, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                     <TextBlock Grid.Row="3" Grid.Column="0" Text="Speed:" VerticalAlignment="Center" Margin="0,2,6,2"/>
+                     <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
+                        <Slider Width="120" Minimum="0" Maximum="7" TickFrequency="1" IsSnapToTickEnabled="True" IsDirectionReversed="True" Value="{Binding Speed}" VerticalAlignment="Center" ToolTip="Left = slower, right = faster"/>
+                        <TextBlock Text="{Binding SpeedText}" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="{DynamicResource Secondary}"/>
+                     </StackPanel>
+                     <Button Grid.Row="4" Grid.Column="1" Content="Add animation" Command="{Binding AddAnimation}" HorizontalAlignment="Left" Padding="12,3" Margin="0,6,0,0"/>
+                  </Grid>
+               </StackPanel>
+            </Border>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,4,0,0">
+               <ItemsControl ItemsSource="{Binding Panes}">
+                  <ItemsControl.ItemsPanel>
+                     <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                     </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                     <DataTemplate>
+                        <StackPanel Margin="0,0,12,0">
+                           <TextBlock Text="{Binding Title}" FontWeight="Bold">
+                              <TextBlock.Style>
+                                 <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                    <Style.Triggers>
+                                       <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                          <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                                       </DataTrigger>
+                                    </Style.Triggers>
+                                 </Style>
+                              </TextBlock.Style>
+                           </TextBlock>
+                           <TextBlock Text="{Binding Description}" Style="{StaticResource Hint}" MaxWidth="270" HorizontalAlignment="Left"/>
+                           <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                              <hshmwpfc:PixelImage DataContext="{Binding Image}" Cursor="Hand" MouseLeftButtonDown="TilesetClicked" MouseMove="TilesetDragged"/>
+                              <!-- every animated range -->
+                              <ItemsControl ItemsSource="{Binding Highlights}" IsHitTestVisible="False">
+                                 <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                       <Canvas/>
+                                    </ItemsPanelTemplate>
+                                 </ItemsControl.ItemsPanel>
+                                 <ItemsControl.ItemContainerStyle>
+                                    <Style TargetType="ContentPresenter">
+                                       <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                                       <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                                    </Style>
+                                 </ItemsControl.ItemContainerStyle>
+                                 <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                       <Rectangle Width="{Binding Width}" Height="{Binding Height}">
+                                          <Rectangle.Style>
+                                             <Style TargetType="Rectangle">
+                                                <Setter Property="Stroke" Value="{DynamicResource Secondary}"/>
+                                                <Setter Property="StrokeThickness" Value="1"/>
+                                                <Style.Triggers>
+                                                   <DataTrigger Binding="{Binding Selected}" Value="True">
+                                                      <Setter Property="Stroke" Value="{DynamicResource Accent}"/>
+                                                      <Setter Property="StrokeThickness" Value="2"/>
+                                                      <Setter Property="Fill" Value="#30FFFFFF"/>
+                                                   </DataTrigger>
+                                                </Style.Triggers>
+                                             </Style>
+                                          </Rectangle.Style>
+                                       </Rectangle>
+                                    </DataTemplate>
+                                 </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                              <!-- the tiles the new animation would use -->
+                              <ItemsControl ItemsSource="{Binding SelectionRects}" IsHitTestVisible="False">
+                                 <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                       <Canvas/>
+                                    </ItemsPanelTemplate>
+                                 </ItemsControl.ItemsPanel>
+                                 <ItemsControl.ItemContainerStyle>
+                                    <Style TargetType="ContentPresenter">
+                                       <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                                       <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                                    </Style>
+                                 </ItemsControl.ItemContainerStyle>
+                                 <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                       <Rectangle Width="{Binding Width}" Height="{Binding Height}" Stroke="{DynamicResource Accent}" StrokeThickness="2" Fill="#40FFFFFF"/>
+                                    </DataTemplate>
+                                 </ItemsControl.ItemTemplate>
+                              </ItemsControl>
+                           </Grid>
+                        </StackPanel>
+                     </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+               </ItemsControl>
+            </ScrollViewer>
+         </DockPanel>
+
+         <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="Transparent"/>
+
+         <!-- ============ right: the animations on these tilesets (left) next to the animated doors (right) ============ -->
+         <Grid Grid.Column="2">
+            <Grid.ColumnDefinitions>
+               <ColumnDefinition Width="*" MinWidth="300"/>
+               <ColumnDefinition Width="6"/>
+               <ColumnDefinition Width="*" MinWidth="300"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- animations -->
+            <DockPanel Grid.Column="0" Margin="0,0,2,0">
+               <DockPanel.Style>
+                  <Style TargetType="DockPanel">
+                     <Style.Triggers>
+                        <!-- a ROM without a door table gives the animations the whole width -->
+                        <DataTrigger Binding="{Binding HasDoors}" Value="False">
+                           <Setter Property="Grid.ColumnSpan" Value="3"/>
+                        </DataTrigger>
+                     </Style.Triggers>
+                  </Style>
+               </DockPanel.Style>
+               <TextBlock DockPanel.Dock="Top" Text="Animations on these tilesets" FontSize="14" Margin="0,0,0,4"/>
+               <TextBlock DockPanel.Dock="Top" Style="{StaticResource Hint}" Text="Each frame replaces the tiles while the animation plays. Click a frame to open the animation in the image editor: it gets one tab, the dots on the left pick the frame and the palette has its own row. The game's own animations play at the speed its code sets; the ones you add can be changed freely."/>
+               <WrapPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
+                  <Button Content="Edit frames" Command="{Binding EditFrames}" Style="{StaticResource ToolButton}" ToolTip="Open the selected animation in the image editor (every frame is in that one tab)"/>
+                  <Button Content="Import frames…" Command="{Binding ImportFrames}" Style="{StaticResource ToolButton}" ToolTip="Replace every frame of the selected animation from one picture: each frame is (tiles x 8) pixels wide and 8 pixels tall, stacked top to bottom"/>
+                  <Button Content="Export frames…" Command="{Binding ExportFrames}" Style="{StaticResource ToolButton}" ToolTip="Save the selected animation's frames as one picture"/>
+                  <Button Content="Update tileset" Command="{Binding UpdateTileset}" Style="{StaticResource ToolButton}" ToolTip="Store frame 1 of the selected animation in the tileset itself, so the tiles show it in the map editor's tile picker. Done automatically when you add an animation or edit its first frame; use this after changing the tileset tiles by hand"/>
+                  <Button Content="Remove" Command="{Binding RemoveEntry}" Style="{StaticResource ToolButton}" ToolTip="Delete the selected animation you added (the game's own animations can't be removed here)"/>
+                  <Button Content="Open table" Command="{Binding GotoTable}" Style="{StaticResource ToolButton}" ToolTip="Show the animation table in the main tab"/>
+               </WrapPanel>
+               <ScrollViewer VerticalScrollBarVisibility="Auto">
+                  <ItemsControl ItemsSource="{Binding Entries}">
+                     <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                           <Border BorderThickness="2" Margin="0,0,0,6" Padding="6" Background="{DynamicResource Backlight}" MouseLeftButtonDown="EntryClicked">
+                              <Border.Style>
+                                 <Style TargetType="Border">
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                    <Style.Triggers>
+                                       <DataTrigger Binding="{Binding Selected}" Value="True">
+                                          <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                       </DataTrigger>
+                                    </Style.Triggers>
+                                 </Style>
+                              </Border.Style>
+                              <StackPanel>
+                                 <TextBlock Text="{Binding Header}" FontSize="10" Foreground="{DynamicResource Accent}"/>
+                                 <TextBlock Text="{Binding Label}" FontWeight="Bold" TextWrapping="Wrap"/>
+                                 <TextBlock Text="{Binding Details}" Foreground="{DynamicResource Secondary}" TextWrapping="Wrap"/>
+                                 <WrapPanel Margin="0,4,0,0">
+                                    <StackPanel Margin="0,0,12,4" ToolTip="How the animation looks in game">
+                                       <TextBlock Text="Live" FontSize="10" Foreground="{DynamicResource Accent}"/>
+                                       <Border BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                                          <hshmwpfc:PixelImage DataContext="{Binding LiveFrame}"/>
+                                       </Border>
+                                    </StackPanel>
+                                    <StackPanel Margin="0,0,12,4">
+                                       <TextBlock Text="In tileset" FontSize="10" Foreground="{DynamicResource Secondary}"/>
+                                       <hshmwpfc:PixelImage DataContext="{Binding BaseTiles}"/>
+                                    </StackPanel>
+                                    <ItemsControl ItemsSource="{Binding Frames}">
+                                       <ItemsControl.ItemsPanel>
+                                          <ItemsPanelTemplate>
+                                             <WrapPanel/>
+                                          </ItemsPanelTemplate>
+                                       </ItemsControl.ItemsPanel>
+                                       <ItemsControl.ItemTemplate>
+                                          <DataTemplate>
+                                             <StackPanel Margin="0,0,8,4" Cursor="Hand" MouseLeftButtonDown="FrameClicked" ToolTip="Click to edit this frame in the image editor">
+                                                <TextBlock Text="{Binding Label}" FontSize="10" Foreground="{DynamicResource Secondary}"/>
+                                                <Border BorderBrush="{DynamicResource Secondary}" BorderThickness="1">
+                                                   <hshmwpfc:PixelImage/>
+                                                </Border>
+                                             </StackPanel>
+                                          </DataTemplate>
+                                       </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                 </WrapPanel>
+                                 <WrapPanel Margin="0,6,0,0">
+                                    <TextBlock Text="Speed:" VerticalAlignment="Center"/>
+                                    <Slider Width="120" Minimum="0" Maximum="7" TickFrequency="1" IsSnapToTickEnabled="True" IsDirectionReversed="True" Value="{Binding Speed}" IsEnabled="{Binding IsEditable}" VerticalAlignment="Center" Margin="4,0"/>
+                                    <TextBlock Text="{Binding SpeedText}" VerticalAlignment="Center" Foreground="{DynamicResource Secondary}"/>
+                                    <TextBlock Text="   Frames:" VerticalAlignment="Center"/>
+                                    <TextBox Width="40" Text="{Binding FrameCount, UpdateSourceTrigger=LostFocus}" IsEnabled="{Binding IsEditable}" VerticalAlignment="Center" Margin="4,0" ToolTip="Type a new number of frames and press Tab. New frames copy the last one."/>
+                                 </WrapPanel>
+                              </StackPanel>
+                           </Border>
+                        </DataTemplate>
+                     </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+               </ScrollViewer>
+            </DockPanel>
+
+            <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="Transparent">
+               <GridSplitter.Style>
+                  <Style TargetType="GridSplitter">
+                     <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasDoors}" Value="False">
+                           <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                     </Style.Triggers>
+                  </Style>
+               </GridSplitter.Style>
+            </GridSplitter>
+
+            <!-- doors -->
+            <DockPanel Grid.Column="2" Margin="2,0,0,0">
+               <DockPanel.Style>
+                  <Style TargetType="DockPanel">
+                     <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasDoors}" Value="False">
+                           <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                     </Style.Triggers>
+                  </Style>
+               </DockPanel.Style>
+               <TextBlock DockPanel.Dock="Top" Text="Animated doors on these tilesets" FontSize="14" Margin="0,0,0,4"/>
+               <TextBlock DockPanel.Dock="Top" Style="{StaticResource Hint}" Text="A door plays 3 opening frames over its block when you walk through it (and the same frames backwards when it closes). Pick the block number the door sits on; for a two-block-tall door that is the bottom block. Click a frame to open the door in the image editor: the dots on the left pick the frame."/>
+               <WrapPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
+                  <Button Content="Edit frames" Command="{Binding EditDoorFrames}" Style="{StaticResource ToolButton}" ToolTip="Open the selected door in the image editor (its 3 frames are in that one tab)"/>
+                  <Button Content="Import frames…" Command="{Binding ImportDoorFrames}" Style="{StaticResource ToolButton}" ToolTip="Replace the selected door's 3 frames from one picture (frames stacked top to bottom)"/>
+                  <Button Content="Export frames…" Command="{Binding ExportDoorFrames}" Style="{StaticResource ToolButton}" ToolTip="Save the selected door's 3 frames as one picture"/>
+                  <Button Content="Remove" Command="{Binding RemoveDoor}" Style="{StaticResource ToolButton}" ToolTip="Delete the selected door"/>
+                  <Button Content="Open table" Command="{Binding GotoDoorTable}" Style="{StaticResource ToolButton}" ToolTip="Show the door table in the main tab"/>
+               </WrapPanel>
+               <Border DockPanel.Dock="Bottom" BorderBrush="{DynamicResource Backlight}" BorderThickness="1" Padding="6" Margin="0,6,0,0">
+                  <WrapPanel>
+                     <TextBlock Text="New door on block:" VerticalAlignment="Center"/>
+                     <TextBox Width="50" Margin="4,0" Text="{Binding NewDoorMetatile, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                     <Border Background="{DynamicResource Backlight}" Padding="1" VerticalAlignment="Center">
+                        <hshmwpfc:PixelImage DataContext="{Binding NewDoorPreview}"/>
+                     </Border>
+                     <TextBlock Text="  size:" VerticalAlignment="Center"/>
+                     <ComboBox Margin="4,0" ItemsSource="{Binding DoorSizes}" SelectedIndex="{Binding NewDoorSize}" VerticalAlignment="Center"/>
+                     <TextBlock Text="  sound:" VerticalAlignment="Center"/>
+                     <ComboBox Margin="4,0" ItemsSource="{Binding DoorSounds}" SelectedIndex="{Binding NewDoorSound}" VerticalAlignment="Center"/>
+                     <TextBlock Text="{Binding ActivePane.Title, StringFormat=' on the {0}'}" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="{DynamicResource Secondary}" ToolTip="Click a tile in a tileset to choose which one gets the new door"/>
+                     <Button Content="Add door" Command="{Binding AddDoor}" Padding="12,3" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                  </WrapPanel>
+               </Border>
+               <ScrollViewer VerticalScrollBarVisibility="Auto">
+                  <ItemsControl ItemsSource="{Binding Doors}">
+                     <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                           <Border BorderThickness="2" Margin="0,0,0,6" Padding="6" Background="{DynamicResource Backlight}" MouseLeftButtonDown="DoorClicked">
+                              <Border.Style>
+                                 <Style TargetType="Border">
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                    <Style.Triggers>
+                                       <DataTrigger Binding="{Binding Selected}" Value="True">
+                                          <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                       </DataTrigger>
+                                    </Style.Triggers>
+                                 </Style>
+                              </Border.Style>
+                              <StackPanel>
+                                 <TextBlock Text="{Binding Label}" FontWeight="Bold" TextWrapping="Wrap"/>
+                                 <TextBlock Text="{Binding Details}" Foreground="{DynamicResource Secondary}" TextWrapping="Wrap"/>
+                                 <TextBlock Text="{Binding Warning}" Foreground="{DynamicResource Error}" TextWrapping="Wrap" Margin="0,2,0,0"
+                                            Visibility="{Binding HasWarning, Converter={StaticResource BoolToVisibility}}"/>
+                                 <WrapPanel Margin="0,4,0,0">
+                                    <StackPanel Margin="0,0,12,4" ToolTip="How the door opens and closes in game">
+                                       <TextBlock Text="Live" FontSize="10" Foreground="{DynamicResource Accent}"/>
+                                       <Border BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                                          <hshmwpfc:PixelImage DataContext="{Binding LiveFrame}"/>
+                                       </Border>
+                                    </StackPanel>
+                                    <StackPanel Margin="0,0,12,4">
+                                       <TextBlock Text="Block" FontSize="10" Foreground="{DynamicResource Secondary}"/>
+                                       <hshmwpfc:PixelImage DataContext="{Binding Block}"/>
+                                    </StackPanel>
+                                    <ItemsControl ItemsSource="{Binding Frames}">
+                                       <ItemsControl.ItemsPanel>
+                                          <ItemsPanelTemplate>
+                                             <WrapPanel/>
+                                          </ItemsPanelTemplate>
+                                       </ItemsControl.ItemsPanel>
+                                       <ItemsControl.ItemTemplate>
+                                          <DataTemplate>
+                                             <StackPanel Margin="0,0,8,4" Cursor="Hand" MouseLeftButtonDown="DoorFrameClicked" ToolTip="Click to open the door's frames in the image editor">
+                                                <TextBlock Text="{Binding Label}" FontSize="10" Foreground="{DynamicResource Secondary}"/>
+                                                <Border BorderBrush="{DynamicResource Secondary}" BorderThickness="1">
+                                                   <hshmwpfc:PixelImage/>
+                                                </Border>
+                                             </StackPanel>
+                                          </DataTemplate>
+                                       </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                 </WrapPanel>
+                                 <WrapPanel Margin="0,6,0,0">
+                                    <TextBlock Text="Block:" VerticalAlignment="Center"/>
+                                    <TextBox Width="50" Text="{Binding Metatile, UpdateSourceTrigger=LostFocus}" VerticalAlignment="Center" Margin="4,0" ToolTip="Type a new block number and press Tab"/>
+                                    <TextBlock Text="  Sound:" VerticalAlignment="Center"/>
+                                    <ComboBox Margin="4,0" ItemsSource="{Binding DataContext.DoorSounds, RelativeSource={RelativeSource AncestorType=UserControl}}" SelectedIndex="{Binding Sound}" VerticalAlignment="Center"/>
+                                 </WrapPanel>
+                              </StackPanel>
+                           </Border>
+                        </DataTemplate>
+                     </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+               </ScrollViewer>
+            </DockPanel>
+         </Grid>
+      </Grid>
+   </DockPanel>
+</UserControl>

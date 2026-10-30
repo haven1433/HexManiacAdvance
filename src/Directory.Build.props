@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <OutputPath>$(SolutionDir)artifacts\$(MSBuildProjectName)\bin\$(Configuration)\</OutputPath>
+    <BaseOutputPath>$(SolutionDir)artifacts\$(MSBuildProjectName)\bin\$(Configuration)\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(SolutionDir)artifacts\$(MSBuildProjectName)\obj\$(Configuration)\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>$(SolutionDir)artifacts\$(MSBuildProjectName)\obj\$(Configuration)\</IntermediateOutputPath>
+    <NoWarn>1591;1701;1702;8034;0067;1573;0108;0659</NoWarn>
+  </PropertyGroup>
+</Project>

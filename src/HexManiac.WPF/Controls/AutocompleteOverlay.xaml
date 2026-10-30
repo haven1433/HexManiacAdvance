@@ -1,0 +1,47 @@
+﻿<UserControl x:Class="HavenSoft.HexManiac.WPF.Controls.AutocompleteOverlay"
+   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+   xmlns:local="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
+   Margin="5,0,0,0"
+   HorizontalAlignment="Left"
+   VerticalAlignment="Top"
+   IsTabStop="False"
+   Visibility="Collapsed">
+   <UserControl.RenderTransform>
+      <TranslateTransform x:Name="AutocompleteTransform"/>
+   </UserControl.RenderTransform>
+   <Canvas Width="0" Height="0" ClipToBounds="False">
+   <Popup Name="Popup">
+      <Popup.Style>
+         <Style TargetType="Popup">
+            <Style.Triggers>
+               <DataTrigger Binding="{Binding Visibility, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="Visible">
+                  <Setter Property="IsOpen" Value="True"/>
+               </DataTrigger>
+            </Style.Triggers>
+         </Style>
+      </Popup.Style>
+      <Border Name="ScrollBorder" Padding="1" BorderThickness="1" BorderBrush="{DynamicResource Accent}" Background="{DynamicResource Background}">
+         <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="200">
+            <ItemsControl Name="AutocompleteItems" IsTabStop="False">
+               <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                     <Button Content="{Binding DisplayText}" Background="{DynamicResource Background}" PreviewMouseDown="AutocompleteOptionChosen">
+                        <Button.Style>
+                           <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                              <Style.Triggers>
+                                 <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                 </DataTrigger>
+                              </Style.Triggers>
+                           </Style>
+                        </Button.Style>
+                     </Button>
+                  </DataTemplate>
+               </ItemsControl.ItemTemplate>
+            </ItemsControl>
+         </ScrollViewer>
+      </Border>
+   </Popup>
+   </Canvas>
+</UserControl>

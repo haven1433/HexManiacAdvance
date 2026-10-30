@@ -1,0 +1,87 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <ImplicitUsings>false</ImplicitUsings>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Nullable>annotations</Nullable>
+    <CodeGenDir>$(SolutionDir)artifacts\$(AssemblyName)\codegen\</CodeGenDir>
+    <AutoImplement>$(SolutionDir)artifacts\AutoImplement.Tool\bin\$(Configuration)\$(TargetFramework)\AutoImplement.Tool</AutoImplement>
+    <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="3.1.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
+    <ProjectReference Include="$(SolutionDir)src\HexManiac.Core\HexManiac.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(SolutionDir)src\SharedAssemblyInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- the indexed PNG reader/writer is plain .NET code that lives in the WPF project, which a test project can't reference: compile it here (IndexedPngTests); the Crc32.NET package it needs comes with the Core project -->
+    <Compile Include="$(SolutionDir)src\HexManiac.WPF\Resources\IndexedPng.cs" Link="IndexedPng\IndexedPng.cs" />
+    <Compile Include="$(SolutionDir)src\HexManiac.WPF\Resources\IndexedPngReader.cs" Link="IndexedPng\IndexedPngReader.cs" />
+    <Compile Include="$(SolutionDir)src\HexManiac.WPF\Resources\IndexedPngWriter.cs" Link="IndexedPng\IndexedPngWriter.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="test_compiled\Expand01_-_Move_Stats.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="test_compiled\Expand02_-_Pokemon_Move_Learn_Table.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="test_compiled\Expand03_-_Relearner_move_tutor.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="test_code\Expand01_-_Move_Stats.asm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="test_code\Expand02_-_Pokemon_Move_Learn_Table.asm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="test_code\Expand03_-_Relearner_move_tutor.asm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <PostBuildEvent>
+      mkdir "$(TargetDir)resources"
+      mkdir "$(TargetDir)resources\Scripts"
+      mkdir "$(TargetDir)resources\Scripts\Add Mechanics From Later Generations"
+      mkdir "$(TargetDir)resources\Scripts\CUBE"
+      mkdir "$(TargetDir)resources\Scripts\internal"
+      mkdir "$(TargetDir)resources\Scripts\Patches"
+      mkdir "$(TargetDir)resources\Scripts\Update Existing Mechanics"
+      copy "$(TargetDir)Models\Code\*.txt" "$(TargetDir)resources"
+      del "$(TargetDir)Models\Code\*.txt"
+      copy "$(TargetDir)Models\Code\*.toml" "$(TargetDir)resources"
+      del "$(TargetDir)Models\Code\*.toml"
+      copy "$(TargetDir)Models\Code\*.hma" "$(TargetDir)resources"
+      del "$(TargetDir)Models\Code\*.hma"
+      copy "$(TargetDir)Models\Code\*.py" "$(TargetDir)resources"
+      del "$(TargetDir)Models\Code\*.py"
+      copy "$(SolutionDir)src\HexManiac.WPF\Scripts\*.hma" "$(TargetDir)resources\Scripts"
+      copy "$(SolutionDir)src\HexManiac.WPF\Scripts\Add Mechanics From Later Generations\*.hma" "$(TargetDir)resources\Scripts\Add Mechanics From Later Generations"
+      copy "$(SolutionDir)src\HexManiac.WPF\Scripts\CUBE\*.hma" "$(TargetDir)resources\Scripts\CUBE"
+      copy "$(SolutionDir)src\HexManiac.WPF\Scripts\internal\*.hma" "$(TargetDir)resources\Scripts\internal"
+      copy "$(SolutionDir)src\HexManiac.WPF\Scripts\Patches\*.hma" "$(TargetDir)resources\Scripts\Patches"
+      copy "$(SolutionDir)src\HexManiac.WPF\Scripts\Update Existing Mechanics\*.hma" "$(TargetDir)resources\Scripts\Update Existing Mechanics"
+    </PostBuildEvent>
+  </PropertyGroup>
+
+</Project>

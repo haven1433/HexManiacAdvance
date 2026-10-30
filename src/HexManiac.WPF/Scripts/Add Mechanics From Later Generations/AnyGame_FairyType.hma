@@ -1,0 +1,140 @@
+# Add Fairy Type to Type list
+# Update pokedex search / union room tables
+# Update default move names
+# Update Type Chart to Gen 6
+# Update Type for Clefairy, etc.
+# Add Fairy Type Icon
+# Add Fairy palette for TM Case
+
+# Note: For Emerald, you may want to update the XSE script around 259E9B,
+#       which has a section for each type. The script is part of the battle
+#       factory, so you can ignore it if that isn't in your game.
+
+
+# ---------------- FR/LG: make TM Case palettes expandable ----------------
+# This modifies some code to allow for a constant that represents the number of types
+# Adding a new type should update this constant, allowing the game to load extra palettes for the TM Case
+@!game(BPRE0) @1338A8
+@!game(BPRE1) @133880
+@!game(BPGE0) @133920
+@!game(BPGE1) @1338F8
+
+@!game(BPRE0_BPRE1_BPGE0_BPGE1) ^thumb.LoadTMTypePalettes
+@thumb.LoadTMTypePalettes+06 .thumb
+    mov r5, #17
+    lsl r5, r5, #5
+.end
+
+@thumb.LoadTMTypePalettes+06 .data.pokemon.type.length-1
+
+
+# -------------------------- All Games : Update Type Names, Chart, and Pokemon --------------------------
+@!game(All)
+
+# Extend the type names table
+@data.pokemon.type.names/18
++"FAIRY"
+
+# Update the pokedex search options
+@!game(AXVE0_AXPE0_AXVE1_AXPE1_BPEE0)
+@data.pokedex.filter.type.options/Fairy/type <data.pokemon.type.names/Fairy>
+@data.pokedex.filter.type.ids/Fairy Fairy
+
+# Update the union room names
+@!game(BPRE0_BPRE1_BPGE0_BPGE1)
+@data.pokemon.type.unionroom.options/Fairy <data.pokemon.type.names/Fairy> 18 <> 19 
+
+# Update move fallback names
+@!game(AXVE0_AXPE0_AXVE1_AXPE1_BPRE0_BPRE1_BPGE0_BPGE1)
+@data.pokemon.moves.details.fallback.names/Fairy <null>
+@data.pokemon.moves.details.fallback.names/Fairy @{ "a FAIRY move" @}
+@!game(BPEE0)
+@data.pokemon.moves.details.fallback.names/Fairy "a FAIRY move"
+@!game(All)
+
+# Update the type effectiveness chart
+@data.pokemon.type.chart/93  # previously Steel-Resists-Ghost
++ Fairy Dark 20
+@data.pokemon.type.chart/101 # previously Steel-Resists-Dark
++ Fairy Dragon 20
+@data.pokemon.type.chart/108 # adding new entries
++ Fairy Fight 20 + Fairy  Fire   5
++ Fairy Poison 5 + Fairy  Steel  5
++ Bug   Fairy  5 + Dark   Fairy  5
++ Fight Fairy  5 + Poison Fairy 20
++ Steel Fairy 20 + Dragon Fairy  0
+# Effectiveness that care about Scrappy / Foresight / Odor Sleuth
++ 254 254 0      + Normal Ghost 0  + Fight Ghost 0
+
+# Change the types of Gen1/Gen3 pokemon to add the fairy type
+@data.pokemon.stats/cleffa/type1     Fairy Fairy
+@data.pokemon.stats/clefairy/type1   Fairy Fairy
+@data.pokemon.stats/clefable/type1   Fairy Fairy
+@data.pokemon.stats/igglybuff/type2        Fairy
+@data.pokemon.stats/jigglypuff/type2       Fairy
+@data.pokemon.stats/wigglytuff/type2       Fairy
+@data.pokemon.stats/mrmime/type2           Fairy
+@data.pokemon.stats/togepi/type1     Fairy Fairy
+@data.pokemon.stats/togetic/type1    Fairy
+@data.pokemon.stats/azurill/type2          Fairy
+@data.pokemon.stats/marill/type2           Fairy
+@data.pokemon.stats/azumarill/type2        Fairy
+@data.pokemon.stats/snubbull/type1   Fairy Fairy
+@data.pokemon.stats/granbull/type1   Fairy Fairy
+@data.pokemon.stats/ralts/type2            Fairy
+@data.pokemon.stats/kirlia/type2           Fairy
+@data.pokemon.stats/gardevoir/type2        Fairy
+@data.pokemon.stats/mawile/type2           Fairy
+
+# Change the types of Gen1/Gen3 moves to add the fairy type
+@data.pokemon.moves.stats.battle/charm/type       Fairy
+@data.pokemon.moves.stats.battle/sweetkiss/type   Fairy
+@data.pokemon.moves.stats.battle/moonlight/type   Fairy
+
+# ---------------- FR/LG: add extra TM Case palette ----------------
+# This will make TMs in the TM case use the new palette
+@!game(BPRE0_BPRE1_BPGE0_BPGE1) @graphics.moves.tmcase.palette2+1
+64 00 00 00 29 31 99 7F 56 7F 00 13 7F F1 7E D5 6A DA 56 08 DF 42 00 00 4:2 FF 7F F7 00 5E DC 7F 99 76 00 00 2C 00 2D 3D 7F DC 7E 7C 7E 3B 01 7E B6 6A BA 62 5E 5E 10:32 00 9E 7F BD 52 
+@graphics.moves.tmcase.palettemap/Fairy 17
+
+
+# -------------------------- Icon Edits --------------------------
+# (You may want to delete this part and do icons manually.)
+
+# Add the fairy icon to the type icon sprite. (FR/LG/Emerald)
+@!game(BPRE0_BPRE1_BPGE0_BPGE1) @graphics.pokemon.type.icons+100
+@!game(BPEE0)                   @graphics.pokemon.bag.type.icon+100
+@!game(BPRE0_BPRE1_BPGE0_BPGE1_BPEE0)
+C0 CC CC CC CC CC CC CC CC CC FF FF CC CC EF EE CC CC EF CC CC CC FF EF CC CC EF EE CC CC EF CC
+CC CC CC CC CC CC CC CC CE FF CE FF FE EE EF FC FC CE EF FC FC FF EF FC FC EE EF FC FC CE EF FC
+CC CC CC CC CC CC CC CC EF FF EF FC EE EF FE FE CE EF FC FE CE FF EF FC CE EF FC EE CE EF FC CE
+CC CC CC 0C CC CC CC CC FE CE CC CC FE CE CC CC FE CE CC CC FE CE CC CC EF CE CC CC EF CC CC CC 
+@!game(BPRE0_BPRE1_BPGE0_BPGE1) @graphics.pokemon.type.icons+300
+@!game(BPEE0)                   @graphics.pokemon.bag.type.icon+300
+@!game(BPRE0_BPRE1_BPGE0_BPGE1_BPEE0)
+CC CC EF CC CC CC EE CC CC CC CC CC C0 CC CC CC 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+FC CE EF FF EC CE EE EE CC CC CC CC CC CC CC CC 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+EF EF FC CE EE EE EC CE CC CC CC CC CC CC CC CC 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+EF CC CC CC EE CC CC CC CC CC CC CC CC CC CC 0C 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+# Edit the type map so the game knows where to find the Fairy Icon in the type icon sprite
+@!game(BPRE0_BPRE1_BPGE0_BPGE1) @graphics.pokemon.type.map/Fairy
+@!game(BPEE0) @graphics.pokemon.bag.type.map/Fairy
+@!game(BPRE0_BPRE1_BPGE0_BPGE1_BPEE0) 32 12 (2 0)
+
+# Add the fairy icon to the type icon sprite. (Ruby/Sapphire/Emerald)
+#                                             Yes, you have to change both for Emerald.
+
+@!game(AXVE0_AXPE0_AXVE1_AXPE1_BPEE0)
+@graphics.pokemon.type.map/Fairy <null>
+@graphics.pokemon.type.map/Fairy @{ 23 FFFF 0000 @}
+@graphics.pokemon.type.icons+1 ++
+@!game(BPEE0)                   @graphics.pokemon.type.icons+B07
+@!game(AXVE0_AXPE0_AXVE1_AXPE1) @graphics.pokemon.type.icons+B0B
+@!game(AXVE0_AXPE0_AXVE1_AXPE1_BPEE0)
+97 16:32 EE EF 11:116 EE 8:30 18:2304 10:768 2B FF FF 3:742 EE 3:4 88 4:718 16:736 0C 8E FF 8E FF 4:2528 3:628 F8 F8 11 FF EF F8 17:800 FF EF F8 3:2228 54 FE 5:694 FF 9:32 09 8:768 FE 8E FE 14:4 10:108 4:4 6:2208 12:768 4:2270 5:108 8E 25 EF FF 18:736 00 00 3:910 EE 3:108 49 8E 4:2276 EE EE 18:2304 EF 8E 16:94 80 14:768 
+
+@graphics.pokemon.type.index/Fairy 14
+
+@!game(All)
+# TODO add some basic fairy moves?
+

@@ -1,0 +1,22 @@
+
+# User-specific files
+*.suo
+*.user
+launchSettings.json
+
+# example binary files
+sampleFiles/
+
+# Build results
+artifacts/
+obj/
+*.coverage
+
+# cache/options directory
+.vs/
+__pycache__/
+
+# local downloaded nuget packages
+packages/
+
+
